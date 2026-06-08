@@ -1,0 +1,10 @@
+{
+	// Static-assets deployment for the Astro build output.
+	// No Worker script, no KV, no sessions — just serve ./dist.
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "peculiarengineer",
+	"compatibility_date": "2025-06-01",
+	"assets": {
+		"directory": "./dist"
+	}
+}
