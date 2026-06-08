@@ -6,7 +6,7 @@ import { defineConfig, fontProviders } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://peculiarengineer.pages.dev',
+	site: 'https://peculiarengineer.com',
 	integrations: [mdx(), sitemap()],
 	fonts: [
 		{
