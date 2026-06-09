@@ -69,12 +69,27 @@ const latest = posts[0];
 					)
 				}
 
-				<div class="card card-code">
-					<span class="card-tag">MODULE 02</span>
-					<div class="code-head">
-						<span class="code-cmd">~/$ cat deploy.sh</span>
-					</div>
-					<pre><code>#!/bin/bash
+				{
+					posts[1] ? (
+						<a class="card card-latest" href={`/blog/${posts[1].id}/`}>
+							<span class="card-tag">MODULE 02</span>
+							<div>
+								<span class="badge">Recent Entry</span>
+								<h2>{posts[1].data.title}</h2>
+								<p class="excerpt">{posts[1].data.description}</p>
+								<p class="meta">
+									<FormattedDate date={posts[1].data.pubDate} />
+								</p>
+							</div>
+							<div class="card-exec">EXECUTE_READ --&gt;</div>
+						</a>
+					) : (
+						<div class="card card-code">
+							<span class="card-tag">MODULE 02</span>
+							<div class="code-head">
+								<span class="code-cmd">~/$ cat deploy.sh</span>
+							</div>
+							<pre><code>#!/bin/bash
 set -euo pipefail
 
 # Ensure deterministic builds
@@ -82,7 +97,9 @@ export DOCKER_BUILDKIT=1
 docker build \
   --build-arg VERSION=$(git rev-parse HEAD) \
   -t peculiar/engine:latest .</code></pre>
-				</div>
+						</div>
+					)
+				}
 
 				<div class="quick-links">
 					<a href="/blog"><span class="hex">0x01</span><h3>Documentation</h3></a>

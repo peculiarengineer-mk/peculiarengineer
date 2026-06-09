@@ -9,6 +9,18 @@ Ubuntu desktop ships with the SSH *client* but not the *server*, so a fresh
 install won't accept incoming connections. This is the short runbook I follow to
 turn a desktop into something I can `ssh` into from another machine.
 
+## Contents
+
+- [Prerequisites](#prerequisites)
+- [1. Install the OpenSSH server](#1-install-the-openssh-server)
+- [2. Start it and enable it on boot](#2-start-it-and-enable-it-on-boot)
+- [3. Verify it's running](#3-verify-its-running)
+- [4. Allow SSH through the firewall](#4-allow-ssh-through-the-firewall)
+- [5. Find the machine's IP address](#5-find-the-machines-ip-address)
+- [6. Connect from another machine](#6-connect-from-another-machine)
+- [Hardening before you expose it](#hardening-before-you-expose-it)
+- [Gotchas I hit](#gotchas-i-hit)
+
 ## Prerequisites
 
 - An Ubuntu desktop you can log into locally (to run these the first time)
@@ -37,12 +49,21 @@ boot.
 sudo systemctl status ssh
 ```
 
-Look for `active (running)`. Press `q` to exit. To confirm it's actually
-listening on port 22:
+Look for `active (running)`, then press `q` to exit. To confirm something is
+actually listening on port 22:
 
 ```bash
-ss -tlnp | grep ssh
+sudo ss -tlnp | grep :22
 ```
+
+> **On Ubuntu 24.04 (and other 22.10+ releases), SSH is *socket-activated*.**
+> `ssh.service` will read `inactive (dead)` until the first connection arrives,
+> and the port-22 listener belongs to `systemd`, not `sshd` — both are normal.
+> Check the socket instead:
+>
+> ```bash
+> sudo systemctl status ssh.socket
+> ```
 
 ## 4. Allow SSH through the firewall
 
@@ -57,7 +78,8 @@ sudo ufw enable
 ## 5. Find the machine's IP address
 
 ```bash
-ip a
+hostname -I    # quickest — prints just the IP(s)
+ip a           # full detail, per interface
 ```
 
 Note the `inet` address on your active interface, e.g. `192.168.1.42`.
@@ -70,16 +92,28 @@ ssh your_username@192.168.1.42
 
 ## Hardening before you expose it
 
-For anything beyond a trusted LAN, edit `/etc/ssh/sshd_config` and set:
+For anything beyond a trusted LAN, switch to key-based auth **before** you touch
+any config. From the machine you'll connect *from*:
+
+```bash
+ssh-keygen -t ed25519                     # skip if you already have a key
+ssh-copy-id your_username@192.168.1.42     # installs your public key on the desktop
+```
+
+Confirm you can log in with the key, *then* edit `/etc/ssh/sshd_config` on the
+desktop and set:
 
 ```text
-PasswordAuthentication no   # after you've set up key auth
+PasswordAuthentication no
 PermitRootLogin no
 ```
 
-Apply changes with `sudo systemctl restart ssh`. Switch to key-based auth from
-your client with `ssh-copy-id your_username@192.168.1.42` *before* turning
-passwords off, or you'll lock yourself out.
+Apply the changes with `sudo systemctl restart ssh`.
+
+> **Mind the drop-ins.** Modern `sshd_config` ends with
+> `Include /etc/ssh/sshd_config.d/*.conf`. A file in that directory can override
+> your edits — if a setting refuses to take, grep there before pulling your hair
+> out.
 
 ## Gotchas I hit
 
