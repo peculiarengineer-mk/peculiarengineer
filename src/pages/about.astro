@@ -4,23 +4,28 @@ import Layout from '../layouts/BlogPost.astro';
 ---
 
 <Layout
-	title="About Me"
-	description="Who's behind Peculiar Engineer."
+	title="About"
+	description="Minor Keith — documenting every fix, trick, and tool so I never have to Google the same problem twice."
 	pubDate={new Date('2026-06-05')}
 	showDate={false}
 	heroImage={AboutHeroImage}
 >
+	<p class="whoami"><span class="prompt">~/$</span> whoami</p>
+
 	<p>
-		Hi, I'm Keith — an engineer who writes things down. This site is where I keep the
-		guides, install walkthroughs, and runbooks I build while working through real
-		problems.
+		Hi, I'm <strong>Minor Keith</strong> — an engineer with a memory like a
+		<code>/tmp</code> directory: whatever I figured out last week is usually gone by
+		Monday. Peculiar Engineer is where I write it all down so I don't have to Google
+		the same error for the tenth time.
 	</p>
 
 	<p>
-		I started Peculiar Engineer because I kept solving the same problems twice. Every
-		post here is something I actually did: the commands that worked, the errors I hit
-		along the way, and the reasoning behind each step — so it's reproducible whether
-		you're following along or it's future-me coming back six months later.
+		Everything here is documentation of something I actually ran into and solved — the
+		command that finally worked, the cryptic error that ate an afternoon, the config
+		flag buried on page nine of some forum thread — plus the tricks I pick up and the
+		new tools and software I stumble onto along the way. Real steps, real reasoning, no
+		fluff. It's written first for future-me at 2&nbsp;a.m., but if it saves you a search
+		too, even better.
 	</p>
 
 	<p>
@@ -28,3 +33,15 @@ import Layout from '../layouts/BlogPost.astro';
 		to reach out. Thanks for stopping by.
 	</p>
 </Layout>
+
+<style>
+	.whoami {
+		font-family: var(--font-mono);
+		color: var(--sys-dim);
+		margin-bottom: 1.5em;
+	}
+	.whoami .prompt {
+		color: var(--sys-fg);
+		font-weight: 700;
+	}
+</style>
