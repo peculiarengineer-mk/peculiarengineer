@@ -1,8 +1,15 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
+import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+
+const posts = (await getCollection('blog')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+const latest = posts[0];
 ---
 
 <!doctype html>
@@ -13,20 +20,288 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 	<body>
 		<Header />
 		<main>
-			<h1>🛠️ Peculiar Engineer</h1>
-			<p>
-				Hands-on tech guides, step-by-step install walkthroughs, and runbooks I've
-				written down so I (and you) never have to figure them out twice.
-			</p>
-			<p>
-				Everything here is practical and reproducible — copy-paste-able commands,
-				gotchas I hit, and the fixes that actually worked.
-			</p>
-			<p>
-				Head over to the <a href="/blog">blog</a> to browse the latest guides, or
-				read a bit <a href="/about">about me</a>.
-			</p>
+			<!-- BIOS boot sequence -->
+			<div class="bios">
+				PECOS BIOS v4.2.1-RELEASE<br />
+				Copyright (C) 1989-{new Date().getFullYear()}, Peculiar Engineering Systems<br />
+				<br />
+				CPU: ThoughtProcessor(tm) 8-Core @ 3.4GHz<br />
+				Memory Test: 640K OK<br />
+				Initializing Subsystems... OK<br />
+				Mounting Filesystem (/dev/hda1)... OK<br />
+				Loading Mission Protocol: <span class="hi">A QUIET PLACE FOR RIGOROUS THINKING.</span><br />
+				<br />
+				System Ready.<span class="cursor-blink"></span>
+			</div>
+
+			<!-- Hero -->
+			<section class="term-panel hero">
+				<span class="term-label">:: Peculiar_Engineer.exe ::</span>
+				<h1>&gt; Peculiar Engineer_</h1>
+				<p>
+					Hands-on tech guides and deep dives into software engineering,
+					infrastructure, and the peculiarities of modern systems. Focused on
+					reproducibility and practical insights.
+				</p>
+				<div class="actions">
+					<a class="btn btn-primary" href="/blog">[ RUN: Read_Blog ]</a>
+					<a class="btn btn-dim" href="/about">[ INFO: About_Author ]</a>
+				</div>
+			</section>
+
+			<!-- Bento grid -->
+			<section class="bento">
+				{
+					latest && (
+						<a class="card card-latest" href={`/blog/${latest.id}/`}>
+							<span class="card-tag">MODULE 01</span>
+							<div>
+								<span class="badge">Latest Deep Dive</span>
+								<h2>{latest.data.title}</h2>
+								<p class="excerpt">{latest.data.description}</p>
+								<p class="meta">
+									<FormattedDate date={latest.data.pubDate} />
+								</p>
+							</div>
+							<div class="card-exec">EXECUTE_READ --&gt;</div>
+						</a>
+					)
+				}
+
+				<div class="card card-code">
+					<span class="card-tag">MODULE 02</span>
+					<div class="code-head">
+						<span class="code-cmd">~/$ cat deploy.sh</span>
+					</div>
+					<pre><code>#!/bin/bash
+set -euo pipefail
+
+# Ensure deterministic builds
+export DOCKER_BUILDKIT=1
+docker build \
+  --build-arg VERSION=$(git rev-parse HEAD) \
+  -t peculiar/engine:latest .</code></pre>
+				</div>
+
+				<div class="quick-links">
+					<a href="/blog"><span class="hex">0x01</span><h3>Documentation</h3></a>
+					<a href="/blog"><span class="hex">0x02</span><h3>Experiments</h3></a>
+					<a href="/rss.xml"><span class="hex">0x03</span><h3>RSS Feed</h3></a>
+				</div>
+			</section>
+
+			<div class="rule">
+				+--------------------------------------------------------------------------+
+			</div>
 		</main>
 		<Footer />
 	</body>
 </html>
+
+<style>
+	main {
+		display: flex;
+		flex-direction: column;
+		gap: 2em;
+	}
+	/* BIOS */
+	.bios {
+		color: var(--sys-dim);
+		font-size: 0.8em;
+		line-height: 1.5;
+	}
+	.bios .hi {
+		color: var(--sys-fg);
+		font-weight: 700;
+	}
+
+	/* Hero */
+	.hero h1 {
+		font-size: 2.4em;
+		margin: 0.2em 0 0.4em;
+	}
+	.hero p {
+		max-width: 60ch;
+		color: var(--sys-text);
+	}
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1em;
+		margin-top: 1.5em;
+	}
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.5em 1em;
+		text-transform: uppercase;
+		font-weight: 700;
+		text-decoration: none;
+		border: 1px solid var(--sys-fg);
+		color: var(--sys-fg);
+	}
+	.btn:hover {
+		background: var(--sys-fg);
+		color: var(--sys-bg);
+	}
+	.btn-dim {
+		border-color: var(--sys-dim);
+		color: var(--sys-dim);
+		font-weight: 400;
+	}
+	.btn-dim:hover {
+		border-color: var(--sys-fg);
+		background: var(--sys-fg);
+		color: var(--sys-bg);
+	}
+
+	/* Bento grid */
+	.bento {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1.5em;
+	}
+	.card {
+		position: relative;
+		border: 1px solid var(--sys-fg);
+		padding: 1.5em;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+	}
+	.card-tag {
+		position: absolute;
+		top: -0.7em;
+		right: 1em;
+		background: var(--sys-bg);
+		padding: 0 0.5em;
+		color: var(--sys-dim);
+		text-transform: uppercase;
+		font-size: 0.7em;
+	}
+	/* Latest post card */
+	.card-latest {
+		text-decoration: none;
+		color: var(--sys-fg);
+		gap: 1.5em;
+	}
+	.card-latest:hover {
+		background: var(--sys-fg);
+		color: var(--sys-bg);
+	}
+	.card-latest:hover .badge {
+		border-color: var(--sys-bg);
+		color: var(--sys-bg);
+	}
+	.card-latest:hover .excerpt,
+	.card-latest:hover .meta,
+	.card-latest:hover .card-tag {
+		color: var(--sys-bg);
+	}
+	.badge {
+		display: inline-block;
+		border: 1px solid var(--sys-fg);
+		padding: 0.2em 0.5em;
+		text-transform: uppercase;
+		font-size: 0.7em;
+		margin-bottom: 0.8em;
+	}
+	.card-latest h2 {
+		font-size: 1.3em;
+		text-decoration: underline;
+		text-underline-offset: 4px;
+		margin: 0 0 0.5em;
+	}
+	.excerpt {
+		font-size: 0.9em;
+		color: var(--sys-text);
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.meta {
+		font-size: 0.8em;
+		color: var(--sys-dim);
+		margin: 0.5em 0 0;
+	}
+	.card-exec {
+		text-transform: uppercase;
+		font-weight: 700;
+	}
+
+	/* Code card */
+	.code-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		border-bottom: 1px solid var(--sys-dim);
+		padding-bottom: 0.5em;
+		margin-bottom: 1em;
+	}
+	.code-cmd {
+		text-transform: uppercase;
+		font-weight: 700;
+		font-size: 0.85em;
+	}
+	.card-code pre {
+		margin: 0;
+		border: none;
+		padding: 0;
+		background: transparent !important;
+		font-size: 0.8em;
+	}
+
+	/* Quick links */
+	.quick-links {
+		grid-column: 1 / -1;
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1.5em;
+	}
+	.quick-links a {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 1.2em;
+		border: 1px solid var(--sys-dim);
+		text-decoration: none;
+		color: var(--sys-fg);
+		text-transform: uppercase;
+	}
+	.quick-links a:hover {
+		border-color: var(--sys-fg);
+		background: var(--sys-fg);
+		color: var(--sys-bg);
+	}
+	.quick-links .hex {
+		position: absolute;
+		top: 0.4em;
+		left: 0.5em;
+		font-size: 0.6em;
+		color: var(--sys-dim);
+	}
+	.quick-links a:hover .hex {
+		color: var(--sys-bg);
+	}
+	.quick-links h3 {
+		margin: 0;
+		font-size: 1.05em;
+	}
+
+	.rule {
+		color: var(--sys-dim);
+		overflow: hidden;
+		white-space: nowrap;
+		font-size: 0.75em;
+	}
+
+	@media (max-width: 720px) {
+		.bento,
+		.quick-links {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

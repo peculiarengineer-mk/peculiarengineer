@@ -10,6 +10,15 @@ export default defineConfig({
 	integrations: [mdx(), sitemap()],
 	fonts: [
 		{
+			provider: fontProviders.google(),
+			name: 'JetBrains Mono',
+			cssVariable: '--font-mono',
+			weights: [400, 700],
+			styles: ['normal'],
+			subsets: ['latin'],
+			fallbacks: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+		},
+		{
 			provider: fontProviders.local(),
 			name: 'Atkinson',
 			cssVariable: '--font-atkinson',

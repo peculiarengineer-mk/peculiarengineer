@@ -26,28 +26,33 @@ const { title, description, pubDate, updatedDate, heroImage, showDate = true } =
 			.hero-image img {
 				display: block;
 				margin: 0 auto;
-				border-radius: 12px;
-				box-shadow: var(--box-shadow);
+				border-radius: 0;
+				border: 1px solid var(--sys-dim);
+				filter: grayscale(0.3) brightness(0.9);
 			}
 			.prose {
 				width: 720px;
 				max-width: calc(100% - 2em);
 				margin: auto;
 				padding: 1em;
-				color: rgb(var(--gray-dark));
+				color: var(--sys-text);
 			}
 			.title {
 				margin-bottom: 1em;
-				padding: 1em 0;
-				text-align: center;
-				line-height: 1;
+				padding: 1.5em 0 1em;
+				text-align: left;
+				line-height: 1.1;
 			}
 			.title h1 {
-				margin: 0 0 0.5em 0;
+				margin: 0 0 0.3em 0;
 			}
 			.date {
 				margin-bottom: 0.5em;
-				color: rgb(var(--gray));
+				color: var(--sys-dim);
+				font-family: var(--font-mono);
+				font-size: 0.9rem;
+				text-transform: uppercase;
+				letter-spacing: 0.05em;
 			}
 			.last-updated-on {
 				font-style: italic;

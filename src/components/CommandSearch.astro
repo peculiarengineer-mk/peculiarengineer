@@ -1,0 +1,223 @@
+---
+// Terminal-style search. Filters the build-time /search.json index client-side.
+---
+
+<section class="cmd term-panel" aria-label="Search the archive">
+	<span class="term-label">:: query.sh ::</span>
+	<form class="cmd-line" id="cmd-form" autocomplete="off">
+		<label class="prompt" for="cmd-input">peculiar@engineer:~$</label>
+		<input
+			id="cmd-input"
+			class="cmd-input"
+			type="text"
+			name="q"
+			spellcheck="false"
+			autocapitalize="off"
+			autocorrect="off"
+			aria-label="Search posts"
+			placeholder="type to search… (try: help)"
+		/>
+	</form>
+	<div id="cmd-output" class="cmd-output" role="listbox" aria-label="Search results"></div>
+</section>
+
+<style>
+	.cmd {
+		margin-bottom: 2em;
+	}
+	.cmd-line {
+		display: flex;
+		align-items: center;
+		gap: 0.6em;
+		margin: 0;
+	}
+	.prompt {
+		color: var(--sys-fg);
+		font-weight: 700;
+		white-space: nowrap;
+		user-select: none;
+	}
+	.cmd-input {
+		flex: 1;
+		min-width: 0;
+		background: transparent;
+		border: none;
+		color: var(--sys-fg);
+		font-family: var(--font-mono);
+		font-size: 1em;
+		caret-color: var(--sys-fg);
+		padding: 0;
+	}
+	.cmd-input:focus {
+		outline: none;
+	}
+	.cmd-input::placeholder {
+		color: var(--sys-dim);
+	}
+	.cmd-output:not(:empty) {
+		margin-top: 1.2em;
+		border-top: 1px solid var(--sys-dim);
+		padding-top: 1em;
+	}
+	.cmd-msg {
+		color: var(--sys-dim);
+		font-size: 0.85em;
+		margin: 0 0 0.6em;
+	}
+	.result {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 0.5em 1em;
+		padding: 0.5em 0.6em;
+		text-decoration: none;
+		color: var(--sys-fg);
+		border-left: 2px solid transparent;
+	}
+	.result:hover,
+	.result.active {
+		background: rgba(var(--sys-fg-rgb), 0.12);
+		border-left-color: var(--sys-fg);
+	}
+	.r-title {
+		font-weight: 700;
+	}
+	.r-meta {
+		color: var(--sys-dim);
+		font-size: 0.8em;
+		white-space: nowrap;
+	}
+</style>
+
+<script>
+	const form = document.getElementById('cmd-form');
+	const input = document.getElementById('cmd-input');
+	const output = document.getElementById('cmd-output');
+
+	const HINT = 'Type a query to search the archive. Commands: help · ls · clear';
+
+	let index = [];
+	let results = [];
+	let active = -1;
+	let loaded = null;
+
+	function load() {
+		if (!loaded) {
+			loaded = fetch('/search.json')
+				.then((r) => r.json())
+				.then((d) => {
+					index = d;
+				})
+				.catch(() => {
+					index = [];
+				});
+		}
+		return loaded;
+	}
+
+	function fmtDate(iso) {
+		return new Date(iso).toLocaleDateString('en-us', {
+			year: 'numeric',
+			month: 'short',
+			day: 'numeric',
+		});
+	}
+
+	function render(items, msg) {
+		output.innerHTML = '';
+		if (msg) {
+			const p = document.createElement('p');
+			p.className = 'cmd-msg';
+			p.textContent = msg;
+			output.appendChild(p);
+		}
+		for (const it of items) {
+			const a = document.createElement('a');
+			a.className = 'result';
+			a.href = `/blog/${it.slug}/`;
+			a.setAttribute('role', 'option');
+			const t = document.createElement('span');
+			t.className = 'r-title';
+			t.textContent = `> ${it.title}`;
+			const m = document.createElement('span');
+			m.className = 'r-meta';
+			m.textContent = fmtDate(it.date);
+			a.append(t, m);
+			output.appendChild(a);
+		}
+	}
+
+	function search(q) {
+		const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+		return index.filter((it) => {
+			const hay = `${it.title} ${it.description} ${it.body}`.toLowerCase();
+			return terms.every((t) => hay.includes(t));
+		});
+	}
+
+	function update() {
+		const raw = input.value.trim();
+		const cmd = raw.toLowerCase();
+		active = -1;
+		results = [];
+
+		if (!raw) return render([], HINT);
+		if (cmd === 'clear') {
+			input.value = '';
+			return render([], HINT);
+		}
+		if (cmd === 'help') {
+			return render(
+				[],
+				'help — show commands · ls — list all posts · clear — reset · or type any keyword to search titles + content',
+			);
+		}
+		if (cmd === 'ls') {
+			results = index.slice();
+			return render(results, `${results.length} post(s) on disk:`);
+		}
+		results = search(raw);
+		render(results, results.length ? `${results.length} match(es):` : `no matches for "${raw}"`);
+	}
+
+	function highlight() {
+		output.querySelectorAll('.result').forEach((el, i) => {
+			el.classList.toggle('active', i === active);
+		});
+	}
+
+	input.addEventListener('input', () => load().then(update));
+	input.addEventListener('focus', load);
+
+	form.addEventListener('submit', (e) => {
+		e.preventDefault();
+		if (results.length) {
+			const i = active >= 0 ? active : 0;
+			window.location.href = `/blog/${results[i].slug}/`;
+		}
+	});
+
+	input.addEventListener('keydown', (e) => {
+		if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+			if (!results.length) return;
+			e.preventDefault();
+			active =
+				e.key === 'ArrowDown'
+					? Math.min(active + 1, results.length - 1)
+					: Math.max(active - 1, 0);
+			highlight();
+		} else if (e.key === 'Escape') {
+			input.value = '';
+			update();
+		}
+	});
+
+	// "/" anywhere focuses the prompt (like many dev tools).
+	document.addEventListener('keydown', (e) => {
+		if (e.key === '/' && document.activeElement !== input) {
+			e.preventDefault();
+			input.focus();
+		}
+	});
+</script>
