@@ -59,31 +59,36 @@
 		border-top: 1px solid var(--sys-dim);
 		padding-top: 1em;
 	}
-	.cmd-msg {
+	/* Results are built at runtime via JS, so they don't carry Astro's
+	   scope attribute — target them with :global() under the scoped output. */
+	.cmd-output :global(.cmd-msg) {
 		color: var(--sys-dim);
 		font-size: 0.85em;
 		margin: 0 0 0.6em;
 	}
-	.result {
+	.cmd-output :global(.result) {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: baseline;
-		justify-content: space-between;
-		gap: 0.5em 1em;
+		gap: 0.15em 0.75em;
 		padding: 0.5em 0.6em;
 		text-decoration: none;
 		color: var(--sys-fg);
 		border-left: 2px solid transparent;
 	}
-	.result:hover,
-	.result.active {
+	.cmd-output :global(.result:hover),
+	.cmd-output :global(.result.active) {
 		background: rgba(var(--sys-fg-rgb), 0.12);
 		border-left-color: var(--sys-fg);
 	}
-	.r-title {
+	.cmd-output :global(.r-title) {
 		font-weight: 700;
 	}
-	.r-meta {
+	.cmd-output :global(.r-sep) {
+		color: var(--sys-dim);
+		user-select: none;
+	}
+	.cmd-output :global(.r-meta) {
 		color: var(--sys-dim);
 		font-size: 0.8em;
 		white-space: nowrap;
@@ -140,10 +145,14 @@
 			const t = document.createElement('span');
 			t.className = 'r-title';
 			t.textContent = `> ${it.title}`;
+			const sep = document.createElement('span');
+			sep.className = 'r-sep';
+			sep.setAttribute('aria-hidden', 'true');
+			sep.textContent = '·';
 			const m = document.createElement('span');
 			m.className = 'r-meta';
 			m.textContent = fmtDate(it.date);
-			a.append(t, m);
+			a.append(t, sep, m);
 			output.appendChild(a);
 		}
 	}

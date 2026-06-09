@@ -72,4 +72,4 @@ export default defineConfig({
 - **Forgot to set `site`.** RSS/sitemap links came out as `example.com`. Set it
   before sharing the feed.
 
-That's it — the blog is live and redeploys on every `git push`. 🎉
+That's it — the blog is live and redeploys on every `git push`. `[ DEPLOY OK ]`
