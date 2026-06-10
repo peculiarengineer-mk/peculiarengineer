@@ -2,7 +2,7 @@
 title: 'A read-only Claude Code skill that maps a codebase before you touch it'
 description: 'A read-only Claude Code skill that maps any project — entry points, layers, git hotspots, and risks — into ARCHITECTURE_REVIEW.md without changing a single file.'
 pubDate: 'Jun 10 2026'
-heroImage: '../../assets/code-review-recon-hero.svg'
+heroImage: '../../assets/code-review-recon-hero.png'
 ---
 
 The fastest way to break an unfamiliar codebase is to let an AI agent start

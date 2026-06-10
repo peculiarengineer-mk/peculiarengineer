@@ -2,7 +2,7 @@
 title: 'A Claude Code skill that writes plans a sub-agent can follow blindly'
 description: 'A Claude Code skill that turns a vague request into a locked, phase-by-phase plan a junior dev — or a headless AI sub-agent — can execute without asking questions.'
 pubDate: 'Jun 10 2026'
-heroImage: '../../assets/dev-plan-hero.svg'
+heroImage: '../../assets/dev-plan-hero.png'
 ---
 
 In the [last post](/blog/dev-handoff-claude-code-skill/) I shared `dev-handoff`,

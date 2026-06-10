@@ -2,7 +2,7 @@
 title: 'A Claude Code skill that hands off a dev plan to sub-agents'
 description: 'A copy-paste Claude Code skill that dispatches tasks from an approved dev plan to worker AI models running in parallel, via the OpenCode CLI in headless mode.'
 pubDate: 'Jun 10 2026'
-heroImage: '../../assets/dev-handoff-hero.svg'
+heroImage: '../../assets/dev-handoff-hero.png'
 ---
 
 If you use [Claude Code](https://claude.com/claude-code) (or any agentic coding
