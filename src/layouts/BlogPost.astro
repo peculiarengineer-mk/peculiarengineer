@@ -9,11 +9,27 @@ import Header from '../components/Header.astro';
 type Props = CollectionEntry<'blog'>['data'] & { showDate?: boolean };
 
 const { title, description, pubDate, updatedDate, heroImage, showDate = true } = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const jsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'BlogPosting',
+	headline: title,
+	description,
+	datePublished: pubDate.toISOString(),
+	...(updatedDate && { dateModified: updatedDate.toISOString() }),
+	...(heroImage && { image: new URL(heroImage.src, Astro.site).href }),
+	author: { '@type': 'Person', name: 'Minor Keith' },
+	publisher: { '@type': 'Organization', name: 'Peculiar Engineer' },
+	mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalURL.href },
+	url: canonicalURL.href,
+};
 ---
 
 <html lang="en">
 	<head>
 		<BaseHead title={title} description={description} />
+		<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 		<style>
 			main {
 				width: calc(100% - 2em);

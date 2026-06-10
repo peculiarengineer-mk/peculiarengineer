@@ -3,4 +3,4 @@
 
 export const SITE_TITLE = 'Peculiar Engineer';
 export const SITE_DESCRIPTION =
-	'Step-by-step fixes and how-tos for Linux, Ubuntu, SSH, Cloudflare, and DevOps — clear, tested solutions to the problems engineers hit, so you never have to Google them twice.';
+	'Tested fixes and AI how-tos to speed up developer workflows — Linux, SSH, Cloudflare, DevOps, and AI coding tools like Claude Code. Never Google the same fix twice.';
