@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1020" height="510" viewBox="0 0 1020 510" font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', Menlo, monospace">
+  <defs>
+    <pattern id="scan" width="3" height="3" patternUnits="userSpaceOnUse">
+      <rect width="3" height="1" fill="#39ff14" opacity="0.035"/>
+    </pattern>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="3.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1020" height="510" fill="#0d0d0d"/>
+  <rect width="1020" height="510" fill="url(#scan)"/>
+
+  <!-- faint watermark prompt -->
+  <text x="978" y="486" text-anchor="end" font-size="120" fill="#39ff14" opacity="0.05" font-weight="700">&gt;_</text>
+
+  <!-- AI SKILL badge -->
+  <rect x="822" y="36" width="160" height="34" rx="6" fill="#0d0d0d" stroke="#1b730e"/>
+  <text x="902" y="59" text-anchor="middle" font-size="15" fill="#39ff14" letter-spacing="2">◆ AI SKILL</text>
+
+  <!-- terminal card -->
+  <rect x="56" y="96" width="474" height="330" rx="10" fill="#070707" stroke="#1b730e"/>
+  <rect x="56" y="96" width="474" height="38" rx="10" fill="#0d0d0d"/>
+  <rect x="56" y="120" width="474" height="14" fill="#0d0d0d"/>
+  <circle cx="82" cy="115" r="5" fill="#1b730e"/>
+  <circle cx="100" cy="115" r="5" fill="#1b730e"/>
+  <circle cx="118" cy="115" r="5" fill="#1b730e"/>
+  <text x="150" y="120" font-size="14" fill="#1b730e">~/.claude/skills/dev-plan</text>
+
+  <!-- terminal body -->
+  <text x="84" y="178" font-size="17"><tspan fill="#39ff14">$ </tspan><tspan fill="#c9d6c4">plan "add webhook retries"</tspan></text>
+  <text x="84" y="220" font-size="17"><tspan fill="#39ff14">&gt; </tspan><tspan fill="#c9d6c4">verify · grep · read schema</tspan></text>
+  <text x="84" y="250" font-size="17"><tspan fill="#39ff14">&gt; </tspan><tspan fill="#c9d6c4">scope: </tspan><tspan fill="#39ff14">locked ✓</tspan></text>
+  <text x="84" y="280" font-size="17"><tspan fill="#39ff14">&gt; </tspan><tspan fill="#c9d6c4">1 phase · 4 tasks</tspan></text>
+  <text x="84" y="310" font-size="17"><tspan fill="#39ff14">&gt; </tspan><tspan fill="#c9d6c4">no code until approved </tspan><tspan fill="#39ff14">▋</tspan></text>
+  <text x="84" y="358" font-size="13" fill="#1b730e">one task · one responsibility</text>
+
+  <!-- plan document -->
+  <g filter="url(#glow)">
+    <rect x="624" y="104" width="332" height="306" rx="10" fill="#0d0d0d" stroke="#39ff14"/>
+  </g>
+  <text x="652" y="142" font-size="16" fill="#39ff14" letter-spacing="1">DEV_PLAN.md</text>
+  <line x1="652" y1="156" x2="928" y2="156" stroke="#1b730e"/>
+
+  <g font-size="15" fill="#c9d6c4">
+    <text x="652" y="190"><tspan fill="#39ff14">◆ </tspan>File Tree</text>
+    <text x="652" y="222"><tspan fill="#39ff14">◆ </tspan>Numbered tasks <tspan fill="#1b730e">(4)</tspan></text>
+    <text x="652" y="254"><tspan fill="#39ff14">◆ </tspan>Order of execution</text>
+    <text x="652" y="286"><tspan fill="#39ff14">◆ </tspan>Acceptance</text>
+    <text x="652" y="318"><tspan fill="#39ff14">◆ </tspan>Out of scope</text>
+  </g>
+  <line x1="652" y1="338" x2="928" y2="338" stroke="#1b730e"/>
+  <text x="652" y="372" font-size="15"><tspan fill="#39ff14">→ </tspan><tspan fill="#c9d6c4">Ready to hand off?</tspan></text>
+</svg>

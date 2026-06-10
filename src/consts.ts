@@ -3,4 +3,4 @@
 
 export const SITE_TITLE = 'Peculiar Engineer';
 export const SITE_DESCRIPTION =
-	'Documentation of every fix, trick, and tool I find — so I never have to Google the same problem twice.';
+	'Step-by-step fixes and how-tos for Linux, Ubuntu, SSH, Cloudflare, and DevOps — clear, tested solutions to the problems engineers hit, so you never have to Google them twice.';
