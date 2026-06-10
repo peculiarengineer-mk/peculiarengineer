@@ -1,6 +1,6 @@
 ---
 title: 'Building a private Ubuntu APT mirror in Azure Blob Storage'
-description: 'A snapshot-style Ubuntu APT mirror in Azure Blob Storage, synced by a containerized debmirror + azcopy job and served to a firewalled VM fleet over HTTPS — with every non-obvious bug I hit folded into the steps.'
+description: 'Build a private Ubuntu APT mirror in Azure Blob Storage — a containerized debmirror + azcopy job that serves package updates to a firewalled VM fleet over HTTPS.'
 pubDate: 'Jun 10 2026'
 heroImage: '../../assets/ubuntu-azure-mirror-hero.jpg'
 ---

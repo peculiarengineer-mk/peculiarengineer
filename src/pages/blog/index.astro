@@ -15,7 +15,10 @@ const posts = (await getCollection('blog')).sort(
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<BaseHead
+			title={`All posts — ${SITE_TITLE}`}
+			description="Every post on Peculiar Engineer — tested fixes and how-tos for Linux, Ubuntu, SSH, Cloudflare, DevOps, and AI coding tools like Claude Code."
+		/>
 		<style>
 			.listing-head {
 				color: var(--sys-dim);
