@@ -8,7 +8,7 @@ import Header from '../components/Header.astro';
 
 type Props = CollectionEntry<'blog'>['data'] & { showDate?: boolean };
 
-const { title, description, pubDate, updatedDate, heroImage, showDate = true } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, tags, showDate = true } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const jsonLd = {
@@ -23,6 +23,7 @@ const jsonLd = {
 	publisher: { '@type': 'Organization', name: 'Peculiar Engineer' },
 	mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalURL.href },
 	url: canonicalURL.href,
+	...(tags?.length && { keywords: tags.join(', ') }),
 };
 ---
 
@@ -73,6 +74,13 @@ const jsonLd = {
 			.last-updated-on {
 				font-style: italic;
 			}
+			.tags {
+				margin: 0.8em 0 0;
+				font-family: var(--font-mono);
+				font-size: 0.85rem;
+				color: var(--sys-dim);
+				letter-spacing: 0.03em;
+			}
 		</style>
 	</head>
 
@@ -98,6 +106,7 @@ const jsonLd = {
 							)
 						}
 						<h1>{title}</h1>
+						{tags?.length && <div class="tags">{tags.map((tag) => `#${tag}`).join(' ')}</div>}
 						<hr />
 					</div>
 					<slot />

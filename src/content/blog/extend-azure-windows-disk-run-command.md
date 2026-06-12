@@ -3,6 +3,7 @@ title: 'Extending C: on locked-down Azure Windows VMs without RDP'
 description: 'Three small PowerShell scripts for Azure Run Command that delete the trailing recovery partition and extend C: into the new space — no RDP, no jumpbox, no Disk Management clicking.'
 pubDate: 'Jun 12 2026'
 heroImage: '../../assets/azure-disk-extend-hero.png'
+tags: ['Azure', 'PowerShell', 'WindowsServer', 'SysAdmin', 'DevOps']
 ---
 
 The Windows VMs I look after sit behind a firewall. Getting an RDP session means
