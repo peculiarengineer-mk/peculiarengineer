@@ -215,9 +215,9 @@ docker build \
 		border-color: var(--sys-bg);
 		color: var(--sys-bg);
 	}
+	.card-latest:hover h2,
 	.card-latest:hover .excerpt,
-	.card-latest:hover .meta,
-	.card-latest:hover .card-tag {
+	.card-latest:hover .meta {
 		color: var(--sys-bg);
 	}
 	.badge {
@@ -305,7 +305,8 @@ docker build \
 		font-size: 0.6em;
 		color: var(--sys-dim);
 	}
-	.quick-links a:hover .hex {
+	.quick-links a:hover .hex,
+	.quick-links a:hover h3 {
 		color: var(--sys-bg);
 	}
 	.quick-links h3 {
