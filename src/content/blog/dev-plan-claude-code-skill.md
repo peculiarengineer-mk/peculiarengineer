@@ -3,6 +3,7 @@ title: 'A Claude Code skill that writes plans a sub-agent can follow blindly'
 description: 'A Claude Code skill that turns a vague request into a locked, phase-by-phase plan a junior dev — or a headless AI sub-agent — can execute without asking questions.'
 pubDate: 'Jun 10 2026'
 heroImage: '../../assets/dev-plan-hero.png'
+tags: ['ClaudeCode', 'AI', 'Planning', 'SubAgents', 'SOLID', 'DevTools']
 ---
 
 In the [last post](/blog/dev-handoff-claude-code-skill/) I shared `dev-handoff`,
@@ -141,6 +142,8 @@ The handoff skill works *only* because the planning skill guarantees the
 properties it relies on — one file per task, explicit boundaries, verifiable
 stopping conditions. And the planning skill, in turn, works best when it's
 grounded in a [read-only recon pass](/blog/code-review-recon-claude-code-skill/)
-that maps the codebase first. Understand, plan, hand off — in that order. If you only adopt one habit from
+that maps the codebase first. Understand, plan, hand off — in that order, and the
+whole set exists because the [skill-spotter skill](/blog/skill-spotter-claude-code-skill/)
+caught me repeating each step and told me to save it. If you only adopt one habit from
 either skill, make it this: write the plan so completely that the person (or model)
 executing it never has to guess. Everything else follows from that.

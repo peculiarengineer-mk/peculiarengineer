@@ -3,6 +3,7 @@ title: 'A read-only Claude Code skill that maps a codebase before you touch it'
 description: 'A read-only Claude Code skill that maps any project — entry points, layers, git hotspots, and risks — into ARCHITECTURE_REVIEW.md without changing a single file.'
 pubDate: 'Jun 10 2026'
 heroImage: '../../assets/code-review-recon-hero.png'
+tags: ['ClaudeCode', 'AI', 'CodeReview', 'Architecture', 'Git', 'DevTools']
 ---
 
 The fastest way to break an unfamiliar codebase is to let an AI agent start
@@ -118,7 +119,10 @@ These three skills form a pipeline, and recon is the front door:
 3. **[`dev-handoff`](/blog/dev-handoff-claude-code-skill/)** dispatches that plan's
    tasks to worker models running in parallel.
 
-Understand, plan, hand off — in that order. The reusable idea, if you build your
-own version, is the hard read-only boundary: an analysis skill that *cannot* edit
-is one you can safely point at any repo, and its output is the foundation every
-later step depends on. Map first, change later.
+Understand, plan, hand off — in that order. If you're wondering how a set of
+skills like this comes together in the first place, the
+[skill-spotter skill](/blog/skill-spotter-claude-code-skill/) is the one that
+notices a workflow is worth saving and offers to write it down. The reusable idea,
+if you build your own version, is the hard read-only boundary: an analysis skill
+that *cannot* edit is one you can safely point at any repo, and its output is the
+foundation every later step depends on. Map first, change later.

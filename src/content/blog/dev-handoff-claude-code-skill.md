@@ -3,6 +3,7 @@ title: 'A Claude Code skill that hands off a dev plan to sub-agents'
 description: 'A copy-paste Claude Code skill that dispatches tasks from an approved dev plan to worker AI models running in parallel, via the OpenCode CLI in headless mode.'
 pubDate: 'Jun 10 2026'
 heroImage: '../../assets/dev-handoff-hero.png'
+tags: ['ClaudeCode', 'AI', 'SubAgents', 'Automation', 'OpenCode', 'DevTools']
 ---
 
 If you use [Claude Code](https://claude.com/claude-code) (or any agentic coding
@@ -148,7 +149,10 @@ the reusable idea. The specific models and CLI are just the implementation.
 This is the last step of a three-skill pipeline: a
 [read-only recon pass](/blog/code-review-recon-claude-code-skill/) maps the
 codebase, the [dev-plan skill](/blog/dev-plan-claude-code-skill/) turns that into
-a locked plan, and this skill dispatches it. Understand, plan, hand off.
+a locked plan, and this skill dispatches it. Understand, plan, hand off. The
+pipeline itself started life as a pattern I kept repeating until the
+[skill-spotter skill](/blog/skill-spotter-claude-code-skill/) nudged me to write
+each piece down.
 
 If you write your own version of this, the single most valuable habit is the
 scope fence: give each worker exactly its task and an explicit list of what's out
