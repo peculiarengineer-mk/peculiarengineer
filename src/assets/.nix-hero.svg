@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs>
+    <radialGradient id="glow" cx="30%" cy="35%" r="80%">
+      <stop offset="0%" stop-color="#0c1320"/>
+      <stop offset="100%" stop-color="#070b12"/>
+    </radialGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#101d31" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1360" height="680" fill="url(#glow)"/>
+  <rect width="1360" height="680" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- big ghost lambda, bottom-right -->
+  <text x="1150" y="640" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="320" fill="#1c2e4a" opacity="0.5">&#955;</text>
+
+  <!-- badge top-right -->
+  <g>
+    <rect x="1150" y="48" width="162" height="46" rx="8" fill="none" stroke="#3f6aa3" stroke-width="1.5"/>
+    <text x="1180" y="77" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="22" letter-spacing="3" fill="#7eb6ff">&#955; NIX</text>
+  </g>
+
+  <!-- terminal window -->
+  <g>
+    <rect x="72" y="120" width="672" height="462" rx="11" fill="#0a1019" stroke="#3f6aa3" stroke-width="1.5"/>
+    <line x1="72" y1="178" x2="744" y2="178" stroke="#1c2e4a" stroke-width="1.5"/>
+    <circle cx="104" cy="149" r="7" fill="#3f6aa3"/>
+    <circle cx="128" cy="149" r="7" fill="#3f6aa3"/>
+    <circle cx="152" cy="149" r="7" fill="#3f6aa3"/>
+    <text x="200" y="156" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#3f6aa3">nix on macos</text>
+
+    <text x="104" y="232" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="21" fill="#7eb6ff"><tspan fill="#a9d2ff">$</tspan> ...install.determinate.systems/nix | sh</text>
+
+    <text x="104" y="288" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="23" fill="#7eb6ff"><tspan fill="#a9d2ff">&#10003;</tspan> nix installed   <tspan fill="#3f6aa3">daemon mode</tspan></text>
+    <text x="104" y="324" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="23" fill="#7eb6ff"><tspan fill="#a9d2ff">&#10003;</tspan> flakes enabled  <tspan fill="#3f6aa3">out of the box</tspan></text>
+
+    <text x="104" y="384" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="22" fill="#7eb6ff"><tspan fill="#a9d2ff">$</tspan> nix eval --expr '1 + 2'</text>
+    <text x="104" y="420" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="23" fill="#a9d2ff">3<tspan fill="#7eb6ff"> </tspan><tspan fill="#a9d2ff">&#9608;</tspan></text>
+
+    <text x="104" y="522" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="19" fill="#3f6aa3">install &#183; verify &#183; eval, never build</text>
+  </g>
+
+  <!-- right column: the two footguns + verdict -->
+  <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace">
+    <text x="852" y="200" font-size="20" letter-spacing="2" fill="#3f6aa3">THE TWO ERRORS</text>
+
+    <!-- footgun 1 -->
+    <rect x="852" y="220" width="456" height="86" rx="8" fill="none" stroke="#e0a85a" stroke-width="2"/>
+    <text x="876" y="256" font-size="21" fill="#e0a85a">&#9888; nix-command disabled</text>
+    <text x="876" y="288" font-size="17" fill="#3f6aa3">&#8594; experimental-features in nix.conf</text>
+
+    <!-- footgun 2 -->
+    <rect x="852" y="320" width="456" height="86" rx="8" fill="none" stroke="#e0a85a" stroke-width="2"/>
+    <text x="876" y="356" font-size="21" fill="#e0a85a">&#9888; no flake.nix here</text>
+    <text x="876" y="388" font-size="17" fill="#3f6aa3">&#8594; give eval a target: --expr / .#attr</text>
+
+    <!-- verdict bar -->
+    <rect x="852" y="468" width="456" height="64" rx="8" fill="none" stroke="#1c2e4a" stroke-width="2" stroke-dasharray="7 5"/>
+    <text x="876" y="507" font-size="19" fill="#7eb6ff"><tspan fill="#a9d2ff">&#9635;</tspan> reproducible across machines  <tspan fill="#3f6aa3">or skip it</tspan></text>
+
+    <text x="852" y="566" font-size="19" fill="#3f6aa3">&#8594; check the repo before you Nix anything.</text>
+  </g>
+</svg>
