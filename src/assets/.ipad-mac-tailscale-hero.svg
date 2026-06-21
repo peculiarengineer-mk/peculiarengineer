@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs>
+    <radialGradient id="glow" cx="30%" cy="35%" r="80%">
+      <stop offset="0%" stop-color="#0c111c"/>
+      <stop offset="100%" stop-color="#080b12"/>
+    </radialGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#10243a" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1360" height="680" fill="url(#glow)"/>
+  <rect width="1360" height="680" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- big ghost chevron, bottom-right -->
+  <path d="M1180 470 L1300 560 L1180 650" fill="none" stroke="#1d3a5c" stroke-width="10" opacity="0.55"/>
+
+  <!-- badge top-right -->
+  <g>
+    <rect x="1086" y="48" width="226" height="46" rx="8" fill="none" stroke="#2c5a7d" stroke-width="1.5"/>
+    <text x="1110" y="77" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="22" letter-spacing="2" fill="#5eb8ff">&#9670; iPAD &#8594; MAC</text>
+  </g>
+
+  <!-- terminal window -->
+  <g>
+    <rect x="72" y="120" width="672" height="462" rx="11" fill="#0a0f18" stroke="#2c5a7d" stroke-width="1.5"/>
+    <line x1="72" y1="178" x2="744" y2="178" stroke="#1d3a5c" stroke-width="1.5"/>
+    <circle cx="104" cy="149" r="7" fill="#2c5a7d"/>
+    <circle cx="128" cy="149" r="7" fill="#2c5a7d"/>
+    <circle cx="152" cy="149" r="7" fill="#2c5a7d"/>
+    <text x="200" y="156" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#2c5a7d">tailnet shell</text>
+
+    <text x="104" y="226" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="22" fill="#5eb8ff"><tspan fill="#a5e3ff">$</tspan> tailscale status</text>
+    <text x="104" y="262" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#5eb8ff"><tspan fill="#a5e3ff">100.72.14.3</tspan>  mac-mini  <tspan fill="#2c5a7d">macOS  -</tspan></text>
+    <text x="104" y="294" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#5eb8ff"><tspan fill="#a5e3ff">100.81.66.9</tspan>  ipad      <tspan fill="#2c5a7d">iOS    -</tspan></text>
+
+    <text x="104" y="354" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="22" fill="#5eb8ff"><tspan fill="#a5e3ff">$</tspan> open vnc://mac-mini:5900</text>
+    <text x="104" y="402" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="23" fill="#5eb8ff"><tspan fill="#a5e3ff">&#10003;</tspan> RealVNC Viewer   <tspan fill="#2c5a7d">connected</tspan></text>
+    <text x="104" y="438" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="23" fill="#5eb8ff"><tspan fill="#2c5a7d">&gt;</tspan> screen sharing on <tspan fill="#a5e3ff">:5900</tspan><tspan fill="#a5e3ff">&#9608;</tspan></text>
+
+    <text x="104" y="522" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="19" fill="#2c5a7d">headless &#183; private &#183; encrypted</text>
+  </g>
+
+  <!-- right column: connection diagram -->
+  <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace">
+    <text x="852" y="200" font-size="20" letter-spacing="2" fill="#2c5a7d">REMOTE DESKTOP, PRIVATELY</text>
+
+    <!-- ipad box -->
+    <rect x="852" y="220" width="456" height="86" rx="8" fill="none" stroke="#5eb8ff" stroke-width="2"/>
+    <text x="876" y="258" font-size="26" fill="#a5e3ff">iPAD</text>
+    <text x="876" y="288" font-size="18" fill="#2c5a7d">RealVNC Viewer &#183; on the tailnet</text>
+
+    <!-- dashed tailscale link -->
+    <line x1="1080" y1="306" x2="1080" y2="352" stroke="#1d3a5c" stroke-width="2" stroke-dasharray="7 5"/>
+    <text x="1096" y="336" font-size="18" fill="#2c5a7d">Tailscale / WireGuard</text>
+
+    <!-- mac mini box -->
+    <rect x="852" y="352" width="456" height="86" rx="8" fill="none" stroke="#2c5a7d" stroke-width="2"/>
+    <text x="876" y="390" font-size="26" fill="#5eb8ff">MAC MINI</text>
+    <text x="876" y="420" font-size="18" fill="#2c5a7d">headless &#183; Screen Sharing on :5900</text>
+
+    <!-- encrypted note bar -->
+    <rect x="852" y="468" width="456" height="64" rx="8" fill="none" stroke="#1d3a5c" stroke-width="2" stroke-dasharray="7 5"/>
+    <text x="876" y="507" font-size="20" fill="#5eb8ff"><tspan fill="#a5e3ff">&#9635;</tspan> encrypted by the tailnet  <tspan fill="#2c5a7d">port 5900</tspan></text>
+
+    <text x="852" y="566" font-size="19" fill="#2c5a7d">&#8594; no port forwarding, no public IP.</text>
+  </g>
+</svg>
