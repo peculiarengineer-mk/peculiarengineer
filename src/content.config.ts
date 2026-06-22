@@ -18,4 +18,21 @@ const blog = defineCollection({
 		}),
 });
 
-export const collections = { blog };
+const experiments = defineCollection({
+	// Load Markdown files in the `src/content/experiments/` directory.
+	loader: glob({ base: './src/content/experiments', pattern: '**/*.{md,mdx}' }),
+	schema: ({ image }) =>
+		z.object({
+			title: z.string(),
+			description: z.string(),
+			// Link out to the project's source.
+			repo: z.string().url(),
+			// Optional slug of a related blog post (links to /blog/<slug>/).
+			blogSlug: z.string().optional(),
+			pubDate: z.coerce.date(),
+			tags: z.array(z.string()).optional(),
+			heroImage: z.optional(image()),
+		}),
+});
+
+export const collections = { blog, experiments };

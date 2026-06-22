@@ -1,0 +1,143 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import Header from '../../components/Header.astro';
+import { SITE_TITLE } from '../../consts';
+
+const experiments = (await getCollection('experiments')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead
+			title={`Experiments — ${SITE_TITLE}`}
+			description="Projects and tools I've built or rebuilt — small experiments with source on GitHub, each with a writeup of how it came together."
+		/>
+		<style>
+			.listing-head {
+				color: var(--sys-dim);
+				font-size: 0.85em;
+				margin-bottom: 1.5em;
+			}
+			.listing-head .count {
+				color: var(--sys-fg);
+			}
+			.intro {
+				color: var(--sys-text);
+				max-width: 60ch;
+				margin: 0 0 2em;
+			}
+			ul {
+				list-style-type: none;
+				margin: 0;
+				padding: 0;
+				display: flex;
+				flex-direction: column;
+				gap: 1.5em;
+			}
+			li {
+				position: relative;
+				border: 1px solid var(--sys-dim);
+				padding: 1.25em 1.5em;
+			}
+			li:hover {
+				border-color: var(--sys-fg);
+			}
+			.idx {
+				color: var(--sys-dim);
+				font-size: 0.8em;
+			}
+			.title {
+				margin: 0.2em 0 0.4em;
+				color: var(--sys-fg);
+				line-height: 1.2;
+				font-size: 1.3em;
+			}
+			.desc {
+				margin: 0 0 0.8em;
+				color: var(--sys-text);
+				font-size: 0.9em;
+			}
+			.tags {
+				margin: 0 0 0.9em;
+				color: var(--sys-dim);
+				font-size: 0.78em;
+			}
+			.links {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.6em;
+				margin-bottom: 0.7em;
+			}
+			.links a {
+				display: inline-block;
+				padding: 0.35em 0.7em;
+				border: 1px solid var(--sys-dim);
+				color: var(--sys-fg);
+				text-decoration: none;
+				text-transform: uppercase;
+				font-size: 0.78em;
+			}
+			.links a:hover {
+				border-color: var(--sys-fg);
+				background: var(--sys-fg);
+				color: var(--sys-bg);
+			}
+			.date {
+				margin: 0;
+				color: var(--sys-dim);
+				font-size: 0.8em;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<section>
+				<p class="listing-head">
+					~/$ ls -la /experiments &nbsp;&middot;&nbsp; <span class="count"
+						>{experiments.length}</span
+					> entr{experiments.length === 1 ? 'y' : 'ies'} found
+				</p>
+				<p class="intro">
+					Tools I've built or rebuilt while figuring something out. Source is on
+					GitHub; most have a full writeup on the blog explaining how they came
+					together and what broke along the way.
+				</p>
+				<ul>
+					{
+						experiments.map((exp, i) => (
+							<li>
+								<span class="idx">
+									[{String(i + 1).padStart(2, '0')}] &gt;
+								</span>
+								<h4 class="title">{exp.data.title}</h4>
+								{exp.data.description && <p class="desc">{exp.data.description}</p>}
+								{exp.data.tags && exp.data.tags.length > 0 && (
+									<p class="tags">{exp.data.tags.join(' · ')}</p>
+								)}
+								<div class="links">
+									<a href={exp.data.repo} target="_blank" rel="noopener noreferrer">
+										[ GitHub repo ]
+									</a>
+									{exp.data.blogSlug && (
+										<a href={`/blog/${exp.data.blogSlug}/`}>[ Read the writeup ]</a>
+									)}
+								</div>
+								<p class="date">
+									<FormattedDate date={exp.data.pubDate} />
+								</p>
+							</li>
+						))
+					}
+				</ul>
+			</section>
+		</main>
+		<Footer />
+	</body>
+</html>
