@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs>
+    <radialGradient id="glow" cx="30%" cy="35%" r="80%">
+      <stop offset="0%" stop-color="#14102099"/>
+      <stop offset="0%" stop-color="#151022"/>
+      <stop offset="100%" stop-color="#0c0a14"/>
+    </radialGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#191130" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1360" height="680" fill="url(#glow)"/>
+  <rect width="1360" height="680" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- big ghost branch glyph, bottom-right -->
+  <g opacity="0.5" stroke="#241a3d" stroke-width="9" fill="none">
+    <circle cx="1180" cy="470" r="20"/>
+    <circle cx="1180" cy="620" r="20"/>
+    <circle cx="1300" cy="540" r="20"/>
+    <path d="M1180 490 L1180 600 M1180 540 Q1180 540 1280 540"/>
+  </g>
+
+  <!-- badge top-right -->
+  <g>
+    <rect x="1052" y="48" width="260" height="46" rx="8" fill="none" stroke="#6d28d9" stroke-width="1.5"/>
+    <text x="1078" y="77" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" letter-spacing="2" fill="#a78bfa">&#9670; UV &#183; GIT INSTALL</text>
+  </g>
+
+  <!-- terminal window -->
+  <g>
+    <rect x="72" y="120" width="672" height="462" rx="11" fill="#0f0c1a" stroke="#6d28d9" stroke-width="1.5"/>
+    <line x1="72" y1="178" x2="744" y2="178" stroke="#241a3d" stroke-width="1.5"/>
+    <circle cx="104" cy="149" r="7" fill="#6d28d9"/>
+    <circle cx="128" cy="149" r="7" fill="#6d28d9"/>
+    <circle cx="152" cy="149" r="7" fill="#6d28d9"/>
+    <text x="200" y="156" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#6d28d9">uv &#183; pip install</text>
+
+    <text x="104" y="222" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#a78bfa"><tspan fill="#ddd6fe">$</tspan> uv pip install \</text>
+    <text x="104" y="248" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#a78bfa">  git+https://github.com/owner/repo.git</text>
+
+    <text x="104" y="312" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#a78bfa"><tspan fill="#ddd6fe">$</tspan> uv pip install "git+&#8230;@v1.2.3"</text>
+
+    <text x="104" y="376" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#a78bfa"><tspan fill="#ddd6fe">$</tspan> uv pip install \</text>
+    <text x="104" y="402" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#a78bfa">  --python ~/.local/bin/python3.14 GitPython</text>
+
+    <text x="104" y="462" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="19" fill="#6fd08a"><tspan fill="#6fd08a">&#10003;</tspan> installed into python3.14</text>
+
+    <text x="104" y="540" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" fill="#6d28d9">repo &#183; pin a tag &#183; pick the interpreter</text>
+  </g>
+
+  <!-- right column: two readings of "git package" -->
+  <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace">
+    <text x="852" y="200" font-size="20" letter-spacing="2" fill="#6d28d9">TWO READINGS</text>
+
+    <!-- box 1: the library -->
+    <rect x="852" y="220" width="456" height="116" rx="8" fill="none" stroke="#a78bfa" stroke-width="2"/>
+    <text x="876" y="252" font-size="17" letter-spacing="1" fill="#4c1d95">THE LIBRARY</text>
+    <text x="876" y="288" font-size="20" fill="#ddd6fe">pip name:    GitPython</text>
+    <text x="876" y="318" font-size="20" fill="#a78bfa">import name: git</text>
+
+    <!-- box 2: from a repo -->
+    <rect x="852" y="356" width="456" height="116" rx="8" fill="none" stroke="#6d28d9" stroke-width="2"/>
+    <text x="876" y="388" font-size="17" letter-spacing="1" fill="#4c1d95">FROM A REPO</text>
+    <text x="876" y="424" font-size="20" fill="#ddd6fe">git+https://&#8230;@tag</text>
+    <text x="876" y="454" font-size="17" fill="#6d28d9">&#8594; any repo, any ref, no PyPI</text>
+
+    <!-- footer -->
+    <rect x="852" y="500" width="456" height="86" rx="8" fill="none" stroke="#241a3d" stroke-width="2" stroke-dasharray="7 5"/>
+    <text x="876" y="536" font-size="18" fill="#6fd08a"><tspan fill="#6fd08a">&#10003;</tspan> --python picks the interpreter,</text>
+    <text x="876" y="564" font-size="18" fill="#6d28d9">no guessing about where it lands.</text>
+  </g>
+</svg>
