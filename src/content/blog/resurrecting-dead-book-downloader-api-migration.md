@@ -1,7 +1,7 @@
 ---
 title: 'Resurrecting a dead book downloader: debugging an API migration end to end'
 description: 'How a one line JSONDecodeError turned into a reverse-engineering-by-reading exercise, a v1 to v2 API migration, a hardened little tool of my own, and a paywall that held the whole time.'
-pubDate: 'Jun 23 2026'
+pubDate: 'Jun 22 2026'
 heroImage: '../../assets/resurrecting-downloader-hero.png'
 tags: ['Debugging', 'ReverseEngineering', 'API', 'Python', 'Docker', 'EPUB', 'asyncio']
 ---

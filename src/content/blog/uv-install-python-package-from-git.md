@@ -1,7 +1,7 @@
 ---
 title: 'Installing a Python package from git with uv (and not confusing it with GitPython)'
 description: 'Two completely different things hide behind "git package for Python with uv": the GitPython library and installing straight from a git+ URL. Here is how to do both, plus how --python stops you from guessing which interpreter you just installed into.'
-pubDate: 'Jun 25 2026'
+pubDate: 'Jun 22 2026'
 heroImage: '../../assets/uv-git-hero.png'
 tags: ['Python', 'uv', 'git', 'packaging', 'pip']
 ---

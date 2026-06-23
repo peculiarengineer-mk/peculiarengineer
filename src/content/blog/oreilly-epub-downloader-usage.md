@@ -1,7 +1,7 @@
 ---
 title: "Using the O'Reilly EPUB Downloader"
 description: "How to build, authenticate, and download O'Reilly books as EPUBs using the Docker-wrapped CLI tool. Quick start, gotchas, and verification steps."
-pubDate: 'Jun 24 2026'
+pubDate: 'Jun 22 2026'
 heroImage: '../../assets/orly-usage-hero.png'
 tags: ['OReilly', 'EPUB', 'Docker', 'CLI', 'Python', 'SSO', 'API']
 ---

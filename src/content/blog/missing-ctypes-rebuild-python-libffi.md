@@ -1,7 +1,7 @@
 ---
 title: "No module named '_ctypes': why pandas wouldn't import, and rebuilding Python to fix it"
 description: 'A Snowflake export job died on import pandas with ModuleNotFoundError for _ctypes. The real cause was a home-directory Python compiled without libffi headers, and the only fix was a full rebuild.'
-pubDate: 'Jun 24 2026'
+pubDate: 'Jun 22 2026'
 heroImage: '../../assets/ctypes-rebuild-hero.png'
 tags: ['Debugging', 'Python', 'Linux', 'BuildFromSource', 'ctypes', 'pandas']
 ---
