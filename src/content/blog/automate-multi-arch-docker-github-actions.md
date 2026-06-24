@@ -6,7 +6,7 @@ heroImage: '../../assets/docker-multiarch-ci-hero.png'
 tags: ['Docker', 'GitHubActions', 'CI', 'MultiArch', 'DevContainer', 'Buildx', 'DevOps', 'Automation']
 ---
 
-This was the first devcontainer base image I ever built. I had spent years `FROM`-ing other people's images and finally wanted one that was mine, lean and current and shaped the way I like. So I built `peculiarengineer/ubuntu-dev`, a small Ubuntu 26.04 LTS base on Docker Hub, and the surprise was that the Dockerfile was the easy part. The interesting work was all in CI: building a multi-arch Docker image for amd64 and arm64 with GitHub Actions, and keeping it fresh on its own.
+This was the first devcontainer base image I ever built. I had spent years `FROM`-ing other people's images and finally wanted one that was mine, lean and current and shaped the way I like. So I built [`peculiarengineer/ubuntu-dev`](https://github.com/peculiarengineer-mk/ubuntu-dev), a small Ubuntu 26.04 LTS base on Docker Hub, and the surprise was that the Dockerfile was the easy part. The interesting work was all in CI: building a multi-arch Docker image for amd64 and arm64 with GitHub Actions, and keeping it fresh on its own.
 
 The image has three jobs: run on Apple Silicon and on x86 boxes alike, stay current with upstream security updates without me touching it, and actually be findable when someone (including future me) goes looking for it. None of that lives in the Dockerfile. All three are CI problems, and once I had the workflow right they stopped being problems at all. This is me writing it down so I do not have to re-derive it the next time.
 
