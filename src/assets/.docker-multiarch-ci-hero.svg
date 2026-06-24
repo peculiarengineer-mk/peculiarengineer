@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="#0a1422"/>
+      <stop offset="100%" stop-color="#081018"/>
+    </radialGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#0e2335" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1360" height="680" fill="url(#glow)"/>
+  <rect width="1360" height="680" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- title line top-left -->
+  <text x="60" y="78" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="30" font-weight="700" fill="#cfe8ff" letter-spacing="2">ONE PUSH &#183; TWO ARCHITECTURES</text>
+  <text x="60" y="110" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="16" fill="#1d4e7a" letter-spacing="1">multi-arch docker image builds with github actions</text>
+
+  <!-- top-right badge -->
+  <rect x="1090" y="48" width="210" height="44" rx="8" fill="#10283d" stroke="#2496ed" stroke-width="1.5"/>
+  <text x="1195" y="76" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" font-weight="700" fill="#2496ed" text-anchor="middle">&#9670; BUILDX &#183; GHA</text>
+
+  <!-- left node: GitHub Actions -->
+  <rect x="60" y="280" width="230" height="92" rx="12" fill="#13314d" stroke="#2496ed" stroke-width="2"/>
+  <text x="175" y="320" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="22" font-weight="700" fill="#cfe8ff" text-anchor="middle">GitHub Actions</text>
+  <text x="175" y="348" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14" fill="#6fd08a" text-anchor="middle">push &#183; cron &#183; dispatch</text>
+
+  <!-- central node: buildx + QEMU -->
+  <rect x="420" y="278" width="230" height="96" rx="12" fill="#13314d" stroke="#2496ed" stroke-width="2"/>
+  <text x="535" y="318" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="22" font-weight="700" fill="#cfe8ff" text-anchor="middle">buildx + QEMU</text>
+  <text x="535" y="346" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14" fill="#1d4e7a" text-anchor="middle">cross-arch builder</text>
+
+  <!-- arrow: GitHub Actions -> buildx -->
+  <path d="M290 326 Q355 326 414 326" fill="none" stroke="#6fd08a" stroke-width="2.5"/>
+  <path d="M414 326 L402 320 L402 332 Z" fill="#6fd08a"/>
+
+  <!-- two stacked arch boxes -->
+  <rect x="780" y="190" width="200" height="74" rx="10" fill="#10283d" stroke="#2496ed" stroke-width="1.5"/>
+  <text x="880" y="234" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" font-weight="700" fill="#cfe8ff" text-anchor="middle">linux/amd64</text>
+
+  <rect x="780" y="388" width="200" height="74" rx="10" fill="#10283d" stroke="#2496ed" stroke-width="1.5"/>
+  <text x="880" y="432" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" font-weight="700" fill="#cfe8ff" text-anchor="middle">linux/arm64</text>
+
+  <!-- arrows: buildx fans out to two arch boxes -->
+  <path d="M650 312 Q715 250 774 227" fill="none" stroke="#6fd08a" stroke-width="2.5"/>
+  <path d="M774 227 L760 227 L766 238 Z" fill="#6fd08a"/>
+
+  <path d="M650 340 Q715 390 774 425" fill="none" stroke="#6fd08a" stroke-width="2.5"/>
+  <path d="M774 425 L766 414 L760 425 Z" fill="#6fd08a"/>
+
+  <!-- manifest box -->
+  <rect x="1090" y="278" width="210" height="96" rx="12" fill="#13314d" stroke="#2496ed" stroke-width="2"/>
+  <text x="1195" y="318" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="22" font-weight="700" fill="#cfe8ff" text-anchor="middle">manifest</text>
+  <text x="1195" y="346" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14" fill="#1d4e7a" text-anchor="middle">single tag, both arches</text>
+
+  <!-- arrows: arch boxes converge into manifest -->
+  <path d="M980 227 Q1040 250 1095 304" fill="none" stroke="#6fd08a" stroke-width="2.5"/>
+  <path d="M1095 304 L1083 297 L1088 308 Z" fill="#6fd08a"/>
+
+  <path d="M980 425 Q1040 390 1095 348" fill="none" stroke="#6fd08a" stroke-width="2.5"/>
+  <path d="M1095 348 L1088 344 L1083 355 Z" fill="#6fd08a"/>
+
+  <!-- Docker Hub box -->
+  <rect x="1090" y="470" width="210" height="92" rx="12" fill="#13314d" stroke="#2496ed" stroke-width="2"/>
+  <text x="1195" y="510" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="22" font-weight="700" fill="#cfe8ff" text-anchor="middle">Docker Hub</text>
+  <text x="1195" y="538" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14" fill="#6fd08a" text-anchor="middle">:26.04 &#183; :latest</text>
+
+  <!-- arrow: manifest -> Docker Hub -->
+  <path d="M1195 374 Q1195 420 1195 466" fill="none" stroke="#6fd08a" stroke-width="2.5"/>
+  <path d="M1195 466 L1189 454 L1201 454 Z" fill="#6fd08a"/>
+
+  <!-- bottom key line callout -->
+  <rect x="60" y="582" width="700" height="58" rx="10" fill="none" stroke="#2496ed" stroke-width="1.5" stroke-dasharray="7 5"/>
+  <text x="84" y="617" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="19" fill="#cfe8ff"><tspan fill="#6fd08a" font-weight="700">pull: true</tspan>  &#8592; re-fetch the base, every run</text>
+</svg>
