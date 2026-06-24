@@ -122,9 +122,7 @@ const experiments = (await getCollection('experiments')).sort(
 									<p class="tags">{exp.data.tags.join(' · ')}</p>
 								)}
 								<div class="links">
-									<a href={exp.data.repo} target="_blank" rel="noopener noreferrer">
-										[ GitHub repo ]
-									</a>
+									<a href={exp.data.repo}>[ GitHub repo ]</a>
 									{exp.data.blogSlug && (
 										<a href={`/blog/${exp.data.blogSlug}/`}>[ Read the writeup ]</a>
 									)}
