@@ -90,6 +90,9 @@ Note the `inet` address on your active interface, e.g. `192.168.1.42`.
 ssh your_username@192.168.1.42
 ```
 
+If this comes back with `Connection refused`, the server isn't listening yet, and
+[that has its own checklist](/blog/ssh-connection-refused-port-22-ubuntu/).
+
 ## Hardening before you expose it
 
 For anything beyond a trusted LAN, switch to key-based auth **before** you touch
@@ -109,6 +112,10 @@ PermitRootLogin no
 ```
 
 Apply the changes with `sudo systemctl restart ssh`.
+
+For the full walkthrough of key auth, including passphrases, ssh-agent, and the
+permissions trap that silently locks people out, see
+[Set up SSH keys for Ubuntu](/blog/set-up-ssh-keys-ubuntu/).
 
 > **Mind the drop-ins.** Modern `sshd_config` ends with
 > `Include /etc/ssh/sshd_config.d/*.conf`. A file in that directory can override

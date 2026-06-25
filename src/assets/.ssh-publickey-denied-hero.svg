@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs>
+    <radialGradient id="glow" cx="30%" cy="35%" r="80%">
+      <stop offset="0%" stop-color="#170d09"/>
+      <stop offset="100%" stop-color="#0c0705"/>
+    </radialGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#1c110b" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1360" height="680" fill="url(#glow)"/>
+  <rect width="1360" height="680" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- badge top-right -->
+  <g>
+    <rect x="1000" y="48" width="312" height="46" rx="8" fill="none" stroke="#8a5536" stroke-width="1.5"/>
+    <text x="1026" y="77" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" letter-spacing="1.5" fill="#e8794e">&#9670; READ ssh -v FIRST</text>
+  </g>
+
+  <!-- terminal window -->
+  <g>
+    <rect x="72" y="120" width="672" height="462" rx="11" fill="#0f0907" stroke="#8a5536" stroke-width="1.5"/>
+    <line x1="72" y1="178" x2="744" y2="178" stroke="#2a1610" stroke-width="1.5"/>
+    <circle cx="104" cy="149" r="7" fill="#8a5536"/>
+    <circle cx="128" cy="149" r="7" fill="#8a5536"/>
+    <circle cx="152" cy="149" r="7" fill="#8a5536"/>
+    <text x="200" y="156" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#8a5536">laptop &#183; ssh -v</text>
+
+    <text x="104" y="222" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#e8794e"><tspan fill="#ffb482">$</tspan> ssh user@host</text>
+    <text x="104" y="250" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#e0564a"><tspan fill="#e0564a">&#10007;</tspan> Permission denied (publickey).</text>
+
+    <text x="104" y="312" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#e8794e"><tspan fill="#ffb482">$</tspan> ssh -v user@host</text>
+    <text x="104" y="340" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#8a5536">debug1: Offering public key: id_ed25519</text>
+    <text x="104" y="366" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#8a5536">debug1: Authentications that can continue:</text>
+    <text x="104" y="392" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#8a5536">         publickey</text>
+    <text x="104" y="418" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#8a5536">debug1: No more authentication methods.</text>
+
+    <text x="104" y="478" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#6fd08a"><tspan fill="#6fd08a">&#10003;</tspan> key offered &#8594; look at the server</text>
+    <text x="104" y="544" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" fill="#8a5536">no key offered &#8594; look at your client</text>
+  </g>
+
+  <!-- right column: which side? -->
+  <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace">
+    <text x="852" y="200" font-size="20" letter-spacing="2" fill="#8a5536">WHICH SIDE?</text>
+
+    <rect x="852" y="222" width="456" height="118" rx="8" fill="none" stroke="#e8794e" stroke-width="2"/>
+    <text x="880" y="262" font-size="19" fill="#ffb482">no key offered</text>
+    <text x="880" y="292" font-size="16" fill="#8a5536">client: empty agent, wrong key</text>
+    <text x="880" y="320" font-size="16" fill="#6fd08a">ssh-add -l &#183; IdentitiesOnly yes</text>
+
+    <rect x="852" y="356" width="456" height="118" rx="8" fill="none" stroke="#8a5536" stroke-width="1.5"/>
+    <text x="880" y="396" font-size="19" fill="#ffb482">key offered, refused</text>
+    <text x="880" y="426" font-size="16" fill="#8a5536">server: wrong user, perms, no entry</text>
+    <text x="880" y="454" font-size="16" fill="#6fd08a">authorized_keys &#183; StrictModes</text>
+
+    <text x="852" y="522" font-size="17" fill="#ffb482">chmod 700 ~/.ssh</text>
+    <text x="852" y="550" font-size="17" fill="#ffb482">chmod 600 ~/.ssh/authorized_keys</text>
+  </g>
+</svg>

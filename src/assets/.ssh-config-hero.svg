@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs>
+    <radialGradient id="glow" cx="30%" cy="35%" r="80%">
+      <stop offset="0%" stop-color="#120c20"/>
+      <stop offset="100%" stop-color="#08060d"/>
+    </radialGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#140e26" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1360" height="680" fill="url(#glow)"/>
+  <rect width="1360" height="680" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- badge top-right -->
+  <g>
+    <rect x="1008" y="48" width="304" height="46" rx="8" fill="none" stroke="#5f4f8c" stroke-width="1.5"/>
+    <text x="1034" y="77" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" letter-spacing="1.5" fill="#a78bfa">&#9670; ~/.ssh/config</text>
+  </g>
+
+  <!-- editor window -->
+  <g>
+    <rect x="72" y="120" width="672" height="462" rx="11" fill="#0c0917" stroke="#5f4f8c" stroke-width="1.5"/>
+    <line x1="72" y1="178" x2="744" y2="178" stroke="#1a1430" stroke-width="1.5"/>
+    <circle cx="104" cy="149" r="7" fill="#5f4f8c"/>
+    <circle cx="128" cy="149" r="7" fill="#5f4f8c"/>
+    <circle cx="152" cy="149" r="7" fill="#5f4f8c"/>
+    <text x="200" y="156" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#5f4f8c">laptop &#183; ~/.ssh/config</text>
+
+    <text x="104" y="222" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#a78bfa"><tspan fill="#7aa2f7">Host</tspan> db</text>
+    <text x="104" y="250" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#c9b8fc">  <tspan fill="#7aa2f7">HostName</tspan> 10.0.5.12</text>
+    <text x="104" y="278" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#c9b8fc">  <tspan fill="#7aa2f7">User</tspan> keith</text>
+    <text x="104" y="306" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#c9b8fc">  <tspan fill="#7aa2f7">IdentityFile</tspan> ~/.ssh/work_key</text>
+    <text x="104" y="334" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#c9b8fc">  <tspan fill="#7aa2f7">ProxyJump</tspan> bastion</text>
+
+    <text x="104" y="402" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#a78bfa"><tspan fill="#c9b8fc">$</tspan> ssh db</text>
+    <text x="104" y="430" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#6fd08a"><tspan fill="#6fd08a">&#10003;</tspan> through bastion, landed on 10.0.5.12</text>
+
+    <text x="104" y="498" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#5f4f8c">no address &#183; no port flag &#183; no key flag</text>
+    <text x="104" y="544" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" fill="#5f4f8c">first match wins &#183; keep Host * last</text>
+  </g>
+
+  <!-- right column: the hop -->
+  <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace">
+    <text x="852" y="200" font-size="20" letter-spacing="2" fill="#5f4f8c">ONE HOP, ONE LINE</text>
+
+    <rect x="852" y="222" width="456" height="150" rx="8" fill="none" stroke="#a78bfa" stroke-width="2"/>
+    <text x="880" y="272" font-size="18" fill="#c9b8fc">laptop</text>
+    <text x="880" y="304" font-size="18" fill="#a78bfa">  &#8594; bastion</text>
+    <text x="880" y="336" font-size="18" fill="#6fd08a">      &#8594; 10.0.5.12</text>
+
+    <text x="852" y="430" font-size="18" fill="#c9b8fc"><tspan fill="#7aa2f7">IdentitiesOnly</tspan> yes</text>
+    <text x="852" y="462" font-size="18" fill="#c9b8fc"><tspan fill="#7aa2f7">ControlMaster</tspan> auto</text>
+    <text x="852" y="494" font-size="18" fill="#c9b8fc"><tspan fill="#7aa2f7">AddKeysToAgent</tspan> yes</text>
+    <text x="852" y="544" font-size="17" fill="#5f4f8c">write it once, type a name forever</text>
+  </g>
+</svg>

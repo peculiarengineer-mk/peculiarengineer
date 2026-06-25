@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs>
+    <radialGradient id="glow" cx="30%" cy="35%" r="80%">
+      <stop offset="0%" stop-color="#0a1418"/>
+      <stop offset="100%" stop-color="#06090c"/>
+    </radialGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#0e1c20" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1360" height="680" fill="url(#glow)"/>
+  <rect width="1360" height="680" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- badge top-right -->
+  <g>
+    <rect x="1000" y="48" width="312" height="46" rx="8" fill="none" stroke="#3f7d86" stroke-width="1.5"/>
+    <text x="1026" y="77" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" letter-spacing="1.5" fill="#56c5d0">&#9670; ED25519 &#183; KEYS ONLY</text>
+  </g>
+
+  <!-- terminal window -->
+  <g>
+    <rect x="72" y="120" width="672" height="462" rx="11" fill="#08110f" stroke="#3f7d86" stroke-width="1.5"/>
+    <line x1="72" y1="178" x2="744" y2="178" stroke="#10262a" stroke-width="1.5"/>
+    <circle cx="104" cy="149" r="7" fill="#3f7d86"/>
+    <circle cx="128" cy="149" r="7" fill="#3f7d86"/>
+    <circle cx="152" cy="149" r="7" fill="#3f7d86"/>
+    <text x="200" y="156" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#3f7d86">laptop &#183; ~/.ssh</text>
+
+    <text x="104" y="222" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#56c5d0"><tspan fill="#9be7ef">$</tspan> ssh-keygen -t ed25519</text>
+    <text x="104" y="250" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#6fd08a"><tspan fill="#6fd08a">&#10003;</tspan> key pair created &#183; passphrase set</text>
+
+    <text x="104" y="312" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#56c5d0"><tspan fill="#9be7ef">$</tspan> ssh-copy-id you@host</text>
+    <text x="104" y="340" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#6fd08a"><tspan fill="#6fd08a">&#10003;</tspan> public key installed on server</text>
+
+    <text x="104" y="402" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#56c5d0"><tspan fill="#9be7ef">$</tspan> ssh you@host</text>
+    <text x="104" y="430" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#6fd08a"><tspan fill="#6fd08a">&#10003;</tspan> Authenticated using "publickey"</text>
+    <text x="104" y="458" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#3f7d86">  no password prompt &#183; private key stayed put</text>
+
+    <text x="104" y="544" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" fill="#3f7d86">confirm the key works before you disable passwords</text>
+  </g>
+
+  <!-- right column: the key pair -->
+  <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace">
+    <text x="852" y="200" font-size="20" letter-spacing="2" fill="#3f7d86">THE KEY PAIR</text>
+
+    <rect x="852" y="222" width="456" height="120" rx="8" fill="none" stroke="#56c5d0" stroke-width="2"/>
+    <text x="880" y="266" font-size="19" fill="#9be7ef">id_ed25519</text>
+    <text x="880" y="296" font-size="16" fill="#3f7d86">private &#183; never leaves your laptop</text>
+    <text x="880" y="324" font-size="16" fill="#e06a5a">guard this file</text>
+
+    <rect x="852" y="358" width="456" height="120" rx="8" fill="none" stroke="#3f7d86" stroke-width="1.5"/>
+    <text x="880" y="402" font-size="19" fill="#9be7ef">id_ed25519.pub</text>
+    <text x="880" y="432" font-size="16" fill="#3f7d86">public &#183; safe to share anywhere</text>
+    <text x="880" y="460" font-size="16" fill="#6fd08a">paste into authorized_keys</text>
+
+    <text x="852" y="528" font-size="18" fill="#9be7ef">PasswordAuthentication <tspan fill="#e06a5a">no</tspan></text>
+    <text x="852" y="556" font-size="18" fill="#9be7ef">PubkeyAuthentication <tspan fill="#6fd08a">yes</tspan></text>
+  </g>
+</svg>
