@@ -75,6 +75,9 @@ sudo ufw allow ssh
 sudo ufw enable
 ```
 
+The order there is the whole game, and the [UFW basics deep-dive](/blog/ufw-firewall-basics-ubuntu/)
+covers why, plus everything else the firewall can do.
+
 ## 5. Find the machine's IP address
 
 ```bash
@@ -82,7 +85,9 @@ hostname -I    # quickest — prints just the IP(s)
 ip a           # full detail, per interface
 ```
 
-Note the `inet` address on your active interface, e.g. `192.168.1.42`.
+Note the `inet` address on your active interface, e.g. `192.168.1.42`. If this is
+a box you will SSH into regularly, pin that address so it stops changing on you, by
+[setting a static IP with Netplan](/blog/static-ip-ubuntu-netplan/).
 
 ## 6. Connect from another machine
 

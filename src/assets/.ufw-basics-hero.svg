@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs>
+    <radialGradient id="glow" cx="30%" cy="35%" r="80%">
+      <stop offset="0%" stop-color="#11151d"/>
+      <stop offset="100%" stop-color="#0b0d12"/>
+    </radialGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#12161f" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1360" height="680" fill="url(#glow)"/>
+  <rect width="1360" height="680" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- big ghost brick wall, bottom-right -->
+  <g opacity="0.45" stroke="#161b26" stroke-width="6" fill="none">
+    <rect x="1158" y="452" width="172" height="38"/>
+    <rect x="1158" y="490" width="86" height="38"/>
+    <rect x="1244" y="490" width="86" height="38"/>
+    <rect x="1158" y="528" width="172" height="38"/>
+    <rect x="1158" y="566" width="86" height="38"/>
+    <rect x="1244" y="566" width="86" height="38"/>
+  </g>
+
+  <!-- badge top-right -->
+  <g>
+    <rect x="1078" y="48" width="234" height="46" rx="8" fill="none" stroke="#3d5273" stroke-width="1.5"/>
+    <text x="1104" y="77" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" letter-spacing="2" fill="#f0883e">&#9670; UFW BASICS</text>
+  </g>
+
+  <!-- terminal window -->
+  <g>
+    <rect x="72" y="120" width="672" height="462" rx="11" fill="#0e121a" stroke="#3d5273" stroke-width="1.5"/>
+    <line x1="72" y1="178" x2="744" y2="178" stroke="#161b26" stroke-width="1.5"/>
+    <circle cx="104" cy="149" r="7" fill="#3d5273"/>
+    <circle cx="128" cy="149" r="7" fill="#3d5273"/>
+    <circle cx="152" cy="149" r="7" fill="#3d5273"/>
+    <text x="200" y="156" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#3d5273">ubuntu &#183; the uncomplicated firewall</text>
+
+    <text x="104" y="222" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#f0883e"><tspan fill="#ffb37a">$</tspan> sudo ufw default deny incoming</text>
+    <text x="104" y="252" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#f0883e"><tspan fill="#ffb37a">$</tspan> sudo ufw allow OpenSSH</text>
+    <text x="104" y="282" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#f0883e"><tspan fill="#ffb37a">$</tspan> sudo ufw enable</text>
+    <text x="104" y="312" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#6fd08a"><tspan fill="#6fd08a">&#10003;</tspan> Firewall is active and enabled on boot</text>
+
+    <text x="104" y="380" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#f0883e"><tspan fill="#ffb37a">$</tspan> sudo ufw status verbose</text>
+    <text x="104" y="410" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#6fd08a">  22/tcp    <tspan fill="#6fd08a">ALLOW IN</tspan>   Anywhere</text>
+    <text x="104" y="438" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#3d5273">  default   <tspan fill="#e5534b">DENY IN</tspan>    everything else</text>
+
+    <text x="104" y="508" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" fill="#3d5273">allow SSH first &#183; then flip it on</text>
+    <text x="104" y="544" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" fill="#3d5273">first match wins &#183; rules do nothing until enable</text>
+  </g>
+
+  <!-- right column: the model -->
+  <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace">
+    <text x="852" y="200" font-size="20" letter-spacing="2" fill="#3d5273">THE WHOLE MODEL</text>
+
+    <rect x="852" y="220" width="456" height="200" rx="8" fill="none" stroke="#f0883e" stroke-width="2"/>
+    <text x="880" y="268" font-size="20" fill="#ffb37a"><tspan fill="#6fd08a">&#8594;</tspan>  outgoing: <tspan fill="#6fd08a">ALLOW</tspan></text>
+    <text x="880" y="312" font-size="20" fill="#ffb37a"><tspan fill="#e5534b">&#8592;</tspan>  incoming: <tspan fill="#e5534b">DENY</tspan></text>
+    <text x="880" y="356" font-size="20" fill="#ffb37a"><tspan fill="#6fd08a">&#10003;</tspan>  except the doors you open</text>
+    <text x="880" y="398" font-size="18" fill="#3d5273">two defaults + a list of rules</text>
+
+    <text x="852" y="468" font-size="18" fill="#ffb37a"><tspan fill="#f0883e">limit</tspan> OpenSSH &#183; throttle the bots</text>
+    <text x="852" y="500" font-size="18" fill="#ffb37a"><tspan fill="#f0883e">allow from</tspan> 10.0.0.5 &#183; one host only</text>
+    <text x="852" y="544" font-size="17" fill="#3d5273">cloud SG and Docker are other firewalls</text>
+  </g>
+</svg>

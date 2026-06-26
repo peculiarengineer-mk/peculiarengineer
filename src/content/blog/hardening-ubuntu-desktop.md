@@ -49,7 +49,7 @@ sudo ufw enable
 
 Those two `default` lines actually restate UFW's own defaults, so the line doing the real work is `enable`. I set them explicitly anyway so the policy is written down where I can see it. Once it is on, nothing on your network can start a connection to your machine, but everything you start (browsing, updates, video calls) works normally.
 
-If you ever do need to let something in, say you are running a game server for an evening, `sudo ufw allow <port>` opens it and `sudo ufw delete allow <port>` closes it again.
+If you ever do need to let something in, say you are running a game server for an evening, `sudo ufw allow <port>` opens it and `sudo ufw delete allow <port>` closes it again. For everything past this one paragraph, reading rules, narrowing a port to a single host, rate limiting, and the ways UFW gets bypassed, see the [UFW basics deep-dive](/blog/ufw-firewall-basics-ubuntu/).
 
 ## Encrypt your disk
 
