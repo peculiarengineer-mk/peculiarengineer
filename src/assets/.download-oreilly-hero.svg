@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs>
+    <radialGradient id="glow" cx="30%" cy="35%" r="80%">
+      <stop offset="0%" stop-color="#0a1917"/>
+      <stop offset="100%" stop-color="#06100f"/>
+    </radialGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#0e2522" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1360" height="680" fill="url(#glow)"/>
+  <rect width="1360" height="680" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- big ghost book glyph, bottom-right -->
+  <g opacity="0.5" stroke="#13332f" stroke-width="9" fill="none">
+    <path d="M1150 440 L1150 630 M1150 440 Q1215 412 1280 440 L1280 630 Q1215 602 1150 630 M1280 440 Q1310 425 1330 440 L1330 630 Q1310 615 1280 630"/>
+  </g>
+
+  <!-- badge top-right -->
+  <g>
+    <rect x="1040" y="48" width="272" height="46" rx="8" fill="none" stroke="#2c7a72" stroke-width="1.5"/>
+    <text x="1066" y="77" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" letter-spacing="2" fill="#5eead4">&#9670; ORLY &#183; CHEAT SHEET</text>
+  </g>
+
+  <!-- title -->
+  <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace">
+    <text x="72" y="86" font-size="22" letter-spacing="2" fill="#2c7a72">O'REILLY &#8594; EPUB</text>
+    <text x="72" y="92" font-size="0" fill="#2c7a72"> </text>
+  </g>
+
+  <!-- terminal window: the four commands -->
+  <g>
+    <rect x="72" y="120" width="864" height="488" rx="11" fill="#0a1816" stroke="#2c7a72" stroke-width="1.5"/>
+    <line x1="72" y1="178" x2="936" y2="178" stroke="#13332f" stroke-width="1.5"/>
+    <circle cx="104" cy="149" r="7" fill="#2c7a72"/>
+    <circle cx="128" cy="149" r="7" fill="#2c7a72"/>
+    <circle cx="152" cy="149" r="7" fill="#2c7a72"/>
+    <text x="200" y="156" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#2c7a72">four commands</text>
+
+    <text x="104" y="232" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="19" fill="#2c7a72"><tspan fill="#5eead4">1</tspan>  build the image</text>
+    <text x="104" y="266" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#5eead4"><tspan fill="#99f6e4">$</tspan> docker build -t orly .</text>
+
+    <text x="104" y="328" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="19" fill="#2c7a72"><tspan fill="#5eead4">2</tspan>  save your cookies</text>
+    <text x="104" y="362" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#5eead4"><tspan fill="#99f6e4">$</tspan> pbpaste &gt; cookies.json</text>
+
+    <text x="104" y="424" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="19" fill="#2c7a72"><tspan fill="#5eead4">3</tspan>  download the book</text>
+    <text x="104" y="458" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#5eead4"><tspan fill="#99f6e4">$</tspan> cat cookies.json | orly sso &lt;id&gt; &gt; book.epub</text>
+
+    <text x="104" y="520" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="19" fill="#2c7a72"><tspan fill="#5eead4">4</tspan>  verify</text>
+    <text x="104" y="554" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#6fd08a"><tspan fill="#99f6e4">$</tspan> file book.epub  <tspan fill="#2c7a72">&#8594;</tspan> EPUB document</text>
+  </g>
+
+  <!-- right column -->
+  <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace">
+    <text x="980" y="232" font-size="20" letter-spacing="2" fill="#2c7a72">YOU NEED</text>
+    <text x="980" y="272" font-size="19" fill="#5eead4">&#9656; docker</text>
+    <text x="980" y="304" font-size="19" fill="#5eead4">&#9656; an O'Reilly sub</text>
+    <text x="980" y="336" font-size="19" fill="#5eead4">&#9656; firefox cookies</text>
+
+    <text x="980" y="424" font-size="20" letter-spacing="2" fill="#2c7a72">GOTCHAS</text>
+    <text x="980" y="464" font-size="18" fill="#6fd08a">&#10003; keep the -i flag</text>
+    <text x="980" y="496" font-size="18" fill="#6fd08a">&#10003; cookies expire fast</text>
+
+    <text x="980" y="560" font-size="17" fill="#2c7a72">your sub, your content,</text>
+    <text x="980" y="582" font-size="17" fill="#2c7a72">for learning. mind the ToS.</text>
+  </g>
+</svg>
