@@ -22,7 +22,8 @@ const experiments = (await getCollection('experiments')).sort(
 			.listing-head {
 				color: var(--sys-dim);
 				font-size: 0.85em;
-				margin-bottom: 1.5em;
+				font-weight: normal;
+				margin: 0 0 1.5em;
 			}
 			.listing-head .count {
 				color: var(--sys-fg);
@@ -99,11 +100,11 @@ const experiments = (await getCollection('experiments')).sort(
 		<Header />
 		<main>
 			<section>
-				<p class="listing-head">
+				<h1 class="listing-head">
 					~/$ ls -la /experiments &nbsp;&middot;&nbsp; <span class="count"
 						>{experiments.length}</span
 					> entr{experiments.length === 1 ? 'y' : 'ies'} found
-				</p>
+				</h1>
 				<p class="intro">
 					Tools I've built or rebuilt while figuring something out. Source is on
 					GitHub; most have a full writeup on the blog explaining how they came
@@ -116,7 +117,7 @@ const experiments = (await getCollection('experiments')).sort(
 								<span class="idx">
 									[{String(i + 1).padStart(2, '0')}] &gt;
 								</span>
-								<h4 class="title">{exp.data.title}</h4>
+								<h2 class="title">{exp.data.title}</h2>
 								{exp.data.description && <p class="desc">{exp.data.description}</p>}
 								{exp.data.tags && exp.data.tags.length > 0 && (
 									<p class="tags">{exp.data.tags.join(' · ')}</p>

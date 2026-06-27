@@ -6,25 +6,49 @@ import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 
-type Props = CollectionEntry<'blog'>['data'] & { showDate?: boolean };
+type Props = Omit<CollectionEntry<'blog'>['data'], 'pubDate'> & {
+	pubDate?: Date;
+	showDate?: boolean;
+	kind?: 'article' | 'page';
+};
 
-const { title, description, pubDate, updatedDate, heroImage, tags, showDate = true } = Astro.props;
+const {
+	title,
+	description,
+	pubDate,
+	updatedDate,
+	heroImage,
+	tags,
+	showDate = true,
+	kind = 'article',
+} = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
-const jsonLd = {
-	'@context': 'https://schema.org',
-	'@type': 'BlogPosting',
-	headline: title,
-	description,
-	datePublished: pubDate.toISOString(),
-	...(updatedDate && { dateModified: updatedDate.toISOString() }),
-	...(heroImage && { image: new URL(heroImage.src, Astro.site).href }),
-	author: { '@type': 'Person', name: 'Minor Keith' },
-	publisher: { '@type': 'Organization', name: 'Peculiar Engineer' },
-	mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalURL.href },
-	url: canonicalURL.href,
-	...(tags?.length && { keywords: tags.join(', ') }),
-};
+const jsonLd =
+	kind === 'page'
+		? {
+				'@context': 'https://schema.org',
+				'@type': 'WebPage',
+				name: title,
+				description,
+				...(heroImage && { image: new URL(heroImage.src, Astro.site).href }),
+				url: canonicalURL.href,
+				publisher: { '@type': 'Organization', name: 'Peculiar Engineer' },
+			}
+		: {
+				'@context': 'https://schema.org',
+				'@type': 'BlogPosting',
+				headline: title,
+				description,
+				...(pubDate && { datePublished: pubDate.toISOString() }),
+				...(updatedDate && { dateModified: updatedDate.toISOString() }),
+				...(heroImage && { image: new URL(heroImage.src, Astro.site).href }),
+				author: { '@type': 'Person', name: 'Minor Keith' },
+				publisher: { '@type': 'Organization', name: 'Peculiar Engineer' },
+				mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalURL.href },
+				url: canonicalURL.href,
+				...(tags?.length && { keywords: tags.join(', ') }),
+			};
 ---
 
 <html lang="en">
@@ -94,7 +118,7 @@ const jsonLd = {
 				<div class="prose">
 					<div class="title">
 						{
-							showDate && (
+							showDate && pubDate && (
 								<div class="date">
 									<FormattedDate date={pubDate} />
 									{updatedDate && (
