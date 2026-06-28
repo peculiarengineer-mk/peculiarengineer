@@ -4,11 +4,10 @@ import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
-import { SITE_TITLE } from '../../consts';
+import { SITE_TITLE, sortByPubDate } from '../../consts';
+import '../../styles/listing.css';
 
-const experiments = (await getCollection('experiments')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+const experiments = (await getCollection('experiments')).sort(sortByPubDate);
 ---
 
 <!doctype html>
@@ -19,63 +18,31 @@ const experiments = (await getCollection('experiments')).sort(
 			description="Projects and tools I've built or rebuilt — small experiments with source on GitHub, each with a writeup of how it came together."
 		/>
 		<style>
-			.listing-head {
-				color: var(--sys-dim);
-				font-size: 0.85em;
-				font-weight: normal;
-				margin: 0 0 1.5em;
-			}
-			.listing-head .count {
-				color: var(--sys-fg);
-			}
 			.intro {
 				color: var(--sys-text);
 				max-width: 60ch;
 				margin: 0 0 2em;
 			}
-			ul {
-				list-style-type: none;
-				margin: 0;
-				padding: 0;
-				display: flex;
-				flex-direction: column;
-				gap: 1.5em;
-			}
-			li {
+			.listing li {
 				position: relative;
 				border: 1px solid var(--sys-dim);
 				padding: 1.25em 1.5em;
 			}
-			li:hover {
+			.listing li:hover {
 				border-color: var(--sys-fg);
 			}
-			.idx {
-				color: var(--sys-dim);
-				font-size: 0.8em;
-			}
-			.title {
-				margin: 0.2em 0 0.4em;
-				color: var(--sys-fg);
-				line-height: 1.2;
-				font-size: 1.3em;
-			}
-			.desc {
-				margin: 0 0 0.8em;
-				color: var(--sys-text);
-				font-size: 0.9em;
-			}
-			.tags {
+			.listing .tags {
 				margin: 0 0 0.9em;
 				color: var(--sys-dim);
 				font-size: 0.78em;
 			}
-			.links {
+			.listing .links {
 				display: flex;
 				flex-wrap: wrap;
 				gap: 0.6em;
 				margin-bottom: 0.7em;
 			}
-			.links a {
+			.listing .links a {
 				display: inline-block;
 				padding: 0.35em 0.7em;
 				border: 1px solid var(--sys-dim);
@@ -84,22 +51,17 @@ const experiments = (await getCollection('experiments')).sort(
 				text-transform: uppercase;
 				font-size: 0.78em;
 			}
-			.links a:hover {
+			.listing .links a:hover {
 				border-color: var(--sys-fg);
 				background: var(--sys-fg);
 				color: var(--sys-bg);
-			}
-			.date {
-				margin: 0;
-				color: var(--sys-dim);
-				font-size: 0.8em;
 			}
 		</style>
 	</head>
 	<body>
 		<Header />
 		<main>
-			<section>
+			<section class="listing">
 				<h1 class="listing-head">
 					~/$ ls -la /experiments &nbsp;&middot;&nbsp; <span class="count"
 						>{experiments.length}</span

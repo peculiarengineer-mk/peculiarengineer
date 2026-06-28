@@ -179,7 +179,11 @@ hr {
 	background: var(--sys-fg);
 	vertical-align: text-bottom;
 	margin-left: 0.15em;
-	animation: blink 1s step-end infinite;
+}
+@media (prefers-reduced-motion: no-preference) {
+	.cursor-blink {
+		animation: blink 1s step-end infinite;
+	}
 }
 @keyframes blink {
 	0%,

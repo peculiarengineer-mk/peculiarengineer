@@ -1,0 +1,37 @@
+.listing .listing-head {
+	color: var(--sys-dim);
+	font-size: 0.85em;
+	font-weight: normal;
+	margin: 0 0 1.5em;
+}
+.listing .listing-head .count {
+	color: var(--sys-fg);
+}
+.listing ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 1.5em;
+}
+.listing .idx {
+	color: var(--sys-dim);
+	font-size: 0.8em;
+}
+.listing .title {
+	margin: 0.2em 0 0.4em;
+	color: var(--sys-fg);
+	line-height: 1.2;
+	font-size: 1.3em;
+}
+.listing .desc {
+	margin: 0 0 0.8em;
+	color: var(--sys-text);
+	font-size: 0.9em;
+}
+.listing .date {
+	margin: 0;
+	color: var(--sys-dim);
+	font-size: 0.8em;
+}

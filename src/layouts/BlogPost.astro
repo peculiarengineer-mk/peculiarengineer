@@ -33,18 +33,32 @@ const jsonLd =
 				description,
 				...(heroImage && { image: new URL(heroImage.src, Astro.site).href }),
 				url: canonicalURL.href,
-				publisher: { '@type': 'Organization', name: 'Peculiar Engineer' },
-			}
-		: {
-				'@context': 'https://schema.org',
-				'@type': 'BlogPosting',
-				headline: title,
-				description,
-				...(pubDate && { datePublished: pubDate.toISOString() }),
-				...(updatedDate && { dateModified: updatedDate.toISOString() }),
-				...(heroImage && { image: new URL(heroImage.src, Astro.site).href }),
-				author: { '@type': 'Person', name: 'Minor Keith' },
-				publisher: { '@type': 'Organization', name: 'Peculiar Engineer' },
+			publisher: {
+				'@type': 'Organization',
+				name: 'Peculiar Engineer',
+				logo: {
+					'@type': 'ImageObject',
+					url: new URL('/favicon.svg', Astro.site).href,
+				},
+			},
+		}
+	: {
+			'@context': 'https://schema.org',
+			'@type': 'BlogPosting',
+			headline: title,
+			description,
+			...(pubDate && { datePublished: pubDate.toISOString() }),
+			...(updatedDate && { dateModified: updatedDate.toISOString() }),
+			...(heroImage && { image: new URL(heroImage.src, Astro.site).href }),
+			author: { '@type': 'Person', name: 'Minor Keith' },
+			publisher: {
+				'@type': 'Organization',
+				name: 'Peculiar Engineer',
+				logo: {
+					'@type': 'ImageObject',
+					url: new URL('/favicon.svg', Astro.site).href,
+				},
+			},
 				mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalURL.href },
 				url: canonicalURL.href,
 				...(tags?.length && { keywords: tags.join(', ') }),
@@ -53,7 +67,7 @@ const jsonLd =
 
 <html lang="en">
 	<head>
-		<BaseHead title={title} description={description} image={heroImage} />
+		<BaseHead title={title} description={description} image={heroImage} ogType="article" />
 		<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 		<style>
 			main {
@@ -113,7 +127,7 @@ const jsonLd =
 		<main>
 			<article>
 				<div class="hero-image">
-					{heroImage && <Image width={1020} height={510} src={heroImage} alt="" />}
+					{heroImage && <Image width={1020} height={510} src={heroImage} alt="" sizes="(max-width: 768px) 100vw, 1020px" />}
 				</div>
 				<div class="prose">
 					<div class="title">
