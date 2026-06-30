@@ -2,7 +2,7 @@
 title: 'Making Pong with LÖVE and Lua: what I learned building my first game'
 description: 'Build the 1972 classic from a blank window to a playable match: scoring, a title screen, sound generated in code, and a little screen shake, all in two short Lua files.'
 pubDate: 'Jun 29 2026'
-tags: ['LÖVE', 'Love2D', 'Lua', 'Game Dev', 'Pong', 'Gamedev', 'Tutorial']
+tags: ['LÖVE', 'Love2D', 'Lua', 'Game Dev', 'Pong', 'Tutorial']
 ---
 
 I'd been meaning to actually make a game instead of just reading about how games get made, so I finally sat down and built the smallest real one I could think of: Pong, the 1972 classic, with [LÖVE](https://love2d.org) (also written Love2D) and the Lua language. This is me writing down what I learned doing it, mostly so I never have to work it all out from scratch again, but also because the handful of ideas that finally clicked are the ones nobody had bothered to spell out for me. By the end I had a complete two player game: scoring, a title screen, a win screen, sound effects, and a touch of screen shake.
@@ -26,7 +26,7 @@ Install LÖVE from [love2d.org](https://love2d.org). To run a game you make a fo
 
 ## The one idea behind every game: the loop
 
-This is the idea that made everything else click for me, once it finally landed. A game is a loop that runs about 60 times a second. Each pass through the loop, each frame, does three things:
+This is the idea that made everything else fall into place for me, once it finally landed. A game is a loop that runs about 60 times a second. Each pass through the loop, each frame, does three things:
 
 1. Read input. Which keys are down?
 2. Update. Move everything forward a tiny slice of time.
@@ -144,8 +144,8 @@ That's the entire art budget. Three rectangles and a dashed line. Pong is rectan
 
 There are two ways to read the keyboard, and the difference between them matters:
 
-- `love.keyboard.isDown(key)` is true as long as the key is held. Use it for movement, where holding W should keep the paddle gliding.
-- `love.keypressed(key)` is a callback that fires once per press. Use it for one shot actions like "press Space to start."
+- `love.keyboard.isDown(key)` is true as long as the key is held. I use it for movement, where holding W should keep the paddle gliding.
+- `love.keypressed(key)` is a callback that fires once per press. I use it for one shot actions like "press Space to start."
 
 Paddles move continuously, so we use `isDown` inside `update`, and there's `dt` again, multiplied through:
 
