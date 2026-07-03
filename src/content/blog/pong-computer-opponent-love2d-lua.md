@@ -147,3 +147,5 @@ The right paddle currently aims at the ball's current `y`, which is honestly a b
 4. Attract mode. Let the AI drive *both* paddles on the title screen so the game demos itself while nobody is playing. Since either paddle is just a movement source, this is barely any code.
 
 The whole game is still just `conf.lua` and `main.lua`. Run `love .`, press `1`, and play a computer that, twenty lines ago, did not exist. `[ P1 vs CPU ]`
+
+Next up: [Part Three](/blog/pong-predictive-ai-difficulty-love2d-lua/), where I teach that AI to predict where the ball is going and wrap it in Easy, Medium, and Hard.

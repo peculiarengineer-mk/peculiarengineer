@@ -672,3 +672,5 @@ The things I want to try next, roughly easiest to hardest:
 4. Power ups. A bigger paddle, a faster ball, a second ball at once.
 
 The full source is the two files above. Grab them, run `love .`, and start turning the knobs. That's the part that actually taught me something, the part no write up could have handed me: you learn what each number does by feel, by changing it and watching what happens. So that's what I did, and I'd say go break it yourself. `[ PONG OK ]`
+
+Next up: [Part Two](/blog/pong-computer-opponent-love2d-lua/), where I hand the right paddle over to the computer and turn this into a one player game.
