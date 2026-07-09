@@ -2,6 +2,7 @@
 title: 'Making Pong with LÖVE and Lua: what I learned building my first game'
 description: 'Build the 1972 classic from a blank window to a playable match: scoring, a title screen, sound generated in code, and a little screen shake, all in two short Lua files.'
 pubDate: 'Jun 29 2026'
+heroImage: '../../assets/pong-1-hero.png'
 tags: ['LÖVE', 'Love2D', 'Lua', 'Game Dev', 'Pong', 'Tutorial']
 ---
 

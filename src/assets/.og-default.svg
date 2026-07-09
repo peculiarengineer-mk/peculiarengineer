@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs>
+    <radialGradient id="glow" cx="26%" cy="42%" r="75%">
+      <stop offset="0%" stop-color="#0f160d"/>
+      <stop offset="100%" stop-color="#0d0d0d"/>
+    </radialGradient>
+    <pattern id="scan" width="3" height="3" patternUnits="userSpaceOnUse">
+      <rect width="3" height="1" y="0" fill="#39ff14" opacity="0.035"/>
+    </pattern>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+
+  <rect width="1360" height="680" fill="url(#glow)"/>
+  <rect width="1360" height="680" fill="url(#scan)"/>
+
+  <!-- big ghost gear, bottom-right -->
+  <g opacity="0.5" stroke="#123a0c" stroke-width="9" fill="none">
+    <circle cx="1238" cy="556" r="80"/>
+    <circle cx="1238" cy="556" r="30"/>
+    <path d="M1238 456 L1238 486 M1238 626 L1238 656 M1138 556 L1168 556 M1308 556 L1338 556 M1167 485 L1188 506 M1288 606 L1309 627 M1309 485 L1288 506 M1188 606 L1167 627"/>
+  </g>
+
+  <!-- domain badge, top-right -->
+  <g>
+    <rect x="1016" y="48" width="296" height="46" rx="8" fill="none" stroke="#1b730e" stroke-width="1.5"/>
+    <text x="1042" y="77" font-family="'JetBrains Mono','SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" letter-spacing="1" fill="#39ff14">&#9670; peculiarengineer.com</text>
+  </g>
+
+  <!-- prompt line, top-left -->
+  <text x="100" y="132" font-family="'JetBrains Mono','SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="24" fill="#1b730e">&gt; whoami</text>
+
+  <!-- the mark -->
+  <g>
+    <rect x="100" y="250" width="176" height="176" rx="38.5" fill="#0a0f0a" stroke="#1b730e" stroke-width="2"/>
+    <polyline points="152.25,310.5 188,338 152.25,365.5" fill="none" stroke="#39ff14" stroke-width="17.875" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="199" y="351.75" width="41.25" height="16.5" rx="1" fill="#39ff14"/>
+  </g>
+
+  <!-- soft green glow behind wordmark -->
+  <rect x="340" y="270" width="520" height="150" fill="#39ff14" opacity="0.06" filter="url(#soft)"/>
+
+  <!-- wordmark -->
+  <text x="336" y="332" font-family="'JetBrains Mono','SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="86" font-weight="700" fill="#39ff14" letter-spacing="1">Peculiar</text>
+  <text x="336" y="424" font-family="'JetBrains Mono','SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="86" font-weight="700" fill="#39ff14" letter-spacing="1">Engineer</text>
+
+  <!-- tagline -->
+  <text x="102" y="512" font-family="'JetBrains Mono','SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="30" fill="#c9d6c4">Never Google the same fix twice.<tspan fill="#39ff14"> &#9608;</tspan></text>
+
+  <!-- topics -->
+  <text x="102" y="566" font-family="'JetBrains Mono','SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="21" fill="#1b730e" letter-spacing="1">Linux &#183; SSH &#183; Cloudflare &#183; DevOps &#183; Claude Code</text>
+</svg>

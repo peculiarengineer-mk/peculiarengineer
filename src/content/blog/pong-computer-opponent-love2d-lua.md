@@ -2,6 +2,7 @@
 title: 'Pong, Part Two: teaching the paddle to play itself'
 description: 'Add a one player mode to the LÖVE Pong from Part One by writing a computer opponent. An AI is just input you do not type, with a few limits bolted on to keep it beatable.'
 pubDate: 'Jun 30 2026'
+heroImage: '../../assets/pong-2-hero.png'
 tags: ['LÖVE', 'Love2D', 'Lua', 'Game Dev', 'Pong', 'Game AI', 'Tutorial']
 ---
 

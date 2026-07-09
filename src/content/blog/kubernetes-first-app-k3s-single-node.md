@@ -2,6 +2,7 @@
 title: 'Kubernetes, Part One: deploy an app on a single k3s node and watch it heal'
 description: 'The whole Kubernetes loop on one k3s node: deploy nginx, break a Pod and watch it self-heal, scale it, and roll out an update with no downtime.'
 pubDate: 'Jul 7 2026'
+heroImage: '../../assets/k3s-hero.png'
 tags: ['Kubernetes', 'k3s', 'kubectl', 'DevOps', 'SelfHosted', 'Containers', 'Tutorial']
 ---
 
@@ -338,7 +339,7 @@ The things that actually cost me time, so they don't cost you any:
 
 ## Where this series goes next
 
-You just ran the whole core loop: deploy, self-heal, scale, reach through a Service, update with no downtime, tear down. Everything else in Kubernetes is a variation on *declare desired state, let the system reconcile.* The parts I'm writing up next, roughly in the order they stop being optional:
+You just ran the whole core loop: deploy, self-heal, scale, reach through a Service, update with no downtime, tear down. Everything else in Kubernetes is a variation on *declare desired state, let the system reconcile.* This is Part One of a series, and the running map of it lives on the [Kubernetes series hub](/blog/kubernetes-series/). The parts I'm writing up next, roughly in the order they stop being optional:
 
 1. **ConfigMaps and Secrets**, to get config and passwords out of your image.
 2. **Labels and Namespaces**, for organizing and isolating groups of objects.

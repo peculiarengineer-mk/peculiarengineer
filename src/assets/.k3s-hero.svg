@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs>
+    <radialGradient id="glow" cx="30%" cy="35%" r="80%">
+      <stop offset="0%" stop-color="#11151d"/>
+      <stop offset="100%" stop-color="#0b0d12"/>
+    </radialGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#12161f" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1360" height="680" fill="url(#glow)"/>
+  <rect width="1360" height="680" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- big ghost helm (k8s wheel), bottom-right -->
+  <g opacity="0.5" stroke="#182236" stroke-width="8" fill="none" transform="translate(1240 540)">
+    <circle r="86"/>
+    <circle r="30"/>
+    <g>
+      <line x1="0" y1="-30" x2="0" y2="-86"/>
+      <line x1="0" y1="-30" x2="0" y2="-86" transform="rotate(51.43)"/>
+      <line x1="0" y1="-30" x2="0" y2="-86" transform="rotate(102.86)"/>
+      <line x1="0" y1="-30" x2="0" y2="-86" transform="rotate(154.29)"/>
+      <line x1="0" y1="-30" x2="0" y2="-86" transform="rotate(205.71)"/>
+      <line x1="0" y1="-30" x2="0" y2="-86" transform="rotate(257.14)"/>
+      <line x1="0" y1="-30" x2="0" y2="-86" transform="rotate(308.57)"/>
+    </g>
+  </g>
+
+  <!-- badge top-right -->
+  <g>
+    <rect x="1064" y="48" width="248" height="46" rx="8" fill="none" stroke="#3d5273" stroke-width="1.5"/>
+    <text x="1090" y="77" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" letter-spacing="2" fill="#f0883e">&#9670; K3S &#183; KUBECTL</text>
+  </g>
+
+  <!-- terminal window -->
+  <g>
+    <rect x="72" y="120" width="672" height="462" rx="11" fill="#0e121a" stroke="#3d5273" stroke-width="1.5"/>
+    <line x1="72" y1="178" x2="744" y2="178" stroke="#12161f" stroke-width="1.5"/>
+    <circle cx="104" cy="149" r="7" fill="#3d5273"/>
+    <circle cx="128" cy="149" r="7" fill="#3d5273"/>
+    <circle cx="152" cy="149" r="7" fill="#3d5273"/>
+    <text x="200" y="156" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#3d5273">homelab01 &#183; the reconciliation loop</text>
+
+    <text x="104" y="222" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#f0883e"><tspan fill="#ffb37a">$</tspan> kubectl apply -f nginx-deployment.yaml</text>
+    <text x="104" y="250" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#6fd08a"><tspan fill="#6fd08a">&#10003;</tspan> deployment.apps/web created</text>
+
+    <text x="104" y="312" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#f0883e"><tspan fill="#ffb37a">$</tspan> kubectl delete pod web-595d5fcfb-472tz</text>
+    <text x="104" y="340" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#e5534b"><tspan fill="#e5534b">&#10007;</tspan> pod "web-595d..." deleted</text>
+
+    <text x="104" y="402" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#f0883e"><tspan fill="#ffb37a">$</tspan> kubectl get pods</text>
+    <text x="104" y="430" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#6fd08a">web-9x2kf  <tspan fill="#6fd08a">Running</tspan>  14s  <tspan fill="#3d5273">&#8592; already back</tspan></text>
+
+    <text x="104" y="500" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" fill="#3d5273">you never started that Pod. the cluster did,</text>
+    <text x="104" y="530" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" fill="#3d5273">because you said you wanted three.</text>
+  </g>
+
+  <!-- right column: the loop -->
+  <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace">
+    <text x="852" y="200" font-size="20" letter-spacing="2" fill="#3d5273">THE WHOLE PRODUCT</text>
+
+    <rect x="852" y="220" width="456" height="60" rx="8" fill="none" stroke="#4d8bf0" stroke-width="2"/>
+    <text x="876" y="257" font-size="20" fill="#ffb37a"><tspan fill="#4d8bf0">desired</tspan>  &#183;  3 replicas of web</text>
+
+    <text x="1080" y="308" font-size="22" fill="#3d5273" text-anchor="middle">&#8595;</text>
+
+    <rect x="852" y="324" width="456" height="60" rx="8" fill="none" stroke="#e5534b" stroke-width="2"/>
+    <text x="876" y="361" font-size="20" fill="#ffb37a"><tspan fill="#e5534b">actual</tspan>   &#183;  2 running, one died</text>
+
+    <text x="1080" y="412" font-size="18" fill="#3d5273" text-anchor="middle">reconcile</text>
+
+    <rect x="852" y="428" width="456" height="60" rx="8" fill="none" stroke="#6fd08a" stroke-width="2"/>
+    <text x="876" y="465" font-size="20" fill="#ffb37a"><tspan fill="#6fd08a">&#10003;</tspan> controller starts one more</text>
+
+    <!-- loop-back arrow -->
+    <path d="M852 458 C812 458 812 250 852 250" fill="none" stroke="#3d5273" stroke-width="2"/>
+    <path d="M852 250 l-9 -6 v12 z" fill="#3d5273"/>
+
+    <text x="852" y="540" font-size="18" fill="#3d5273">declare the state you want.</text>
+    <text x="852" y="566" font-size="18" fill="#3d5273">Kubernetes makes reality match it, forever.</text>
+  </g>
+</svg>

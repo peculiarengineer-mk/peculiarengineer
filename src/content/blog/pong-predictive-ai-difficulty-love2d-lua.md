@@ -2,6 +2,7 @@
 title: 'Pong, Part Three: an opponent that sees the future'
 description: 'Give the LÖVE Pong AI a predictive read on the ball, plus Easy, Medium, and Hard, all driven by one little table of numbers. Medium reproduces Part Two exactly, so the default game is unchanged.'
 pubDate: 'Jul 1 2026'
+heroImage: '../../assets/pong-3-hero.png'
 tags: ['LÖVE', 'Love2D', 'Lua', 'Game Dev', 'Pong', 'Game AI', 'Tutorial']
 ---
 

@@ -1,0 +1,143 @@
+---
+import SeriesHeroImage from '../../assets/k3s-hero.png';
+import Layout from '../../layouts/BlogPost.astro';
+
+// The published parts, newest thinking first. As a roadmap item ships, move it
+// up here and give it an href. Keep `href` off anything unwritten so the hub
+// never points at a 404.
+const published = [
+	{
+		n: 1,
+		href: '/blog/kubernetes-first-app-k3s-single-node/',
+		title: 'Deploy an app on a single k3s node and watch it heal',
+		blurb:
+			'The whole core loop on one node: deploy nginx, kill a Pod and watch a replacement appear, scale it, roll out an update with no downtime, then tear it all down. Both manifests are inline, commented line by line.',
+	},
+];
+
+const upcoming = [
+	{ name: 'ConfigMaps and Secrets', blurb: 'Get configuration and passwords out of your image.' },
+	{ name: 'Labels and Namespaces', blurb: 'Organize and isolate groups of objects.' },
+	{ name: 'Volumes', blurb: 'Keep data alive when Pods disappear.' },
+	{
+		name: 'Health probes',
+		blurb: 'Liveness and readiness, so Kubernetes knows when your app is actually OK.',
+	},
+	{ name: 'Ingress', blurb: 'Route real outside web traffic to your Services.' },
+];
+---
+
+<Layout
+	title="Kubernetes on k3s: a hands-on series"
+	description="Learn Kubernetes the way it sticks, by running it. A hands-on k3s series on one cheap node: your first Deployment and the reconciliation loop, then config, storage, health checks, and Ingress. Real commands, no cloud bill."
+	kind="page"
+	showDate={false}
+	heroImage={SeriesHeroImage}
+>
+	<p class="whoami"><span class="prompt">~/$</span> kubectl get series</p>
+
+	<p>
+		This is a running series on learning Kubernetes the way I actually learned it: by
+		putting <a href="https://k3s.io">k3s</a> on a spare box and breaking things until the
+		model clicked. No managed cloud, no monthly bill, one node you could otherwise use as a
+		doorstop. Every part is a short, self-contained tutorial you can run start to finish in
+		an evening.
+	</p>
+
+	<p>
+		If you take one thing from the whole series, take this: <strong
+			>you declare the state you want, and Kubernetes works to make reality match it,
+			forever.</strong
+		> Deployments, scaling, self-healing, rolling updates, the lot. They are all variations on
+		that one loop. Once you have watched it happen with your own eyes, the pile of unfamiliar
+		nouns turns into a handful of settings on the same idea.
+	</p>
+
+	<h2>The parts</h2>
+
+	<ol class="parts">
+		{
+			published.map((p) => (
+				<li class="part done">
+					<span class="badge live">Part {p.n} · live</span>
+					<a href={p.href}>{p.title}</a>
+					<p>{p.blurb}</p>
+				</li>
+			))
+		}
+		{
+			upcoming.map((p, i) => (
+				<li class="part next">
+					<span class="badge">Part {published.length + i + 1} · in progress</span>
+					<span class="name">{p.name}</span>
+					<p>{p.blurb}</p>
+				</li>
+			))
+		}
+	</ol>
+
+	<p class="closing">
+		I write these as I go, so this page is the map. The next part lands here first, so if the
+		series is useful to you, this is the URL worth bookmarking.
+	</p>
+</Layout>
+
+<style>
+	.whoami {
+		font-family: var(--font-mono);
+		color: var(--sys-dim);
+		margin-bottom: 1.5em;
+	}
+	.whoami .prompt {
+		color: var(--sys-fg);
+		font-weight: 700;
+	}
+	.parts {
+		list-style: none;
+		margin: 1.5em 0;
+		padding: 0;
+	}
+	.part {
+		border: 1px solid var(--sys-dim);
+		border-left: 3px solid var(--sys-dim);
+		padding: 1em 1.2em;
+		margin: 0 0 1em;
+	}
+	.part.done {
+		border-left-color: var(--sys-fg);
+	}
+	.part .badge {
+		display: inline-block;
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--sys-dim);
+		margin-bottom: 0.4em;
+	}
+	.part .badge.live {
+		color: var(--sys-fg);
+	}
+	.part a,
+	.part .name {
+		display: block;
+		font-family: var(--font-mono);
+		font-weight: 700;
+		font-size: 1.05rem;
+		line-height: 1.3;
+	}
+	.part .name {
+		color: var(--sys-dim);
+	}
+	.part p {
+		margin: 0.4em 0 0;
+		font-size: 0.95rem;
+		color: var(--sys-text);
+	}
+	.part.next p {
+		color: rgb(var(--gray));
+	}
+	.closing {
+		margin-top: 1.5em;
+	}
+</style>

@@ -2,6 +2,7 @@
 title: 'Installing uv on macOS, with a command cheat sheet'
 description: 'How I install uv on macOS, why it replaced pip and venv and pipx for me, and the handful of commands I actually use day to day, written down so I stop looking them up.'
 pubDate: 'Jun 15 2026'
+heroImage: '../../assets/uv-macos-hero.png'
 tags: ['uv', 'Python', 'macOS', 'pip', 'PackageManager', 'DevTools', 'Astral']
 ---
 

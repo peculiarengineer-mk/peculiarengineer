@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="45%" r="75%">
+      <stop offset="0%" stop-color="#141414"/>
+      <stop offset="100%" stop-color="#0a0a0a"/>
+    </radialGradient>
+    <pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="1" y="0" fill="#ffffff" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <rect width="1360" height="680" fill="url(#vig)"/>
+  <rect width="1360" height="680" fill="url(#scan)"/>
+
+  <!-- court walls -->
+  <rect x="72" y="104" width="1216" height="6" fill="#f4f4f4" opacity="0.85"/>
+  <rect x="72" y="596" width="1216" height="6" fill="#f4f4f4" opacity="0.85"/>
+  <rect x="675" y="116" width="10" height="18" fill="#f4f4f4" opacity="0.55"/><rect x="675" y="150" width="10" height="18" fill="#f4f4f4" opacity="0.55"/><rect x="675" y="184" width="10" height="18" fill="#f4f4f4" opacity="0.55"/><rect x="675" y="218" width="10" height="18" fill="#f4f4f4" opacity="0.55"/><rect x="675" y="252" width="10" height="18" fill="#f4f4f4" opacity="0.55"/><rect x="675" y="286" width="10" height="18" fill="#f4f4f4" opacity="0.55"/><rect x="675" y="320" width="10" height="18" fill="#f4f4f4" opacity="0.55"/><rect x="675" y="354" width="10" height="18" fill="#f4f4f4" opacity="0.55"/><rect x="675" y="388" width="10" height="18" fill="#f4f4f4" opacity="0.55"/><rect x="675" y="422" width="10" height="18" fill="#f4f4f4" opacity="0.55"/><rect x="675" y="456" width="10" height="18" fill="#f4f4f4" opacity="0.55"/><rect x="675" y="490" width="10" height="18" fill="#f4f4f4" opacity="0.55"/><rect x="675" y="524" width="10" height="18" fill="#f4f4f4" opacity="0.55"/><rect x="675" y="558" width="10" height="18" fill="#f4f4f4" opacity="0.55"/>
+
+  <!-- score -->
+  <text x="530" y="248" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="132" font-weight="700" fill="#f4f4f4" text-anchor="middle" letter-spacing="4">3</text>
+  <text x="830" y="248" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="132" font-weight="700" fill="#f4f4f4" text-anchor="middle" letter-spacing="4">5</text>
+
+  <!-- paddles -->
+  <rect x="118" y="300" width="16" height="108" fill="#f4f4f4"/>
+  <rect x="1226" y="372" width="16" height="108" fill="#4d8bf0"/>
+
+  
+
+  <!-- ball -->
+  <rect x="825" y="393" width="18" height="18" fill="#4d8bf0" opacity="0.21000000000000002"/><rect x="799" y="393" width="18" height="18" fill="#4d8bf0" opacity="0.14"/><rect x="773" y="393" width="18" height="18" fill="#4d8bf0" opacity="0.07"/><rect x="851" y="393" width="18" height="18" fill="#f4f4f4"/>
+
+  <!-- badge -->
+  <text x="72" y="72" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="26" font-weight="700" letter-spacing="8" fill="#f4f4f4">PONG</text>
+  <text x="1288" y="72" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="22" letter-spacing="4" fill="#4d8bf0" text-anchor="end">&#9670; PART TWO</text>
+
+  <!-- caption -->
+  <text x="680" y="656" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="21" fill="#6a6a6a" text-anchor="middle">an AI is just input you don't type &#183; the right paddle now plays itself</text>
+</svg>

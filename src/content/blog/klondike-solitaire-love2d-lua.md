@@ -2,6 +2,7 @@
 title: 'Klondike Solitaire in LÖVE and Lua: what a card game taught me about the language'
 description: 'Building draw-one Klondike in LÖVE pushed me into the Lua I skipped writing Pong: modules, objects without classes via metatables, undo by snapshot, and dt-based tweening.'
 pubDate: 'Jul 5 2026'
+heroImage: '../../assets/klondike-hero.png'
 tags: ['LÖVE', 'Love2D', 'Lua', 'Game Dev', 'Solitaire', 'Metatables', 'Tutorial']
 ---
 

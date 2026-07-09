@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs>
+    <radialGradient id="felt" cx="34%" cy="30%" r="85%">
+      <stop offset="0%" stop-color="#0f3323"/>
+      <stop offset="100%" stop-color="#08160f"/>
+    </radialGradient>
+    <pattern id="weave" width="8" height="8" patternUnits="userSpaceOnUse">
+      <path d="M0 8 L8 0" stroke="#ffffff" stroke-width="0.5" opacity="0.02"/>
+    </pattern>
+  </defs>
+
+  <rect width="1360" height="680" fill="url(#felt)"/>
+  <rect width="1360" height="680" fill="url(#weave)"/>
+
+  <!-- badge -->
+  <g>
+    <rect x="1088" y="48" width="224" height="46" rx="8" fill="none" stroke="#1c4a34" stroke-width="1.5"/>
+    <text x="1114" y="77" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" letter-spacing="2" fill="#e8b04a">&#9670; L&#214;VE &#183; LUA</text>
+  </g>
+
+  <!-- foundations row -->
+  <g>
+    <rect x="72" y="128" width="96" height="132" rx="10" fill="none" stroke="#1c4a34" stroke-width="2"/>
+    <text x="120" y="212" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="40" fill="#1c4a34" text-anchor="middle">&#9824;</text>
+  </g>
+  <g>
+    <rect x="184" y="128" width="96" height="132" rx="10" fill="none" stroke="#1c4a34" stroke-width="2"/>
+    <text x="232" y="212" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="40" fill="#1c4a34" text-anchor="middle">&#9829;</text>
+  </g>
+  <g>
+    <rect x="296" y="128" width="96" height="132" rx="10" fill="none" stroke="#1c4a34" stroke-width="2"/>
+    <text x="344" y="212" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="40" fill="#1c4a34" text-anchor="middle">&#9830;</text>
+  </g>
+  <g>
+    <rect x="408" y="128" width="96" height="132" rx="10" fill="none" stroke="#1c4a34" stroke-width="2"/>
+    <text x="456" y="212" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="40" fill="#1c4a34" text-anchor="middle">&#9827;</text>
+  </g>
+
+  <!-- stock + waste -->
+  <g>
+    <rect x="596" y="128" width="96" height="132" rx="10" fill="#123a28" stroke="#1c4a34" stroke-width="1.5"/>
+    <rect x="606" y="138" width="76" height="112" rx="6" fill="none" stroke="#e8b04a" stroke-width="1.5" opacity="0.55"/>
+    <path d="M606 138 L682 250 M682 138 L606 250" stroke="#e8b04a" stroke-width="1" opacity="0.35"/>
+  </g>
+  <g>
+    <rect x="708" y="128" width="96" height="132" rx="10" fill="#f3ead6" stroke="#c8bfa8" stroke-width="1.5"/>
+    <text x="720" y="162" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="26" font-weight="700" fill="#20303a">A</text>
+    <text x="720" y="186" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="22" fill="#20303a">&#9824;</text>
+    <text x="756" y="218" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="40" fill="#20303a" text-anchor="middle">&#9824;</text>
+  </g>
+
+  <!-- a tableau column, fanned, undo-snapshot vibe -->
+  <g>
+    <rect x="72" y="320" width="96" height="132" rx="10" fill="#123a28" stroke="#1c4a34" stroke-width="1.5"/>
+    <rect x="82" y="330" width="76" height="112" rx="6" fill="none" stroke="#e8b04a" stroke-width="1.5" opacity="0.55"/>
+    <path d="M82 330 L158 442 M158 330 L82 442" stroke="#e8b04a" stroke-width="1" opacity="0.35"/>
+  </g>
+  <g>
+    <rect x="96" y="356" width="96" height="132" rx="10" fill="#123a28" stroke="#1c4a34" stroke-width="1.5"/>
+    <rect x="106" y="366" width="76" height="112" rx="6" fill="none" stroke="#e8b04a" stroke-width="1.5" opacity="0.55"/>
+    <path d="M106 366 L182 478 M182 366 L106 478" stroke="#e8b04a" stroke-width="1" opacity="0.35"/>
+  </g>
+  <g>
+    <rect x="120" y="392" width="96" height="132" rx="10" fill="#f3ead6" stroke="#c8bfa8" stroke-width="1.5"/>
+    <text x="132" y="426" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="26" font-weight="700" fill="#d24b4b">K</text>
+    <text x="132" y="450" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="22" fill="#d24b4b">&#9829;</text>
+    <text x="168" y="482" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="40" fill="#d24b4b" text-anchor="middle">&#9829;</text>
+  </g>
+  <g>
+    <rect x="144" y="470" width="96" height="132" rx="10" fill="#f3ead6" stroke="#c8bfa8" stroke-width="1.5"/>
+    <text x="156" y="504" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="26" font-weight="700" fill="#20303a">Q</text>
+    <text x="156" y="528" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="22" fill="#20303a">&#9827;</text>
+    <text x="192" y="560" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="40" fill="#20303a" text-anchor="middle">&#9827;</text>
+  </g>
+  <g>
+    <rect x="168" y="548" width="96" height="132" rx="10" fill="#f3ead6" stroke="#c8bfa8" stroke-width="1.5"/>
+    <text x="180" y="582" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="26" font-weight="700" fill="#d24b4b">J</text>
+    <text x="180" y="606" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="22" fill="#d24b4b">&#9830;</text>
+    <text x="216" y="638" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="40" fill="#d24b4b" text-anchor="middle">&#9830;</text>
+  </g>
+
+  <!-- a second short column -->
+  <g>
+    <rect x="360" y="320" width="96" height="132" rx="10" fill="#123a28" stroke="#1c4a34" stroke-width="1.5"/>
+    <rect x="370" y="330" width="76" height="112" rx="6" fill="none" stroke="#e8b04a" stroke-width="1.5" opacity="0.55"/>
+    <path d="M370 330 L446 442 M446 330 L370 442" stroke="#e8b04a" stroke-width="1" opacity="0.35"/>
+  </g>
+  <g>
+    <rect x="384" y="356" width="96" height="132" rx="10" fill="#f3ead6" stroke="#c8bfa8" stroke-width="1.5"/>
+    <text x="396" y="390" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="26" font-weight="700" fill="#20303a">10</text>
+    <text x="396" y="414" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="22" fill="#20303a">&#9824;</text>
+    <text x="432" y="446" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="40" fill="#20303a" text-anchor="middle">&#9824;</text>
+  </g>
+
+  <!-- drag/tween arrow -->
+  <path d="M300 470 C520 470 560 300 700 210" fill="none" stroke="#e8b04a" stroke-width="2" stroke-dasharray="8 8" opacity="0.7"/>
+  <path d="M700 210 l2 11 l-11 -3 z" fill="#e8b04a"/>
+
+  <!-- right: what the game taught -->
+  <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace">
+    <text x="820" y="180" font-size="20" letter-spacing="2" fill="#6f8a7c">WHAT A CARD GAME TAUGHT ME</text>
+
+    <text x="820" y="232" font-size="21" fill="#f3ead6"><tspan fill="#e8b04a">&#183;</tspan> modules that hide their state</text>
+    <text x="820" y="272" font-size="21" fill="#f3ead6"><tspan fill="#e8b04a">&#183;</tspan> objects without classes, via metatables</text>
+    <text x="820" y="312" font-size="21" fill="#f3ead6"><tspan fill="#e8b04a">&#183;</tspan> undo by snapshot</text>
+    <text x="820" y="352" font-size="21" fill="#f3ead6"><tspan fill="#e8b04a">&#183;</tspan> dt-based tweening</text>
+
+    <rect x="820" y="392" width="468" height="132" rx="10" fill="#0a1f16" stroke="#1c4a34" stroke-width="1.5"/>
+    <text x="844" y="430" font-size="17" fill="#6f8a7c">-- an object, the Lua way</text>
+    <text x="844" y="462" font-size="17" fill="#f3ead6">Card = {}</text>
+    <text x="844" y="490" font-size="17" fill="#f3ead6">Card.__index = Card</text>
+    <text x="844" y="512" font-size="16" fill="#e8b04a">setmetatable(c, Card)  -- no class needed</text>
+
+    <text x="820" y="566" font-size="18" fill="#6f8a7c">the Lua I skipped writing Pong.</text>
+  </g>
+</svg>

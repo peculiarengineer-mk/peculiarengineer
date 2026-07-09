@@ -2,6 +2,7 @@
 title: 'Tailscale for private networking: workers, datastores, and SSH'
 description: 'How regional worker VPSes reach Redis and MongoDB on a prod server over Tailscale — bound to the tailnet IP, never a public interface — plus how to securely SSH between Ubuntu machines without opening port 22, using auth keys, ACLs, and the key-expiry gotchas that silently break you months later.'
 pubDate: 'Jun 15 2026'
+heroImage: '../../assets/tailscale-privatenet-hero.png'
 tags: ['Tailscale', 'WireGuard', 'VPN', 'Networking', 'SSH', 'Redis', 'MongoDB', 'Ubuntu', 'Linux', 'SelfHosted', 'SysAdmin', 'DevOps']
 ---
 

@@ -2,6 +2,7 @@
 title: 'Installing Tailscale on Ubuntu 24.04'
 description: 'Getting Tailscale onto a fresh Ubuntu 24.04 box: the install, joining your tailnet interactively or with an auth key on a headless server, checking it actually worked, and making it survive a reboot.'
 pubDate: 'Jun 15 2026'
+heroImage: '../../assets/install-tailscale-hero.png'
 tags: ['Tailscale', 'Ubuntu', 'Linux', 'VPN', 'WireGuard', 'Networking', 'SelfHosted', 'SysAdmin']
 ---
 

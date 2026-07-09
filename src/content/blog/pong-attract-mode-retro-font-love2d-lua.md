@@ -2,6 +2,7 @@
 title: 'Pong, Part Four: a game that plays itself'
 description: 'Add attract mode to the LÖVE Pong, the self-running ghost match behind the title screen, then swap in a real retro pixel font. Both fall out of one idea: the AI is just input you do not type, so nothing says only one paddle can use it.'
 pubDate: 'Jul 1 2026'
+heroImage: '../../assets/pong-4-hero.png'
 tags: ['LÖVE', 'Love2D', 'Lua', 'Game Dev', 'Pong', 'Game AI', 'Tutorial']
 ---
 

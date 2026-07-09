@@ -2,6 +2,7 @@
 title: 'A Claude Code skill that spots your repeatable work and offers to save it'
 description: 'A small Claude Code skill that watches for repetition and stated rules in a conversation, then offers to turn the pattern into a reusable skill — with a subagent review step before anything gets saved.'
 pubDate: 'Jun 17 2026'
+heroImage: '../../assets/skill-spotter-hero.png'
 tags: ['ClaudeCode', 'AI', 'Productivity', 'Automation', 'DevTools']
 ---
 

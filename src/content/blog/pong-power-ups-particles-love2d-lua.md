@@ -2,6 +2,7 @@
 title: 'Pong, Part Five: power-ups (and a world that grows)'
 description: 'The finale. Spawned pickups, timed effects, and a particle burst generated in code, built on the one idea that ties them together: entities with lifetimes. Ends with the complete main.lua, all five parts in one listing.'
 pubDate: 'Jul 2 2026'
+heroImage: '../../assets/pong-5-hero.png'
 tags: ['LÖVE', 'Love2D', 'Lua', 'Game Dev', 'Pong', 'Tutorial']
 ---
 
