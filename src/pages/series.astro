@@ -1,0 +1,109 @@
+---
+import SeriesIndexImage from '../assets/og-default.png';
+import Layout from '../layouts/BlogPost.astro';
+
+// The hub-of-hubs. Add a series here when its hub page goes live.
+const series = [
+	{
+		href: '/blog/kubernetes-series/',
+		name: 'Kubernetes on k3s',
+		status: 'in progress',
+		blurb:
+			'Learn Kubernetes the way it sticks, by running it on one cheap node. Your first Deployment and the reconciliation loop, then config, storage, health checks, and Ingress.',
+	},
+	{
+		href: '/blog/claude-code-skills/',
+		name: 'Claude Code skills',
+		status: '4 skills',
+		blurb:
+			'Four skills that chain into one pipeline: spot the repeatable work, map the codebase read-only, turn it into a locked plan, and hand that plan to worker models.',
+	},
+	{
+		href: '/blog/pong-series/',
+		name: 'Pong in LÖVE and Lua',
+		status: '5 parts',
+		blurb:
+			'Build Pong from a blank window into a juicy arcade cabinet with LÖVE and Lua. Two-player game, a computer opponent, a predictive AI, an attract mode, and power-ups. One main.lua, no engine.',
+	},
+];
+---
+
+<Layout
+	title="Series — Peculiar Engineer"
+	description="The multi-part guides on Peculiar Engineer: hands-on series on Kubernetes and k3s, building games in LÖVE and Lua, and the Claude Code skills I've built. Start at the beginning, or jump to the part you need."
+	kind="page"
+	showDate={false}
+	heroImage={SeriesIndexImage}
+>
+	<p class="whoami"><span class="prompt">~/$</span> ls series/</p>
+
+	<p>
+		Most posts here are a single fix you can land and leave. These are the longer runs: a
+		subject taken from nothing to something real, one part at a time. Each series has its own
+		hub with the parts in order, so you can start at the beginning or drop into the one you
+		came for.
+	</p>
+
+	<ol class="parts">
+		{
+			series.map((s) => (
+				<li class="part done">
+					<span class="badge live">{s.status}</span>
+					<a href={s.href}>{s.name}</a>
+					<p>{s.blurb}</p>
+				</li>
+			))
+		}
+	</ol>
+
+	<p class="closing">
+		More series land here as they grow. If one saved you an afternoon, that is the point.
+	</p>
+</Layout>
+
+<style>
+	.whoami {
+		font-family: var(--font-mono);
+		color: var(--sys-dim);
+		margin-bottom: 1.5em;
+	}
+	.whoami .prompt {
+		color: var(--sys-fg);
+		font-weight: 700;
+	}
+	.parts {
+		list-style: none;
+		margin: 1.5em 0;
+		padding: 0;
+	}
+	.part {
+		border: 1px solid var(--sys-dim);
+		border-left: 3px solid var(--sys-fg);
+		padding: 1em 1.2em;
+		margin: 0 0 1em;
+	}
+	.part .badge {
+		display: inline-block;
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--sys-fg);
+		margin-bottom: 0.4em;
+	}
+	.part a {
+		display: block;
+		font-family: var(--font-mono);
+		font-weight: 700;
+		font-size: 1.05rem;
+		line-height: 1.3;
+	}
+	.part p {
+		margin: 0.4em 0 0;
+		font-size: 0.95rem;
+		color: var(--sys-text);
+	}
+	.closing {
+		margin-top: 1.5em;
+	}
+</style>
