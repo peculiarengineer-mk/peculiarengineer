@@ -13,10 +13,16 @@ const published = [
 		blurb:
 			'The whole core loop on one node: deploy nginx, kill a Pod and watch a replacement appear, scale it, roll out an update with no downtime, then tear it all down. Both manifests are inline, commented line by line.',
 	},
+	{
+		n: 2,
+		href: '/blog/kubernetes-configmaps-secrets-k3s/',
+		title: 'ConfigMaps and Secrets: config and passwords out of your image',
+		blurb:
+			'Pull settings, a whole web page, and a password out of the image and into the cluster, as env vars and mounted files, then change them live with no rebuild. Plus the base64 gotcha that trips everyone.',
+	},
 ];
 
 const upcoming = [
-	{ name: 'ConfigMaps and Secrets', blurb: 'Get configuration and passwords out of your image.' },
 	{ name: 'Labels and Namespaces', blurb: 'Organize and isolate groups of objects.' },
 	{ name: 'Volumes', blurb: 'Keep data alive when Pods disappear.' },
 	{

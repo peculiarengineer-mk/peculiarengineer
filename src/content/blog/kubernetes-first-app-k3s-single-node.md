@@ -341,7 +341,7 @@ The things that actually cost me time, so they don't cost you any:
 
 You just ran the whole core loop: deploy, self-heal, scale, reach through a Service, update with no downtime, tear down. Everything else in Kubernetes is a variation on *declare desired state, let the system reconcile.* This is Part One of a series, and the running map of it lives on the [Kubernetes series hub](/blog/kubernetes-series/). The parts I'm writing up next, roughly in the order they stop being optional:
 
-1. **ConfigMaps and Secrets**, to get config and passwords out of your image.
+1. **[ConfigMaps and Secrets](/blog/kubernetes-configmaps-secrets-k3s/)**, to get config and passwords out of your image. (Now live: [read Part Two](/blog/kubernetes-configmaps-secrets-k3s/).)
 2. **Labels and Namespaces**, for organizing and isolating groups of objects.
 3. **Volumes**, to keep data alive when Pods disappear.
 4. **Health probes** (liveness and readiness), to teach Kubernetes when your app is actually OK.
