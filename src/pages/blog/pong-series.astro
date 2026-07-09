@@ -1,0 +1,136 @@
+---
+import SeriesHeroImage from '../../assets/pong-1-hero.png';
+import Layout from '../../layouts/BlogPost.astro';
+
+// All five parts are published. Order is the reading order, Part One first.
+const parts = [
+	{
+		n: 1,
+		href: '/blog/make-pong-with-love2d-and-lua/',
+		title: 'Making Pong: what I learned building my first game',
+		blurb:
+			'From a blank window to a playable two-player match. The game loop, delta time, collision, scoring, a title screen, sound generated in code, and a touch of screen shake, all in two short Lua files.',
+	},
+	{
+		n: 2,
+		href: '/blog/pong-computer-opponent-love2d-lua/',
+		title: 'Teaching the paddle to play itself',
+		blurb:
+			'A one-player mode by writing a computer opponent, built on the one realization that carries the rest of the series: an AI is just input you do not type.',
+	},
+	{
+		n: 3,
+		href: '/blog/pong-predictive-ai-difficulty-love2d-lua/',
+		title: 'An opponent that sees the future',
+		blurb:
+			'Give the AI a predictive read on where the ball is going, then wrap it in Easy, Medium, and Hard, all driven by one small table of numbers.',
+	},
+	{
+		n: 4,
+		href: '/blog/pong-attract-mode-retro-font-love2d-lua/',
+		title: 'A game that plays itself',
+		blurb:
+			'Attract mode, the self-running ghost match behind the title screen, then a real retro pixel font. Both fall out of the same idea: the AI is just input, so nothing says only one paddle can use it.',
+	},
+	{
+		n: 5,
+		href: '/blog/pong-power-ups-particles-love2d-lua/',
+		title: 'Power-ups (and a world that grows)',
+		blurb:
+			'The finale. Spawned pickups, timed effects, and a particle burst generated in code, built on the idea that ties them together: entities with lifetimes. Ends with the complete main.lua, all five parts in one listing.',
+	},
+];
+---
+
+<Layout
+	title="Pong in LÖVE and Lua: the full series"
+	description="Build Pong from a blank window into a juicy arcade cabinet with LÖVE and Lua. A five-part series: two-player game, a computer opponent, a predictive AI with difficulty, an attract mode that plays itself, and power-ups. One main.lua, no engine."
+	kind="page"
+	showDate={false}
+	heroImage={SeriesHeroImage}
+>
+	<p class="whoami"><span class="prompt">~/$</span> love pong-series</p>
+
+	<p>
+		I had been meaning to actually make a game instead of reading about how games get made,
+		so I built the smallest real one I could think of: Pong, the 1972 classic, in <a
+			href="https://love2d.org">LÖVE</a
+		> and Lua. Then I kept going. This is the whole series, from a blank 800 by 600 window to a
+		self-demoing, power-up slinging arcade cabinet, still in one <code>main.lua</code> and one
+		<code>conf.lua</code>.
+	</p>
+
+	<p>
+		The surprise was how little of it was about Pong. The loop, delta time, collision, a state
+		machine, a bit of juice, then an AI that turns out to be nothing but input you do not type.
+		Those are game ideas, not Pong ideas. I just got to learn them on something small enough to
+		hold in my head. Read it in order, or jump to the part you need.
+	</p>
+
+	<h2>The parts</h2>
+
+	<ol class="parts">
+		{
+			parts.map((p) => (
+				<li class="part done">
+					<span class="badge live">Part {p.n} · live</span>
+					<a href={p.href}>{p.title}</a>
+					<p>{p.blurb}</p>
+				</li>
+			))
+		}
+	</ol>
+
+	<p class="closing">
+		Five parts, and the game grew from a blank window into something that looks and feels like
+		a cabinet. If you only build one, build Part One, then come back when you want it to play
+		itself.
+	</p>
+</Layout>
+
+<style>
+	.whoami {
+		font-family: var(--font-mono);
+		color: var(--sys-dim);
+		margin-bottom: 1.5em;
+	}
+	.whoami .prompt {
+		color: var(--sys-fg);
+		font-weight: 700;
+	}
+	.parts {
+		list-style: none;
+		margin: 1.5em 0;
+		padding: 0;
+	}
+	.part {
+		border: 1px solid var(--sys-dim);
+		border-left: 3px solid var(--sys-fg);
+		padding: 1em 1.2em;
+		margin: 0 0 1em;
+	}
+	.part .badge {
+		display: inline-block;
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--sys-fg);
+		margin-bottom: 0.4em;
+	}
+	.part a {
+		display: block;
+		font-family: var(--font-mono);
+		font-weight: 700;
+		font-size: 1.05rem;
+		line-height: 1.3;
+	}
+	.part p {
+		margin: 0.4em 0 0;
+		font-size: 0.95rem;
+		color: var(--sys-text);
+	}
+	.closing {
+		margin-top: 1.5em;
+	}
+</style>

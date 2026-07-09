@@ -10,7 +10,7 @@ If you use [Claude Code](https://claude.com/claude-code) (or any agentic coding
 setup) for real work, you eventually hit the same wall I did: one model planning
 *and* writing *and* reviewing everything is slow, and it burns your good context
 on mechanical edits. The fix is to split the roles — let a smart model plan and
-review, and hand the actual typing to cheaper worker models running in parallel.
+review, and hand the actual typing to cheaper worker models running in parallel. It is the last stage of a four-skill pipeline; the [Claude Code skills hub](/blog/claude-code-skills/) maps the whole set.
 
 This is the skill I use to do that handoff. It's called `dev-handoff`, and it
 takes an already-approved [dev plan](/blog/dev-plan-claude-code-skill/) and

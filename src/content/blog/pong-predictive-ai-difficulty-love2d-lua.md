@@ -6,7 +6,7 @@ heroImage: '../../assets/pong-3-hero.png'
 tags: ['LÖVE', 'Love2D', 'Lua', 'Game Dev', 'Pong', 'Game AI', 'Tutorial']
 ---
 
-In [Part One](/blog/make-pong-with-love2d-and-lua/) I built a complete two player Pong in LÖVE and Lua, and in [Part Two](/blog/pong-computer-opponent-love2d-lua/) I added a simple AI to drive the right paddle, built on the realization that a computer opponent is just input you do not type. That AI worked by chasing the ball. Every frame it aimed at the ball's current `y` and slid toward it.
+In [Part One](/blog/make-pong-with-love2d-and-lua/) I built a complete two player Pong in LÖVE and Lua, and in [Part Two](/blog/pong-computer-opponent-love2d-lua/) I added a simple AI to drive the right paddle, built on the realization that a computer opponent is just input you do not type. That AI worked by chasing the ball. Every frame it aimed at the ball's current `y` and slid toward it. The whole series is mapped on the [Pong series hub](/blog/pong-series/).
 
 That is a fine start, and it has one flaw I want to fix today. Here is the whole idea of this post:
 

@@ -6,7 +6,7 @@ heroImage: '../../assets/pong-1-hero.png'
 tags: ['LÖVE', 'Love2D', 'Lua', 'Game Dev', 'Pong', 'Tutorial']
 ---
 
-I'd been meaning to actually make a game instead of just reading about how games get made, so I finally sat down and built the smallest real one I could think of: Pong, the 1972 classic, with [LÖVE](https://love2d.org) (also written Love2D) and the Lua language. This is me writing down what I learned doing it, mostly so I never have to work it all out from scratch again, but also because the handful of ideas that finally clicked are the ones nobody had bothered to spell out for me. By the end I had a complete two player game: scoring, a title screen, a win screen, sound effects, and a touch of screen shake.
+I'd been meaning to actually make a game instead of just reading about how games get made, so I finally sat down and built the smallest real one I could think of: Pong, the 1972 classic, with [LÖVE](https://love2d.org) (also written Love2D) and the Lua language. This is me writing down what I learned doing it, mostly so I never have to work it all out from scratch again, but also because the handful of ideas that finally clicked are the ones nobody had bothered to spell out for me. By the end I had a complete two player game: scoring, a title screen, a win screen, sound effects, and a touch of screen shake. This is the first of five parts; the whole series is mapped on the [Pong series hub](/blog/pong-series/).
 
 Here's the part that surprised me most. Almost nothing I picked up was actually about Pong. The loop, delta time, collision, a state machine, a bit of juice. Those are game ideas, not Pong ideas. I just got to learn them on something small enough to hold in my head, and I keep running into the same ideas everywhere since.
 

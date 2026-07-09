@@ -6,7 +6,7 @@ heroImage: '../../assets/pong-4-hero.png'
 tags: ['LÖVE', 'Love2D', 'Lua', 'Game Dev', 'Pong', 'Game AI', 'Tutorial']
 ---
 
-In [Part One](/blog/make-pong-with-love2d-and-lua/) I built two player Pong, in [Part Two](/blog/pong-computer-opponent-love2d-lua/) I added a simple AI to drive the right paddle, on the realization that a computer opponent is just input you do not type, and in [Part Three](/blog/pong-predictive-ai-difficulty-love2d-lua/) I made that AI predict where the ball is going and wrapped it in Easy, Medium, and Hard. This time I do something that sounds harder than it is and looks great: I make the title screen play itself.
+In [Part One](/blog/make-pong-with-love2d-and-lua/) I built two player Pong, in [Part Two](/blog/pong-computer-opponent-love2d-lua/) I added a simple AI to drive the right paddle, on the realization that a computer opponent is just input you do not type, and in [Part Three](/blog/pong-predictive-ai-difficulty-love2d-lua/) I made that AI predict where the ball is going and wrapped it in Easy, Medium, and Hard. This time I do something that sounds harder than it is and looks great: I make the title screen play itself. The whole series is mapped on the [Pong series hub](/blog/pong-series/).
 
 Walk up to any old arcade cabinet and it is not sitting on a static logo. It is playing, a ghost match running to lure you into dropping a coin. That is called attract mode, and it is the big idea of this post:
 

@@ -6,7 +6,7 @@ heroImage: '../../assets/pong-2-hero.png'
 tags: ['LÖVE', 'Love2D', 'Lua', 'Game Dev', 'Pong', 'Game AI', 'Tutorial']
 ---
 
-In [Part One](/blog/make-pong-with-love2d-and-lua/) I built a complete two player Pong in LÖVE and Lua: the game loop, delta time, collision, scoring, and a bit of juice. It works, and it is genuinely fun, right up until you notice you need a friend sitting next to you to play it. So this time I taught the computer to play the right paddle. That is the one player mode, and there is a key on the title screen to hand the paddle back to a human whenever a friend does show up.
+In [Part One](/blog/make-pong-with-love2d-and-lua/) I built a complete two player Pong in LÖVE and Lua: the game loop, delta time, collision, scoring, and a bit of juice. It works, and it is genuinely fun, right up until you notice you need a friend sitting next to you to play it. So this time I taught the computer to play the right paddle. That is the one player mode, and there is a key on the title screen to hand the paddle back to a human whenever a friend does show up. The whole series is mapped on the [Pong series hub](/blog/pong-series/).
 
 In Part One the right paddle's `y` went up and down because the arrow keys told it to, every frame. That was the only place its movement came from. Nothing else in the game ever asked *why* the paddle sat where it did. The ball bounces off wherever it happens to be, the score reacts when the ball slips past, and none of that code cares whether a person is holding the keys. So a computer opponent is not a new system I bolt onto the game. It is the same right paddle, reading its position from a function I write instead of from the keyboard. Everything after this is just making that function play a decent game.
 

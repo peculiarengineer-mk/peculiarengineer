@@ -6,7 +6,7 @@ heroImage: '../../assets/pong-5-hero.png'
 tags: ['LÖVE', 'Love2D', 'Lua', 'Game Dev', 'Pong', 'Tutorial']
 ---
 
-Here is where the series has been. [Part One](/blog/make-pong-with-love2d-and-lua/) built two player Pong. [Part Two](/blog/pong-computer-opponent-love2d-lua/) taught a paddle to play itself, on the idea that an AI is just input you do not type. [Part Three](/blog/pong-predictive-ai-difficulty-love2d-lua/) made that AI predict the ball and gave it Easy, Medium, and Hard. [Part Four](/blog/pong-attract-mode-retro-font-love2d-lua/) let the title screen play itself and put a real arcade font on it. Four parts, and the game has grown from a blank window into something that looks and feels like a cabinet.
+Here is where the series has been. [Part One](/blog/make-pong-with-love2d-and-lua/) built two player Pong. [Part Two](/blog/pong-computer-opponent-love2d-lua/) taught a paddle to play itself, on the idea that an AI is just input you do not type. [Part Three](/blog/pong-predictive-ai-difficulty-love2d-lua/) made that AI predict the ball and gave it Easy, Medium, and Hard. [Part Four](/blog/pong-attract-mode-retro-font-love2d-lua/) let the title screen play itself and put a real arcade font on it. Four parts, and the game has grown from a blank window into something that looks and feels like a cabinet. The whole series is mapped on the [Pong series hub](/blog/pong-series/).
 
 For the finale I add the thing that turns a clean game into a toy: power-ups. And to do it I cross a line the series has not crossed yet.
 

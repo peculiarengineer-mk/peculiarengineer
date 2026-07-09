@@ -10,7 +10,7 @@ In the [last post](/blog/dev-handoff-claude-code-skill/) I shared `dev-handoff`,
 the skill that dispatches an approved plan to worker models. But a handoff is only
 as good as the plan it hands off. Workers running headless can't ask "wait, which
 file?" or "did you mean the user table or the account table?" — so the plan has to
-answer every question *before* anyone writes code.
+answer every question *before* anyone writes code. This is one stage of a four-skill pipeline, mapped end to end on the [Claude Code skills hub](/blog/claude-code-skills/).
 
 This is the skill that produces those plans. It's called `dev-plan`, and its whole
 job is to turn a fuzzy request into an implementation plan so explicit that a

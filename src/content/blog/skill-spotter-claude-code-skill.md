@@ -10,7 +10,7 @@ Most of my Claude Code skills exist because I noticed, too late, that I'd
 explained the same thing three times. The fix is always the same: write it down
 once as a skill so the agent loads it automatically next time. The annoying part
 is *remembering to notice*. By the time I realize a workflow is repeatable, I've
-already repeated it.
+already repeated it. This is one of four skills that chain into a pipeline; the [Claude Code skills hub](/blog/claude-code-skills/) maps the whole set.
 
 So I wrote a skill whose entire job is to notice for me. It's called
 `skill-spotter`. It watches a conversation for the signals that something is worth

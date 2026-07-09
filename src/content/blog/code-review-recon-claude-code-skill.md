@@ -9,7 +9,7 @@ tags: ['ClaudeCode', 'AI', 'CodeReview', 'Architecture', 'Git', 'DevTools']
 The fastest way to break an unfamiliar codebase is to let an AI agent start
 editing it before anyone understands how it fits together. So before I plan or
 hand off any work, I run a recon pass — a deep, *read-only* sweep that maps the
-architecture and writes it down, touching nothing.
+architecture and writes it down, touching nothing. It is one stage of a four-skill pipeline; the [Claude Code skills hub](/blog/claude-code-skills/) maps all of them.
 
 This is that skill: `code-review-recon`. It reads the project, traces a request
 end-to-end, mines the git history for hotspots, and drops everything it learned
