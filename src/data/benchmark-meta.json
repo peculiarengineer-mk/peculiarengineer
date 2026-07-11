@@ -1,0 +1,13 @@
+{
+	"generatedAt": "2026-07-11T02:45:47+00:00",
+	"lastRunDisplay": "11 July 2026",
+	"problems": 14,
+	"models": 3,
+	"k": 3,
+	"temp": 0.7,
+	"timeout": "10s",
+	"prompt": "strict",
+	"wallTimeSec": 774.0,
+	"totalRetries": 0,
+	"harnessRepo": "https://github.com/peculiarengineer-mk/llm-codebench"
+}

@@ -1,0 +1,639 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_TITLE } from '../consts';
+import csvRaw from '../data/results.csv?raw';
+import meta from '../data/benchmark-meta.json';
+
+// ── Parse the harness CSV (the single source of truth for this page) ──
+// Update flow: run llm-codebench, drop its results.csv into src/data/,
+// bump the date in benchmark-meta.json, redeploy. Everything below is derived.
+const [header, ...lines] = csvRaw.trim().split('\n');
+const cols = header.split(',');
+const rows = lines.map((line) => {
+	const cells = line.split(',');
+	const r: Record<string, string> = {};
+	cols.forEach((c, i) => (r[c] = cells[i]));
+	return {
+		model: r.model,
+		slug: r.problem_slug,
+		language: r.language,
+		difficulty: r.difficulty,
+		pass1: parseFloat(r.pass_at_1),
+		passK: parseFloat(r.pass_at_k),
+		attempts: parseInt(r.attempts, 10),
+		passedAttempts: parseInt(r.passed_attempts, 10),
+		timeouts: parseInt(r.timeouts, 10),
+		noCode: parseInt(r.no_code, 10),
+		filtered: parseInt(r.filtered ?? '0', 10),
+		apiErrors: parseInt(r.api_errors, 10),
+		cost: parseFloat(r.total_cost_usd),
+		latency: parseFloat(r.avg_latency_ms),
+		retries: parseInt(r.retries, 10),
+	};
+});
+
+const shortName = (m: string) => m.split('/').pop() ?? m;
+const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
+const pct = (x: number) => `${Math.round(x * 100)}%`;
+const usd = (x: number) => `$${x.toFixed(4)}`;
+const ms = (x: number) => `${Math.round(x)}ms`;
+const secs = (x: number) => (x >= 1000 ? `${(x / 1000).toFixed(1)}s` : `${Math.round(x)}ms`);
+
+const modelIds = [...new Set(rows.map((r) => r.model))];
+
+// ── Per-model rollups ──
+const models = modelIds.map((id) => {
+	const mr = rows.filter((r) => r.model === id);
+	const totalCost = sum(mr.map((r) => r.cost));
+	const totalAttempts = sum(mr.map((r) => r.attempts));
+	const passedAttempts = sum(mr.map((r) => r.passedAttempts));
+	const timeouts = sum(mr.map((r) => r.timeouts));
+	const noCode = sum(mr.map((r) => r.noCode));
+	const filtered = sum(mr.map((r) => r.filtered));
+	const apiErrors = sum(mr.map((r) => r.apiErrors));
+	const scoredRows = mr.filter((r) => r.filtered < r.attempts);
+	const solved = scoredRows.filter((r) => r.passK >= 1).length;
+	return {
+		id,
+		name: shortName(id),
+		pass1: mean(scoredRows.map((r) => r.pass1)),
+		passK: mean(scoredRows.map((r) => r.passK)),
+		solved,
+		total: scoredRows.length,
+		coverage: mr.length,
+		excluded: mr.length - scoredRows.length,
+		totalCost,
+		costPerCorrect: totalCost / (solved || 1),
+		avgLatency: mean(mr.map((r) => r.latency)),
+		totalAttempts,
+		passedAttempts,
+		wrong: totalAttempts - passedAttempts - timeouts - noCode - filtered - apiErrors,
+		timeouts,
+		noCode,
+		filtered,
+		apiErrors,
+		retries: sum(mr.map((r) => r.retries)),
+	};
+});
+
+// Coverage comes first so a perfect score on a filtered subset cannot outrank a
+// model that completed the full suite. Then compare first-try reliability and cost.
+const ranked = [...models].sort(
+	(a, b) => b.total / b.coverage - a.total / a.coverage || b.pass1 - a.pass1 || a.costPerCorrect - b.costPerCorrect,
+);
+
+// ── Headline spreads (the honest story: near-equal accuracy, wild cost/speed gap) ──
+const byCost = [...models].sort((a, b) => a.totalCost - b.totalCost);
+const byLatency = [...models].sort((a, b) => a.avgLatency - b.avgLatency);
+const costSpread = byCost[byCost.length - 1].totalCost / byCost[0].totalCost;
+const latencySpread = byLatency[byLatency.length - 1].avgLatency / byLatency[0].avgLatency;
+const cheapest = byCost[0];
+const priciest = byCost[byCost.length - 1];
+const fastest = byLatency[0];
+const perfectModels = models.filter((m) => m.solved === m.total);
+const fullCoveragePerfect = perfectModels.filter((m) => m.total === m.coverage);
+const filteredModels = models.filter((m) => m.excluded > 0);
+const cheapestComplete = [...fullCoveragePerfect].sort((a, b) => a.costPerCorrect - b.costPerCorrect)[0];
+const coverageCaveat = filteredModels.length
+	? `${filteredModels.map((m) => `${m.name} was filtered out of ${m.excluded} problems, so its perfect score covers ${m.solved}/${m.total}`).join('; ')}, not the full suite. `
+	: '';
+
+// ── Cost-vs-speed scatter geometry (lower-left = cheap + fast = better) ──
+const CW = 720;
+const CH = 380;
+const M = { top: 24, right: 24, bottom: 52, left: 64 };
+const xMax = Math.max(...models.map((m) => m.totalCost)) * 1.12;
+const yMax = Math.max(...models.map((m) => m.avgLatency)) * 1.12;
+const sx = (v: number) => M.left + (v / xMax) * (CW - M.left - M.right);
+const sy = (v: number) => CH - M.bottom - (v / yMax) * (CH - M.top - M.bottom);
+const points = models.map((m) => ({ ...m, cx: sx(m.totalCost), cy: sy(m.avgLatency) }));
+const xTicks = Array.from({ length: 5 }, (_, i) => (xMax / 4) * i);
+const yTicks = Array.from({ length: 5 }, (_, i) => (yMax / 4) * i);
+
+// ── Failure modes, per-difficulty, per-language, per-problem ──
+const difficulties = ['easy', 'medium', 'hard'];
+const languages = [...new Set(rows.map((r) => r.language))].sort();
+
+const perDifficulty = models.map((m) => ({
+	name: m.name,
+	cells: difficulties.map((d) => {
+		const dr = rows.filter((r) => r.model === m.id && r.difficulty === d);
+		const scored = dr.filter((r) => r.filtered < r.attempts);
+		return { solved: scored.filter((r) => r.passK >= 1).length, total: scored.length };
+	}),
+}));
+
+const problems = [...new Set(rows.map((r) => r.slug))].map((slug) => {
+	const pr = rows.filter((r) => r.slug === slug);
+	const meta0 = pr[0];
+	return {
+		slug,
+		language: meta0.language,
+		difficulty: meta0.difficulty,
+		results: modelIds.map((id) => {
+			const row = pr.find((r) => r.model === id);
+			const excluded = !!row && row.filtered >= row.attempts;
+			return { name: shortName(id), solved: !excluded && (row?.passK ?? 0) >= 1, excluded, pass1: row?.pass1 ?? 0 };
+		}),
+		solvedCount: pr.filter((r) => r.filtered < r.attempts && r.passK >= 1).length,
+		scoredCount: pr.filter((r) => r.filtered < r.attempts).length,
+	};
+});
+const diffOrder: Record<string, number> = { easy: 0, medium: 1, hard: 2 };
+problems.sort(
+	(a, b) => diffOrder[a.difficulty] - diffOrder[b.difficulty] || a.slug.localeCompare(b.slug),
+);
+
+const pageTitle = `LLM code benchmark — ${SITE_TITLE}`;
+const pageDesc = `A small, self-run coding benchmark: ${models.length} models on ${meta.problems} problems across ${languages.length} languages, scored on pass@k, cost, and speed. Last run ${meta.lastRunDisplay}.`;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={pageTitle} description={pageDesc} />
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1 class="head">~/$ ./llm-codebench --leaderboard</h1>
+			<p class="run">
+				<span class="badge">LAST RUN {meta.lastRunDisplay}</span>
+				<span class="cfg"
+					>{models.length} models &middot; {meta.problems} problems &middot; {languages.length} languages
+					&middot; k={meta.k} &middot; temp={meta.temp} &middot; timeout {meta.timeout}</span
+				>
+			</p>
+
+			<p class="disclaimer">
+				A small benchmark I run myself, not an authoritative ranking. {meta.problems}
+				problems &times; {meta.k} attempts is enough to show broad shape, not to split hairs.
+				Harness and problems are <a href={meta.harnessRepo}>open source</a>.
+			</p>
+
+			<!-- ── The actual finding ── -->
+			<div class="term-panel finding">
+				<span class="term-label">:: THE FINDING ::</span>
+				<p>
+					All three models hit <strong>100% pass@{meta.k}</strong> on the problems they were allowed to
+					answer. That sentence needs the second half. {coverageCaveat}{fullCoveragePerfect
+						.map((m) => m.name)
+						.join(' and ')} covered all {meta.problems}. {cheapestComplete.name} was the cheapest complete run
+					at <strong>{usd(cheapestComplete.costPerCorrect)} per solved problem</strong>. Perfect after exclusions
+					and perfect across the whole bench are not the same result.
+				</p>
+				<div class="stats">
+					<div class="stat">
+						<span class="k">cost spread</span>
+						<span class="v">{costSpread.toFixed(1)}&times;</span>
+						<span class="s">{cheapest.name} → {priciest.name}</span>
+					</div>
+					<div class="stat">
+						<span class="k">latency spread</span>
+						<span class="v">{latencySpread.toFixed(1)}&times;</span>
+						<span class="s">{secs(fastest.avgLatency)} → {secs(byLatency[byLatency.length - 1].avgLatency)}</span>
+					</div>
+					<div class="stat">
+						<span class="k">filtered attempts</span>
+						<span class="v">{sum(models.map((m) => m.filtered))}</span>
+						<span class="s">blocked by provider filter</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- ── Cost vs speed: the lead visual ── -->
+			<h2>Cost vs. speed</h2>
+			<p class="cap">
+				<strong>Among models with the same coverage, lower and farther left means cheaper and faster.</strong>
+				Larger dots mean the model passed more often on the first try. A dashed dot did not complete
+				the full suite, and its label shows how much was actually scored.
+			</p>
+			<div class="chartwrap">
+				<svg
+					viewBox={`0 0 ${CW} ${CH}`}
+					width="100%"
+					role="img"
+					aria-label="Total cost versus average latency for each model. Lower-left is cheaper and faster."
+				>
+					<!-- gridlines -->
+					{yTicks.map((t) => (
+						<g>
+							<line x1={M.left} y1={sy(t)} x2={CW - M.right} y2={sy(t)} class="grid" />
+							<text x={M.left - 8} y={sy(t) + 4} text-anchor="end" class="axis">{secs(t)}</text>
+						</g>
+					))}
+					{xTicks.map((t) => (
+						<text x={sx(t)} y={CH - M.bottom + 18} text-anchor="middle" class="axis">
+							${t.toFixed(2)}
+						</text>
+					))}
+					<!-- "better" arrow toward origin -->
+					<text x={M.left + 6} y={CH - M.bottom - 6} class="hint">&#8601; cheaper &amp; faster</text>
+					<!-- axis titles -->
+					<text x={(M.left + CW - M.right) / 2} y={CH - 10} text-anchor="middle" class="axis-title">
+						total cost (USD, lower is better) →
+					</text>
+					<!-- points -->
+					{points.map((p) => {
+						const r = 6 + p.pass1 * 8;
+						// Far-right points read leftward so a long name can't overflow the edge;
+						// everything else labels centered above its dot, which keeps neighbours
+						// at the same height (grok / gpt) from colliding horizontally.
+						const flipLeft = p.cx > CW * 0.72;
+						const above = p.cy - r - 16 > M.top;
+						const lx = flipLeft ? p.cx - r - 8 : p.cx;
+						const ly = flipLeft ? p.cy + 4 : above ? p.cy - r - 8 : p.cy + r + 16;
+						return (
+							<g>
+								<circle cx={p.cx} cy={p.cy} r={r} class={`dot ${p.excluded > 0 ? 'partial' : ''}`} />
+								<text
+									x={lx}
+									y={ly}
+									text-anchor={flipLeft ? 'end' : 'middle'}
+									class="dotlabel"
+								>
+									{p.name} · {pct(p.pass1)}{p.excluded > 0 ? ` · ${p.total}/${p.coverage} coverage` : ''}
+								</text>
+							</g>
+						);
+					})}
+				</svg>
+			</div>
+
+			<!-- ── Leaderboard ── -->
+			<h2>Leaderboard</h2>
+			<p class="cap">Displayed by coverage first, then pass@1 and cost per solved problem. A perfect score on ten eligible problems does not outrank a model that completed all fourteen. Click any header to re-sort.</p>
+			<div class="tablewrap">
+				<table id="leaderboard">
+					<thead>
+						<tr>
+							<th>Model</th>
+							<th>pass@1</th>
+							<th>pass@{meta.k}</th>
+							<th>solved</th>
+							<th>coverage</th>
+							<th>avg latency</th>
+							<th>total cost</th>
+							<th>$/solved</th>
+						</tr>
+					</thead>
+					<tbody>
+						{ranked.map((m) => (
+							<tr>
+								<td>{m.name}</td>
+								<td data-sort={m.pass1} class="num">{pct(m.pass1)}</td>
+								<td data-sort={m.passK} class="num">{pct(m.passK)}</td>
+								<td data-sort={m.solved} class="num">{m.solved}/{m.total}</td>
+								<td data-sort={m.total} class="num">{m.total}/{m.coverage}</td>
+								<td data-sort={m.avgLatency} class="num">{secs(m.avgLatency)}</td>
+								<td data-sort={m.totalCost} class="num">{usd(m.totalCost)}</td>
+								<td data-sort={m.costPerCorrect} class="num">{usd(m.costPerCorrect)}</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+
+			<!-- ── Failure modes ── -->
+			<h2>Failure modes</h2>
+			<p class="cap">Every individual attempt bucketed. {models[0].totalAttempts} attempts per model ({meta.problems} problems × {meta.k}).</p>
+			<div class="tablewrap">
+				<table>
+					<thead>
+							<tr><th>Model</th><th>passed</th><th>wrong answer</th><th>timeout</th><th>no code</th><th>filtered</th><th>API error</th></tr>
+					</thead>
+					<tbody>
+						{ranked.map((m) => (
+							<tr>
+								<td>{m.name}</td>
+								<td data-sort={m.passedAttempts} class="num good">{m.passedAttempts} <span class="ci">({pct(m.passedAttempts / m.totalAttempts)})</span></td>
+								<td data-sort={m.wrong} class="num">{m.wrong} <span class="ci">({pct(m.wrong / m.totalAttempts)})</span></td>
+								<td data-sort={m.timeouts} class="num">{m.timeouts} <span class="ci">({pct(m.timeouts / m.totalAttempts)})</span></td>
+								<td data-sort={m.noCode} class="num">{m.noCode} <span class="ci">({pct(m.noCode / m.totalAttempts)})</span></td>
+								<td data-sort={m.filtered} class="num">{m.filtered} <span class="ci">({pct(m.filtered / m.totalAttempts)})</span></td>
+								<td data-sort={m.apiErrors} class="num">{m.apiErrors} <span class="ci">({pct(m.apiErrors / m.totalAttempts)})</span></td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+
+			<!-- ── pass@k by difficulty ── -->
+			<h2>pass@{meta.k} by difficulty</h2>
+			<div class="tablewrap">
+				<table>
+					<thead>
+						<tr><th>Model</th>{difficulties.map((d) => <th>{d}</th>)}</tr>
+					</thead>
+					<tbody>
+						{perDifficulty.map((m) => (
+							<tr>
+								<td>{m.name}</td>
+								{m.cells.map((c) => (
+									<td class="num">{pct(c.solved / c.total)} <span class="ci">({c.solved}/{c.total})</span></td>
+								))}
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+
+			<!-- ── Per-problem detail ── -->
+			<h2>Per-problem detail</h2>
+			<p class="cap">Which models solved each problem within {meta.k} attempts. A dimmed name means not every attempt passed. Filtered means the provider blocked every response, so that model was not scored on the problem.</p>
+			{problems.map((p) => (
+				<details>
+					<summary>
+						<span class="pslug">{p.slug}</span>
+						<span class="pmeta">{p.language} · {p.difficulty}</span>
+						<span class="pcount">solved by {p.solvedCount}/{p.scoredCount} scored</span>
+					</summary>
+					<p class="pills">
+						{p.results.map((r) => (
+							<span class={`pill ${r.excluded ? 'filtered' : r.solved ? 'pass' : 'fail'} ${r.solved && r.pass1 < 1 ? 'shaky' : ''}`}>
+								{r.name} {r.excluded ? 'filtered' : r.solved ? '✓' : '✕'}
+							</span>
+						))}
+					</p>
+				</details>
+			))}
+
+			<footer class="method">
+				<p>
+					pass@k is the unbiased Chen et&nbsp;al. (2021) estimator over {meta.k} attempts per
+					problem. Here, pass@{meta.k} means at least one of the {meta.k} attempts solved the problem.
+					Costs are billed OpenRouter prices; latency is full response time, not
+					time-to-first-token. Run of {meta.lastRunDisplay} took {secs(meta.wallTimeSec * 1000)} wall
+					time with {meta.totalRetries} retries. Problems blocked by a provider content filter are
+					excluded from that model's pass rates and shown as reduced coverage instead. Numbers here
+					are a snapshot — models change fast, so
+					treat the date, not the ranking, as the load-bearing part. Full harness, problem set, and
+					raw <code>results.json</code> are in the <a href={meta.harnessRepo}>llm-codebench repo</a>.
+				</p>
+			</footer>
+		</main>
+		<Footer />
+
+		<script is:inline>
+			// Click-to-sort on every table. data-sort carries the numeric value.
+			document.querySelectorAll('table').forEach(function (t) {
+				var tbody = t.tBodies[0];
+				if (!tbody) return;
+				t.querySelectorAll('thead th').forEach(function (th, col) {
+					var dir = 1;
+					th.style.cursor = 'pointer';
+					th.addEventListener('click', function () {
+						dir = -dir;
+						var rows = Array.prototype.slice.call(tbody.rows);
+						rows.sort(function (a, b) {
+							var ca = a.cells[col],
+								cb = b.cells[col];
+							var va = ca.dataset.sort !== undefined ? parseFloat(ca.dataset.sort) : ca.innerText;
+							var vb = cb.dataset.sort !== undefined ? parseFloat(cb.dataset.sort) : cb.innerText;
+							if (typeof va === 'number' && typeof vb === 'number' && !isNaN(va) && !isNaN(vb))
+								return (va - vb) * dir;
+							return String(va).localeCompare(String(vb)) * dir;
+						});
+						rows.forEach(function (r) {
+							tbody.appendChild(r);
+						});
+					});
+				});
+			});
+		</script>
+	</body>
+</html>
+
+<style>
+	.head {
+		margin-bottom: 0.5rem;
+	}
+	.run {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75em;
+		margin: 0 0 1em;
+	}
+	.badge {
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		letter-spacing: 0.08em;
+		border: 1px solid var(--sys-fg);
+		color: var(--sys-fg);
+		padding: 0.2em 0.6em;
+		white-space: nowrap;
+	}
+	.cfg {
+		color: var(--sys-dim);
+		font-size: 0.82rem;
+	}
+	.disclaimer {
+		color: var(--sys-text);
+		font-size: 0.9rem;
+		max-width: 68ch;
+		border-left: 3px solid var(--sys-dim);
+		padding-left: 1em;
+	}
+
+	.finding {
+		margin: 2em 0 2.5em;
+	}
+	.finding p {
+		margin: 0.2em 0 1.2em;
+		max-width: 70ch;
+	}
+	.stats {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1px;
+		background: var(--sys-dim);
+		border: 1px solid var(--sys-dim);
+	}
+	.stat {
+		background: var(--sys-bg);
+		padding: 0.9em 1em;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25em;
+	}
+	.stat .k {
+		font-size: 0.72rem;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--sys-dim);
+	}
+	.stat .v {
+		font-size: 1.9rem;
+		font-weight: 700;
+		color: var(--sys-fg);
+		line-height: 1;
+	}
+	.stat .s {
+		font-size: 0.76rem;
+		color: var(--sys-text);
+	}
+
+	.cap {
+		color: var(--sys-text);
+		font-size: 0.9rem;
+		max-width: 70ch;
+		margin: 0.3em 0 1em;
+	}
+
+	.chartwrap {
+		overflow-x: auto;
+		margin: 1em 0 2.5em;
+	}
+	.chartwrap svg {
+		max-width: 760px;
+	}
+	svg .grid {
+		stroke: rgba(var(--sys-dim-rgb), 0.5);
+		stroke-width: 1;
+	}
+	svg .axis {
+		fill: var(--sys-dim);
+		font: 12px var(--font-mono);
+	}
+	svg .axis-title {
+		fill: var(--sys-text);
+		font: 12px var(--font-mono);
+	}
+	svg .hint {
+		fill: var(--sys-fg);
+		font: 11px var(--font-mono);
+		opacity: 0.75;
+	}
+	svg .dot {
+		fill: var(--sys-fg);
+		fill-opacity: 0.85;
+		stroke: var(--sys-bg);
+		stroke-width: 2;
+	}
+	svg .dot.partial {
+		fill-opacity: 0.35;
+		stroke-dasharray: 4 3;
+	}
+	svg .dotlabel {
+		fill: var(--sys-text);
+		font: 12px var(--font-mono);
+	}
+
+	.tablewrap {
+		overflow-x: auto;
+		margin: 0.5em 0 1em;
+	}
+	table {
+		font-size: 0.9rem;
+	}
+	th {
+		text-align: left;
+		color: var(--sys-fg);
+		text-transform: uppercase;
+		font-size: 0.78rem;
+		letter-spacing: 0.03em;
+		user-select: none;
+	}
+	td.num {
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+	}
+	th:not(:first-child) {
+		text-align: right;
+	}
+	tbody tr:hover {
+		background: rgba(var(--sys-fg-rgb), 0.06);
+	}
+	.good {
+		color: var(--sys-fg);
+	}
+	.ci {
+		color: var(--sys-dim);
+		font-size: 0.82em;
+	}
+
+	details {
+		border: 1px solid var(--sys-dim);
+		padding: 0.4em 0.9em;
+		margin: 0.5em 0;
+	}
+	details[open] {
+		border-color: var(--sys-fg);
+	}
+	summary {
+		cursor: pointer;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.8em;
+	}
+	summary::marker {
+		color: var(--sys-fg);
+	}
+	.pslug {
+		font-weight: 700;
+		color: var(--sys-fg);
+	}
+	.pmeta {
+		font-size: 0.78rem;
+		color: var(--sys-dim);
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+	.pcount {
+		font-size: 0.82rem;
+		color: var(--sys-text);
+		margin-left: auto;
+	}
+	.pills {
+		margin: 0.6em 0 0.2em;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4em;
+	}
+	.pill {
+		font-size: 0.8rem;
+		padding: 0.1em 0.6em;
+		border: 1px solid var(--sys-dim);
+	}
+	.pill.pass {
+		color: var(--sys-fg);
+		border-color: var(--sys-fg);
+	}
+	.pill.fail {
+		color: #d9534f;
+		border-color: #d9534f;
+	}
+	.pill.shaky {
+		opacity: 0.55;
+	}
+	.pill.filtered {
+		color: var(--sys-dim);
+		border-style: dashed;
+	}
+
+	.method {
+		margin-top: 3em;
+		padding-top: 1em;
+		border-top: 1px solid var(--sys-dim);
+		color: var(--sys-dim);
+		font-size: 0.82rem;
+	}
+	.method a,
+	.disclaimer a {
+		color: var(--sys-fg);
+	}
+
+	@media (max-width: 640px) {
+		.stats {
+			grid-template-columns: 1fr;
+		}
+		.stat .v {
+			font-size: 1.6rem;
+		}
+	}
+</style>
