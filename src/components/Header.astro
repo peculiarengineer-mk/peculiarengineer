@@ -1,7 +1,6 @@
 ---
 import { SITE_TITLE } from '../consts';
 import HeaderLink from './HeaderLink.astro';
-import SocialLinks from './SocialLinks.astro';
 ---
 
 <header>
@@ -17,7 +16,6 @@ import SocialLinks from './SocialLinks.astro';
 			<HeaderLink href="/benchmark">&gt; Benchmark</HeaderLink>
 			<HeaderLink href="/about">&gt; About</HeaderLink>
 		</div>
-		<SocialLinks />
 	</nav>
 </header>
 <style>
@@ -46,13 +44,18 @@ import SocialLinks from './SocialLinks.astro';
 	}
 	nav {
 		display: grid;
-		grid-template-columns: auto minmax(0, 1fr) auto;
+		grid-template-columns: auto minmax(0, 1fr);
+		grid-template-areas: "title links";
 		align-items: center;
 		gap: 0.75em;
 		max-width: 1100px;
 		margin: 0 auto;
 	}
+	.site-title {
+		grid-area: title;
+	}
 	.internal-links {
+		grid-area: links;
 		display: flex;
 		flex-wrap: wrap;
 		justify-content: center;
@@ -73,21 +76,12 @@ import SocialLinks from './SocialLinks.astro';
 	nav a.active {
 		border-color: var(--sys-dim);
 	}
-	@media (max-width: 1050px) {
+	@media (max-width: 900px) {
 		nav {
-			grid-template-columns: minmax(0, 1fr) auto;
+			grid-template-columns: minmax(0, 1fr);
 			grid-template-areas:
-				"title social"
-				"links links";
-		}
-		.site-title {
-			grid-area: title;
-		}
-		.internal-links {
-			grid-area: links;
-		}
-		nav :global(.social-links) {
-			grid-area: social;
+				"title"
+				"links";
 		}
 	}
 	@media (max-width: 560px) {
@@ -106,9 +100,6 @@ import SocialLinks from './SocialLinks.astro';
 		}
 		nav a {
 			padding-inline: 0.45em;
-		}
-		nav :global(.social-links) {
-			gap: 0.4em;
 		}
 	}
 </style>
