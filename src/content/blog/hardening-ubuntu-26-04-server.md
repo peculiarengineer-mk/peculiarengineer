@@ -90,13 +90,14 @@ Even with passwords off, the bots keep knocking, and the noise alone is worth qu
 sudo apt install fail2ban
 ```
 
-It enables an SSH jail out of the box on Ubuntu. If you want to tune it, copy the defaults to a local file so upgrades do not overwrite your changes, and edit that:
+Ubuntu's package enables its SSH jail through the distribution defaults. Verify that instead of assuming it:
 
 ```bash
-sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+sudo fail2ban-client status
+sudo fail2ban-client status sshd
 ```
 
-In `jail.local` the settings worth knowing are `bantime` (how long a banned IP stays out), `findtime` (the window failures are counted in), and `maxretry` (how many before a ban). With key-only auth this is more about cutting log noise than stopping a real break-in, but it is cheap and it works.
+Do not copy the full `jail.conf`; package updates improve that file, and a copied local version pins old defaults in place. Put only your overrides in `/etc/fail2ban/jail.d/sshd.local`. Ubuntu 26.04 also reads SSH failures from the systemd journal rather than relying on `/var/log/auth.log`, which is why I pulled the Python 3.14, journal backend, configuration, and testing details into a separate [Fail2ban on Ubuntu 26.04 guide](/blog/set-up-fail2ban-ubuntu-26-04/). With key-only auth this is more about cutting log noise than stopping a real break-in, but it is cheap and it works.
 
 ## See what is actually listening
 
