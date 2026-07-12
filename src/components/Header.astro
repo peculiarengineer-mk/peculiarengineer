@@ -45,10 +45,9 @@ import SocialLinks from './SocialLinks.astro';
 		color: var(--sys-dim);
 	}
 	nav {
-		display: flex;
-		flex-wrap: wrap;
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
 		align-items: center;
-		justify-content: space-between;
 		gap: 0.75em;
 		max-width: 1100px;
 		margin: 0 auto;
@@ -56,6 +55,7 @@ import SocialLinks from './SocialLinks.astro';
 	.internal-links {
 		display: flex;
 		flex-wrap: wrap;
+		justify-content: center;
 		gap: 0.25em;
 	}
 	nav a {
@@ -72,5 +72,43 @@ import SocialLinks from './SocialLinks.astro';
 	}
 	nav a.active {
 		border-color: var(--sys-dim);
+	}
+	@media (max-width: 1050px) {
+		nav {
+			grid-template-columns: minmax(0, 1fr) auto;
+			grid-template-areas:
+				"title social"
+				"links links";
+		}
+		.site-title {
+			grid-area: title;
+		}
+		.internal-links {
+			grid-area: links;
+		}
+		nav :global(.social-links) {
+			grid-area: social;
+		}
+	}
+	@media (max-width: 560px) {
+		header {
+			padding-inline: 0.5em;
+		}
+		.site-title {
+			font-size: 0.95em;
+			letter-spacing: 0.08em;
+		}
+		.site-title .sys-tag {
+			display: none;
+		}
+		.internal-links {
+			gap: 0.1em;
+		}
+		nav a {
+			padding-inline: 0.45em;
+		}
+		nav :global(.social-links) {
+			gap: 0.4em;
+		}
 	}
 </style>
