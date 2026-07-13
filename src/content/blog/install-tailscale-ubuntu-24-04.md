@@ -10,7 +10,9 @@ Installing Tailscale on Ubuntu 24.04 takes about two minutes, and at the end the
 machine has a stable `100.x.y.z` address that follows it around, with the daemon
 running as a service that comes back after a reboot.
 
-> **TL;DR** — `curl -fsSL https://tailscale.com/install.sh | sh`, then
+> On 26.04 already? See the [updated guide for Ubuntu 26.04](/blog/install-tailscale-ubuntu-26-04/). Same steps, new codename.
+
+> **TL;DR** `curl -fsSL https://tailscale.com/install.sh | sh`, then
 > `sudo tailscale up`, open the URL it prints, approve the machine. On a headless
 > server, hand it an `--authkey` and skip the browser entirely.
 
