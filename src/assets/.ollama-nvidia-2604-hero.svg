@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs>
+    <radialGradient id="glow" cx="30%" cy="35%" r="80%">
+      <stop offset="0%" stop-color="#0d130f"/>
+      <stop offset="100%" stop-color="#080b09"/>
+    </radialGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#10271a" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1360" height="680" fill="url(#glow)"/>
+  <rect width="1360" height="680" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- big ghost chevron, bottom-right -->
+  <path d="M1180 470 L1300 560 L1180 650" fill="none" stroke="#1d4d33" stroke-width="10" opacity="0.55"/>
+
+  <!-- badge top-right -->
+  <g>
+    <rect x="1064" y="48" width="248" height="46" rx="8" fill="none" stroke="#2c7d4c" stroke-width="1.5"/>
+    <text x="1090" y="77" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" letter-spacing="2" fill="#4ade80">&#9670; OLLAMA &#183; <tspan fill="#76b900">GPU</tspan></text>
+  </g>
+
+  <!-- terminal window -->
+  <g>
+    <rect x="72" y="120" width="672" height="462" rx="11" fill="#0a100c" stroke="#2c7d4c" stroke-width="1.5"/>
+    <line x1="72" y1="178" x2="744" y2="178" stroke="#1d4d33" stroke-width="1.5"/>
+    <circle cx="104" cy="149" r="7" fill="#2c7d4c"/>
+    <circle cx="128" cy="149" r="7" fill="#2c7d4c"/>
+    <circle cx="152" cy="149" r="7" fill="#2c7d4c"/>
+    <text x="200" y="156" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#2c7d4c">ubuntu 26.04 &#183; nvidia gpu</text>
+
+    <text x="104" y="224" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" fill="#4ade80"><tspan fill="#6ff09a">$</tspan> sudo ubuntu-drivers install</text>
+    <text x="104" y="256" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" fill="#4ade80"><tspan fill="#76b900">&#10003;</tspan> nvidia-smi          <tspan fill="#2c7d4c">driver OK</tspan></text>
+
+    <text x="104" y="308" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" fill="#4ade80"><tspan fill="#6ff09a">$</tspan> sudo apt install nvidia-cuda-toolkit</text>
+    <text x="104" y="340" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" fill="#4ade80"><tspan fill="#76b900">&#10003;</tspan> nvcc                <tspan fill="#2c7d4c">from ubuntu archive</tspan></text>
+
+    <text x="104" y="392" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" fill="#4ade80"><tspan fill="#6ff09a">$</tspan> curl -fsSL ollama.com/install.sh | sh</text>
+    <text x="104" y="424" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" fill="#4ade80"><tspan fill="#6ff09a">$</tspan> ollama run llama3.1:8b</text>
+    <text x="104" y="460" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" fill="#4ade80"><tspan fill="#2c7d4c">&gt;</tspan> ollama ps &#8594; <tspan fill="#76b900">100% GPU</tspan><tspan fill="#6ff09a">&#9608;</tspan></text>
+
+    <text x="104" y="524" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="19" fill="#2c7d4c">driver &#183; cuda &#183; ollama &#183; offload</text>
+  </g>
+
+  <!-- right column: the 26.04 gpu stack -->
+  <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace">
+    <text x="852" y="200" font-size="20" letter-spacing="2" fill="#2c7d4c">THE 26.04 GPU STACK</text>
+
+    <rect x="852" y="220" width="456" height="64" rx="8" fill="none" stroke="#76b900" stroke-width="2"/>
+    <text x="876" y="259" font-size="19" fill="#6ff09a">NVIDIA driver  <tspan fill="#2c7d4c">via apt</tspan></text>
+
+    <text x="1080" y="312" font-size="22" fill="#2c7d4c" text-anchor="middle">&#8595;</text>
+
+    <rect x="852" y="328" width="456" height="64" rx="8" fill="none" stroke="#76b900" stroke-width="2"/>
+    <text x="876" y="367" font-size="19" fill="#6ff09a">native CUDA  <tspan fill="#2c7d4c">from ubuntu archive</tspan></text>
+
+    <text x="1080" y="420" font-size="22" fill="#2c7d4c" text-anchor="middle">&#8595;</text>
+
+    <rect x="852" y="436" width="456" height="64" rx="8" fill="none" stroke="#4ade80" stroke-width="2"/>
+    <text x="876" y="475" font-size="19" fill="#4ade80"><tspan fill="#6ff09a">&#9635;</tspan> Ollama, on the GPU</text>
+
+    <text x="852" y="546" font-size="18" fill="#2c7d4c">no external nvidia repo &#183; first on 26.04</text>
+  </g>
+</svg>
