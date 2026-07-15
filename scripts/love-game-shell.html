@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1" />
+    <title>Platformer Demo</title>
+    <style>
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: #0d0d0d;
+        overflow: hidden;
+      }
+      #wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+      }
+      /* The game's own window is 960x640 (3:2). Scale to fit the frame,
+         keeping the pixels crisp and the aspect ratio locked. */
+      canvas {
+        display: block;
+        max-width: 100%;
+        max-height: 100%;
+        aspect-ratio: 960 / 640;
+        image-rendering: pixelated;
+      }
+      #loadingCanvas { background: #8ec3e3; }
+      #canvas { visibility: hidden; }
+    </style>
+  </head>
+  <body>
+    <div id="wrap">
+      <canvas id="loadingCanvas" oncontextmenu="event.preventDefault()" width="960" height="640"></canvas>
+      <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    </div>
+
+    <script type="text/javascript">
+      var loadingContext = document.getElementById('loadingCanvas').getContext('2d');
+      function drawLoadingText(text) {
+        var canvas = loadingContext.canvas;
+        loadingContext.fillStyle = '#0d0d0d';
+        loadingContext.fillRect(0, 0, canvas.width, canvas.height);
+        loadingContext.font = '20px monospace';
+        loadingContext.textAlign = 'center';
+        loadingContext.fillStyle = '#39ff14';
+        loadingContext.fillText(text, canvas.width / 2, canvas.height / 2);
+      }
+
+      // Keep focus in the frame, and swallow space/arrow keys so they drive the
+      // player instead of scrolling the parent article.
+      window.onload = function () { window.focus(); };
+      window.onclick = function () { window.focus(); };
+      window.addEventListener('keydown', function (e) {
+        if ([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) e.preventDefault();
+      }, false);
+
+      var Module = {
+        arguments: ['./game.love'],
+        INITIAL_MEMORY: 33554432,
+        printErr: console.error.bind(console),
+        canvas: document.getElementById('canvas'),
+        setStatus: function (text) {
+          if (text) {
+            drawLoadingText(text);
+          } else if (Module.remainingDependencies === 0) {
+            document.getElementById('loadingCanvas').style.display = 'none';
+            document.getElementById('canvas').style.visibility = 'visible';
+          }
+        },
+        totalDependencies: 0,
+        remainingDependencies: 0,
+        monitorRunDependencies: function (left) {
+          this.remainingDependencies = left;
+          this.totalDependencies = Math.max(this.totalDependencies, left);
+          Module.setStatus(left ? 'Loading… (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : '');
+        },
+      };
+      Module.setStatus('Downloading…');
+      window.onerror = function () {
+        Module.setStatus('Error — see the JavaScript console');
+      };
+      var applicationLoad = function () { Love(Module); };
+    </script>
+    <script type="text/javascript" src="game.js"></script>
+    <script async type="text/javascript" src="love.js" onload="applicationLoad(this)"></script>
+  </body>
+</html>

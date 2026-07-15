@@ -1,0 +1,1230 @@
+---
+title: 'Build a platformer with LÖVE and Lua: one way platforms, moving platforms, and a validator that reads your physics'
+description: 'A complete LÖVE platformer in one Lua file, playable in the browser: gravity and tile collision, a scrolling camera, enemies, and the three traversal mechanics that live in the collision layer (one way platforms, carrying moving platforms, and checkpoints), plus a level validator derived straight from the jump numbers.'
+pubDate: 'Jul 13 2026'
+# heroImage: '../../assets/platformer-hero.png'  # add after grabbing a gameplay screenshot
+tags: ['LÖVE', 'Love2D', 'Lua', 'Game Dev', 'Platformer', 'Collision', 'Tutorial']
+---
+import LoveGame from '../../components/LoveGame.astro';
+
+[Pong](/blog/make-pong-with-love2d-and-lua/) taught me the loop. [Breakout](/blog/build-breakout-love2d-lua/) taught me collision response. [Klondike](/blog/klondike-solitaire-love2d-lua/) taught me the parts of Lua the first two let me skip. A platformer is where those habits get their real test, because the thing under your feet stops being a wall you bounce off and starts being a surface you live on. Sometimes it moves, and sometimes you want to fall through it on purpose.
+
+The finished game is the familiar shape: an alien who runs, jumps, and stomps; grass tiles you author as text; frogs and a mouse that patrol; coins, gems, spikes, a flag; a scrolling camera; coyote time and jump buffering so the jump feels honest. All of that is Steps 1 through 6, and it is built the same way Breakout was, with tables and loops and no physics library. This post is about Step 7, the part that makes it read as a *platformer* rather than a character on a floor: three traversal mechanics that all live in one place.
+
+Play it first, then we will take the collision layer apart. Arrow keys or `A`/`D` to move, `Space` to jump, `Down` to drop through a ledge, land on a foe's head to stomp it, `R` to restart.
+
+<LoveGame
+  src="/games/platformer/"
+  title="Platformer Demo"
+  controls="A/D move · Space jump · Down drop through · Stomp foes · R restart"
+/>
+
+> **TL;DR** One way platforms, moving platforms, and checkpoints are not three features bolted onto three subsystems. They are three edits to the collision layer. A one way platform is a surface that only exists when your feet are crossing its top edge on the way down. A moving platform is a normal surface plus a small delta, the distance it moved this frame, that you add to whatever is standing on it. A checkpoint just reassigns one variable. Get the first idea right and the other two are small.
+
+## The project shape
+
+Install [LÖVE](https://love2d.org), drop these two files next to the Kenney art, and run `love .` from the folder. The game targets LÖVE 11.5.
+
+```text
+platformer-demo/
+├── conf.lua
+├── main.lua
+└── Platformer Pack Remastered/
+    └── PNG/…            (Kenney's "Platformer Pack Remastered")
+```
+
+The art is the free [Kenney Platformer Pack Remastered](https://kenney.nl/assets/platformer-pack-redux). The game only touches about 33 of its more than 400 PNGs: the alien, grass and stone tiles, a frog and a mouse, coins, gems, flags, spikes, and the HUD digits. That detail matters more than it looks, and I will come back to it when we talk about putting the game on the web.
+
+`conf.lua` sets the window and, more usefully, turns two engine modules *off*:
+
+```lua
+function love.conf(t)
+    t.window.title  = "Platformer Demo"
+    t.window.width  = 960
+    t.window.height = 640
+    t.window.resizable = false
+    t.version       = "11.5"   -- the LÖVE version this game targets
+
+    -- We hand-roll our own gravity/jumping (that's the whole point of learning
+    -- it), and we don't use gamepads yet, so switch both modules off.
+    t.modules.physics  = false
+    t.modules.joystick = false
+end
+```
+
+Turning `physics` off is a statement of intent. LÖVE ships Box2D, and it is good, but if you let a physics engine decide what a jump feels like you have learned how to configure Box2D, not how a platformer works. We integrate velocity by hand.
+
+## The world is one string per row
+
+The level is text, exactly like the tilemap in Breakout's cousins, and you can read the whole thing in the source:
+
+```lua
+-- '#' ground  'B' brick  'C' crate  'o' coin  '*' gem  'F' flag
+-- 'e' frog    'm' mouse   'x' spikes   '-' one-way platform
+-- 'K' checkpoint   ' ' air   (moving platforms live in the MOVERS table)
+local level = {
+    "#                                      #",
+    "#                                      #",
+    "#                            Foo**     #",
+    "#                            BBBBB     #",
+    "#                                      #",
+    "#      oo                              #",
+    "#      --                              #",
+    "#   o               o                  #",
+    "#   --                                 #",
+    "#       e       Ko  m o x              #",
+    "###########    ############            #",
+    "###########    ############            #",
+}
+
+local SOLID = { ["#"] = true, ["B"] = true, ["C"] = true }
+```
+
+`isSolid` is the one lookup the whole collision system leans on. It converts a tile coordinate to a character and asks whether that character is in the `SOLID` set. Anything out of bounds is air, so the edges of the array never crash a query:
+
+```lua
+local function isSolid(col, row)
+    if col < 0 or row < 0 then return false end
+    local line = level[row + 1]
+    if not line then return false end
+    return SOLID[line:sub(col + 1, col + 1)] == true
+end
+```
+
+Notice what is *not* in `SOLID`: the one way platform, the moving platforms, the coins, the enemies. Solid tiles are the walls and floors that stop you unconditionally. Everything you can pass through under some condition is an entity, and entities get their own collision rule. That split is the spine of this post.
+
+Tile collision itself is the standard routine that moves one axis, then resolves it. `moveY` is the half that matters here, because it is the behavior a one way platform deliberately breaks:
+
+```lua
+local function moveY(dt)
+    player.y = player.y + player.vy * dt
+    local left  = toTile(player.x)
+    local right = toTile(player.x + PLAYER_W - 1)
+    player.onGround = false
+    if player.vy > 0 then                    -- falling: check the row under our feet
+        local row = toTile(player.y + PLAYER_H)
+        for col = left, right do
+            if isSolid(col, row) then
+                player.y = row * TILE - PLAYER_H; player.vy = 0; player.onGround = true; break
+            end
+        end
+    elseif player.vy < 0 then                -- rising: check the row above our head
+        local row = toTile(player.y)
+        for col = left, right do
+            if isSolid(col, row) then player.y = (row + 1) * TILE; player.vy = 0; break end
+        end
+    end
+end
+```
+
+A solid tile stops you whether you are rising into it or falling onto it. Hold that sentence next to the one way rule, because the one way platform is the same idea with one clause deleted.
+
+## One way platforms: collide with the top, only while descending
+
+Here is the whole mechanic. The trick everyone reaches for and gets slightly wrong is "collide with the top of the platform." That is not quite it. The real rule is *collide with the top only in the single frame your feet cross it going down*.
+
+```lua
+local function landOnPlatforms(prevFeet)
+    if dropTimer > 0 then return end
+    local feet = player.y + PLAYER_H
+    for _, p in ipairs(platforms) do
+        local overlapX = player.x < p.x + p.w and p.x < player.x + PLAYER_W
+        if overlapX and player.vy >= 0 and prevFeet <= p.y and feet >= p.y then
+            player.y = p.y - PLAYER_H
+            player.vy = 0
+            player.onGround = true
+            player.standingOn = p
+            return
+        end
+    end
+end
+```
+
+The part that carries the weight is `prevFeet <= p.y and feet >= p.y`. `prevFeet` is where your feet were *before* this frame's vertical move; `feet` is where they are now. The condition is true only when your feet were above the platform's top edge and are now at or below it. That is, you crossed the line this frame. Jump up from underneath and `player.vy < 0`, so the `player.vy >= 0` clause is false and you sail straight through. Stand on it and your feet never cross the edge again, so it holds you without triggering again. The platform is solid for exactly one frame, in one direction.
+
+That is why the check needs last frame's foot position handed in. Detecting "am I overlapping the platform right now" is not enough. A ball buried in a wall overlaps it too, and that is how you get a player who snaps to the top of a ledge they jumped up through. Crossing is an event between two positions, not a state at one.
+
+Dropping through is the same rule read backwards. Press `Down` while standing on a platform and you start a short timer; while it runs, `landOnPlatforms` bails out at the top and every platform stops existing for you:
+
+```lua
+if dropTimer > 0 then dropTimer = math.max(0, dropTimer - dt) end
+if player.standingOn and dropTimer <= 0 and love.keyboard.isDown("down", "s") then
+    dropTimer = DROP_TIME
+    player.standingOn = nil
+    player.onGround = false
+end
+```
+
+`DROP_TIME` is a quarter of a second, long enough for gravity to carry your feet below the platform, short enough that the next platform down still catches you. Tune it too high and `Down` becomes "fall to your death." Tune it too low and you clip back onto the same ledge you were trying to leave.
+
+## Moving platforms: stand in a moving frame of reference
+
+A moving platform uses the exact same `landOnPlatforms` code; it is in the same `platforms` list. What it adds is motion, and the honest question a moving platform forces you to answer is: when the platform moves, what moves the player?
+
+The wrong answer is "resolve a collision every frame and hope." The right answer is to treat the platform as a moving frame of reference. Each platform records how far it shifted this frame, and whatever is standing on it gets shifted by exactly that much.
+
+```lua
+local function updateMovers()
+    for _, p in ipairs(platforms) do
+        if p.kind == "mover" then
+            local ox, oy = p.x, p.y
+            local off = math.sin(time * p.speed) * p.amp
+            if p.axis == "x" then p.x = p.bx + off else p.y = p.by + off end
+            p.dx, p.dy = p.x - ox, p.y - oy      -- how far it moved this frame
+        end
+    end
+end
+```
+
+Then, at the very top of the update, before gravity and before input, the player rides along:
+
+```lua
+updateMovers()
+if player.standingOn and player.standingOn.kind == "mover" then
+    player.x = player.x + player.standingOn.dx
+    player.y = player.y + player.standingOn.dy
+end
+```
+
+That is the entire carry. The ferry slides two tiles left and you slide two tiles left with it; the elevator lifts and you lift. You still run and jump normally on top of that, because your own velocity is applied afterward. The platform's motion is added to yours, not substituted for it. Order is the trick here: move the platform, carry the rider, *then* run the normal physics. Do it in the other order and you spend the frame chasing a floor that already left.
+
+## Checkpoints: one variable, reassigned
+
+After the collision work, checkpoints feel almost too small to write down. A pit fall sends you back to a respawn point. A checkpoint changes which point that is.
+
+At build time each `K` in the map becomes an entity that remembers the spot to stand when you respawn there:
+
+```lua
+elseif ch == "K" then
+    cps[#cps + 1] = {
+        x = x, y = y, active = false,
+        spawnX = col * TILE + (TILE - PLAYER_W) / 2,   -- centered on the tile
+        spawnY = (row + 1) * TILE - PLAYER_H,          -- feet on the floor below
+    }
+```
+
+Touch one and it flips the two respawn variables to its own coordinates:
+
+```lua
+for _, cp in ipairs(checkpoints) do
+    if not cp.active and overlaps(player.x, player.y, PLAYER_W, PLAYER_H,
+                                  cp.x, cp.y, TILE, TILE) then
+        cp.active = true
+        respawnX, respawnY = cp.spawnX, cp.spawnY
+        play(snd.gem)
+    end
+end
+```
+
+And `respawn` reads those variables without caring whether they point at the start or the last flag you touched:
+
+```lua
+local function respawn()
+    player.x, player.y = respawnX, respawnY
+    player.vx, player.vy, player.kbx = 0, 0, 0
+    player.onGround = false
+    player.standingOn = nil
+    dropTimer = 0
+end
+```
+
+The whole feature is a level of indirection: respawn to a variable, not a constant, and let touching a flag rewrite the variable. Everything hard about it, placing the flag on solid ground and centering the body on the tile, is arithmetic you do once at build time.
+
+## A validator that reads your physics
+
+Here is the part I am proudest of, and it is not a gameplay feature at all. It is a check that runs at load and tells you, in the console, when you have drawn a level the player physically cannot finish.
+
+The bug it kills is the oldest one in tile based level design: you type a platform into the map, it looks fine, and it turns out to be one tile too high to reach or one tile too far to clear. You only find out by playing, repeatedly, at the exact spot. I did not want to keep deriving "can the jump reach that" by hand every time I nudged the map, so I made the physics derive it.
+
+Every limit the validator uses comes straight from the same constants that drive the jump:
+
+```lua
+local minClear = math.ceil(PLAYER_H / TILE)                              -- headroom to stand
+local maxRise  = math.floor((JUMP_SPEED * JUMP_SPEED / (2 * GRAVITY)) / TILE)  -- tiles a jump climbs
+local apexT    = JUMP_SPEED / GRAVITY                                    -- seconds to the top
+local hUp      = math.floor((MOVE_SPEED * apexT) / TILE) + 1             -- reach while rising
+local hReach   = math.floor((MOVE_SPEED * 2 * apexT) / TILE)             -- reach over a full arc
+```
+
+`maxRise` is just the projectile apex, `JUMP_SPEED² / (2·GRAVITY)`, converted to tiles. With the shipped numbers that is a hair over two tiles. From there the validator does three passes: it flags any surface with a ceiling too close to stand under, it flood fills the surfaces you can actually reach from spawn using those exact jump limits, and it checks that every coin, gem, and the flag sits within a jump of somewhere reachable. It knows about one way tops and both endpoints of every moving platform, and it treats riding a mover as a link between its two ends, so a ledge you can only get to by elevator is not falsely reported as marooned.
+
+The payoff is that the check retunes itself. Make the jump weaker and `maxRise` drops, and a platform that was reachable yesterday starts printing a warning today, without you touching the validator. It does not stop the game; it just prints what is wrong and lets you decide. The current level reports zero problems, and the rule of thumb it enforces is easy to hold: keep vertical steps within two tiles and give every platform two tiles of headroom.
+
+## The reset bug worth calling out
+
+There is one bug in this that I want to name, because it is exactly the kind that hides. The moving platforms are positioned from a global clock: `math.sin(time * p.speed)`. `time` counts up forever and, in the version I first wrote, never got reset. On the first play it starts at zero, so the platforms start at rest where you expect them. Press `R` to restart after the elevator has been cycling for a while, though, and `time` is some large number, so every platform *teleports* to a random point in its swing the instant the game resumes. The ferry you needed over the gap might be parked at the far end.
+
+Nothing crashes. The level validator still passes, because the endpoints are unchanged. It only shows up as "why is the elevator in the wrong place after I restart," which is a miserable thing to debug because it looks like a physics problem and it is really a bookkeeping one. The fix is one line in the reset routine:
+
+```lua
+time = 0   -- restart the world clock so movers begin at rest
+```
+
+The lesson I take from it: anything you position from a running clock has to have that clock reset when the world resets, or "start a fresh game" quietly means "start a fresh game in the middle of the old one's animation."
+
+## Go turn the knobs
+
+The fastest way to feel how these pieces connect is to change one number and watch what moves with it.
+
+1. Drop `JUMP_SPEED` from `760` to `600` and reload. Watch the console: the validator recomputes `maxRise`, and platforms that were reachable start reporting themselves unreachable, because the jump genuinely no longer clears them.
+2. Change a `MOVERS` entry's `amp` or `axis`. The platform's travel changes, the validator's endpoint nodes move with it, and the reachability check runs again against the new geometry for free.
+3. Raise `DROP_TIME` from `0.25` toward `0.6`. Dropping through one ledge starts dropping you through the next one too, because gravity has longer to carry you past it.
+4. Add a `-` to the map in the air with a coin above it. If you place it more than two tiles above the nearest surface, the validator will tell you before you ever jump at it.
+
+## Putting it in the browser
+
+The playable game at the top of this post is the same `main.lua`, compiled to WebAssembly with [love.js](https://github.com/Davidobot/love.js) and dropped in as an iframe that only loads when you click it. One detail from earlier pays off here: the game references about 33 of the pack's more than 400 PNGs. Package the whole art folder and the download is four megabytes of sprites you never draw. Package only the referenced files and the game data is 71 kilobytes. The rest of the weight is the LÖVE runtime itself, which the browser caches once and reuses for every LÖVE game on the site. Trim your assets before you package; ship the sprites you actually load, not the folder you downloaded.
+
+## The complete source
+
+The blocks above explain the Step 7 decisions. Here is the whole thing in one place, all seven steps, so it runs as is, with the one line reset fix from above already in it. It is long because it is a complete game, not because any single part is complicated; the traversal layer we just walked through is a few dozen lines scattered through it.
+
+### `conf.lua`
+
+```lua
+function love.conf(t)
+    t.window.title  = "Platformer Demo"
+    t.window.width  = 960
+    t.window.height = 640
+    t.window.resizable = false
+    t.version       = "11.5"
+
+    t.modules.physics  = false
+    t.modules.joystick = false
+end
+```
+
+### `main.lua`
+
+```lua
+-- main.lua  —  Platformer, STEP 7: traversal mechanics.
+--
+-- Steps 1-6 built a complete game. Step 7 deepens the *platforming* with three
+-- classic mechanics — all of which live in the collision layer:
+--
+--   ONE-WAY PLATFORMS  -- thin ledges you jump UP through from below, land on
+--                         from above, and DROP through by pressing Down. The
+--                         collision only exists on the way down.
+--   MOVING PLATFORMS   -- ferries and elevators that CARRY you: when you're
+--                         standing on one, its motion is added to yours.
+--   CHECKPOINTS        -- touch a flag and it becomes your new respawn point, so
+--                         a pit fall sends you back there instead of to the start.
+--
+-- One-way and moving platforms are ENTITIES (not tiles), so they need their own
+-- conditional collision — and the level validator learns about them too, or it
+-- would wrongly call the mover-only areas unreachable.
+
+-- ---------------------------------------------------------------------------
+-- Tunable constants.
+-- ---------------------------------------------------------------------------
+local WIN_W, WIN_H = 960, 640
+
+local SCALE = 0.5
+local TILE  = 128 * SCALE
+
+local GRAVITY     = 2000
+local MOVE_SPEED  = 340
+local JUMP_SPEED  = 760
+local MAX_FALL    = 1200
+
+local PLAYER_W, PLAYER_H = 44, 92
+
+local DEAD_X, DEAD_Y = 340, 200
+local MAX_HEALTH = 3
+local HUD_SCALE  = 0.30
+
+local STOMP_FRAC   = 0.6
+local STOMP_BOUNCE = 520
+local INVINC_TIME  = 1.2
+local KB_SPEED     = 260
+local KB_HOP       = 300
+
+-- Feel timers (all in seconds).
+local COYOTE_TIME  = 0.10    -- grace window to jump after leaving the ground
+local JUMP_BUFFER  = 0.12    -- how early a jump press is remembered before landing
+local JUMP_CUT     = 0.40    -- releasing jump mid-rise keeps this fraction of vy
+local LAND_SPEED   = 320     -- min fall speed that kicks up landing dust
+local PARALLAX     = 0.30    -- background scroll speed vs. the world (0=fixed, 1=locked)
+
+local GFX = "Platformer Pack Remastered/PNG/"
+local PI  = math.pi
+
+-- face: which way the raw art points (+1 faces RIGHT, -1 faces LEFT). The draw
+-- flips by e.dir * face so each sprite faces its travel direction no matter how
+-- the artist drew it. The Kenney enemy sprites are all drawn facing LEFT, so -1.
+local ENEMY_DEFS = {
+    e = { art = "frog",  speed = 60,  w = 60, h = 52, face = -1 },
+    m = { art = "mouse", speed = 115, w = 58, h = 40, face = -1 },
+}
+
+local DROP_TIME  = 0.25         -- how long "Down" lets you fall through a platform
+
+-- Moving platforms. Base tile (col,row) = top-left at rest; the top oscillates as
+-- a sine wave along `axis`, `amp` tiles either side, at `speed` radians/sec.
+-- `tiles` = width. The validator reads this table too (see validateLevel).
+local MOVERS = {
+    { col = 12, row = 9, tiles = 2, axis = "x", amp = 2, speed = 1.1 },  -- ferry over the gap
+    { col = 27, row = 6, tiles = 2, axis = "y", amp = 3, speed = 1.3 },  -- elevator to the flag
+}
+
+-- ---------------------------------------------------------------------------
+-- The LEVEL.  '#' ground  'B' brick  'C' crate  'o' coin  '*' gem  'F' flag
+--             'e' frog    'm' mouse   'x' spikes   '-' one-way platform
+--             'K' checkpoint   ' ' air   (moving platforms live in MOVERS above)
+-- ---------------------------------------------------------------------------
+local level = {
+    "#                                      #",
+    "#                                      #",
+    "#                            Foo**     #",
+    "#                            BBBBB     #",
+    "#                                      #",
+    "#      oo                              #",
+    "#      --                              #",
+    "#   o               o                  #",
+    "#   --                                 #",
+    "#       e       Ko  m o x              #",
+    "###########    ############            #",
+    "###########    ############            #",
+}
+local ROWS = #level
+local COLS = #level[1]
+local WORLD_W = COLS * TILE
+local WORLD_H = ROWS * TILE
+
+local SOLID = { ["#"] = true, ["B"] = true, ["C"] = true }
+
+-- ---------------------------------------------------------------------------
+-- Assets + state.
+-- ---------------------------------------------------------------------------
+local tiles    = {}
+local frames   = {}
+local sprites  = {}
+local enemyArt = {}
+local hud      = { digits = {} }
+local fonts    = {}
+local snd      = {}
+local dust                             -- landing-dust particle system
+
+local SPAWN_X, SPAWN_Y
+
+local player = {
+    x = 0, y = 0, vx = 0, vy = 0, kbx = 0,
+    facing = 1, onGround = false, walkTime = 0,
+    standingOn = nil,                  -- the moving/one-way platform under our feet, or nil
+}
+local camera = { x = 0, y = 0 }
+
+local items, flag, enemies, hazards = {}, nil, {}, {}
+local platforms   = {}                 -- one-way + moving platforms (shared landing logic)
+local checkpoints = {}
+local score  = 0
+local health = MAX_HEALTH
+local invinc = 0
+local coyote = 0                       -- time left in the coyote window
+local buffer = 0                       -- time left on a buffered jump press
+local dropTimer = 0                    -- >0 while dropping through a platform
+local respawnX, respawnY               -- current respawn point (start, or last checkpoint)
+local state  = "play"
+local time   = 0
+
+-- ---------------------------------------------------------------------------
+-- Helpers.
+-- ---------------------------------------------------------------------------
+local function isSolid(col, row)
+    if col < 0 or row < 0 then return false end
+    local line = level[row + 1]
+    if not line then return false end
+    return SOLID[line:sub(col + 1, col + 1)] == true
+end
+
+local function toTile(px) return math.floor(px / TILE) end
+local function clamp(v, lo, hi) return math.max(lo, math.min(hi, v)) end
+
+local function overlaps(ax, ay, aw, ah, bx, by, bw, bh)
+    return ax < bx + bw and bx < ax + aw and ay < by + bh and by < ay + ah
+end
+
+local function play(s) if s then s:stop(); s:play() end end
+
+-- ---------------------------------------------------------------------------
+-- LEVEL VALIDATOR — catches unreachable platforms (the "blocks too close/too far
+-- to jump on" bug) automatically, straight from the physics constants.
+--
+-- Everything it needs is derived, so retuning the jump retunes the checks:
+--   minClear = ceil(PLAYER_H / TILE)                 tiles of air needed to STAND
+--   maxRise  = floor(apex / TILE)                    tiles a single jump climbs,
+--              where apex = JUMP_SPEED^2 / (2*GRAVITY)
+--   hUp/hReach                                        how far a jump carries you
+--              horizontally (run speed * airtime), for the reachability pass
+--
+-- It runs three passes and just prints warnings (the game still runs):
+--   (a) HEADROOM   — a surface with a ceiling too close can't be stood on.
+--   (b) REACHABLE  — flood-fill the surfaces you can actually get to from spawn
+--                    using those exact limits; anything a jump can't bridge is
+--                    flagged (this is the "too far / too high" half the headroom
+--                    check alone would miss).
+--   (c) PICKUPS    — every coin/gem and the flag must sit within reach of some
+--                    reachable surface, or the level can't be completed.
+local function validateLevel()
+    local minClear = math.ceil(PLAYER_H / TILE)
+    local maxRise  = math.floor((JUMP_SPEED * JUMP_SPEED / (2 * GRAVITY)) / TILE)
+    local apexT    = JUMP_SPEED / GRAVITY                       -- seconds to the top
+    local hUp      = math.floor((MOVE_SPEED * apexT) / TILE) + 1        -- reach while rising
+    local hReach   = math.floor((MOVE_SPEED * 2 * apexT) / TILE)        -- reach over a full arc
+    local problems = 0
+
+    -- A tile you can stand on: solid, with minClear clear tiles above it.
+    local function standable(col, row)
+        if not isSolid(col, row) then return false end
+        for k = 1, minClear do
+            if isSolid(col, row - k) then return false end
+        end
+        return true
+    end
+
+    -- (a) Headroom.
+    for row = 0, ROWS - 1 do
+        for col = 0, COLS - 1 do
+            if isSolid(col, row) and not isSolid(col, row - 1) and not standable(col, row) then
+                print(string.format("[level] (col %d,row %d): ceiling too close to stand/jump "
+                    .. "on (need %d clear tiles above)", col, row, minClear))
+                problems = problems + 1
+            end
+        end
+    end
+
+    -- (b) Reachability flood-fill from the spawn tile. Moves mirror the physics:
+    -- walk to a neighbor, jump UP at most maxRise tiles (within hUp across), or
+    -- cross/fall to a same-or-lower tile (within hReach across).
+    -- Nodes for the flood-fill: solid tile tops, one-way platform tops, and both
+    -- endpoints of every moving platform. Riding a mover links its two ends.
+    local nodes = {}
+    local function addNode(c, r) nodes[#nodes + 1] = { c = c, r = r } end
+    for row = 0, ROWS - 1 do
+        for col = 1, COLS - 2 do          -- skip the world-edge walls (not platforms)
+            local ch = level[row + 1]:sub(col + 1, col + 1)
+            if standable(col, row) then
+                addNode(col, row)
+            elseif ch == "-" then          -- one-way top: stand if no SOLID ceiling is close
+                local clear = true
+                for k = 1, minClear do if isSolid(col, row - k) then clear = false end end
+                if clear then addNode(col, row) end
+            end
+        end
+    end
+    local moverLinks = {}
+    for _, m in ipairs(MOVERS) do
+        local a, b
+        if m.axis == "x" then a = { c = m.col - m.amp, r = m.row }; b = { c = m.col + m.amp, r = m.row }
+        else                  a = { c = m.col, r = m.row - m.amp }; b = { c = m.col, r = m.row + m.amp } end
+        addNode(a.c, a.r); addNode(b.c, b.r)
+        moverLinks[#moverLinks + 1] = { a = a, b = b }
+    end
+
+    local function key(c, r) return c .. "," .. r end
+    local reached, reachedList = {}, {}
+    local spawnCol = math.floor(SPAWN_X / TILE)
+    local spawnRow = math.floor((SPAWN_Y + PLAYER_H) / TILE)    -- tile the feet rest on
+    local spawn = { c = spawnCol, r = spawnRow }
+    local stack = { spawn }
+    reached[key(spawnCol, spawnRow)] = true
+    reachedList[1] = spawn
+    local function visit(m)
+        if not reached[key(m.c, m.r)] then
+            reached[key(m.c, m.r)] = true
+            reachedList[#reachedList + 1] = m
+            stack[#stack + 1] = m
+        end
+    end
+    while #stack > 0 do
+        local n = table.remove(stack)
+        for _, m in ipairs(nodes) do
+            if not reached[key(m.c, m.r)] then
+                local dc = math.abs(m.c - n.c)
+                local up   = m.r >= n.r - maxRise and m.r <= n.r - 1 and dc <= hUp
+                local flat = m.r >= n.r and m.r <= n.r + 8 and dc <= hReach
+                if up or flat then visit(m) end
+            end
+        end
+        for _, lk in ipairs(moverLinks) do     -- riding a mover connects its ends
+            if lk.a.c == n.c and lk.a.r == n.r then visit(lk.b) end
+            if lk.b.c == n.c and lk.b.r == n.r then visit(lk.a) end
+        end
+    end
+    for _, m in ipairs(nodes) do
+        if not reached[key(m.c, m.r)] then
+            print(string.format("[level] surface (col %d,row %d): unreachable from spawn "
+                .. "(no path within %d up / %d across)", m.c, m.r, maxRise, hReach))
+            problems = problems + 1
+        end
+    end
+
+    -- (c) Pickups + flag. A pickup is gettable if a reached surface is within a
+    -- body-plus-jump of it; the flag needs a reached tile under it to walk to.
+    local function cellReached(cc, cr)
+        for _, m in ipairs(reachedList) do
+            if math.abs(m.c - cc) <= 1 and cr >= m.r - maxRise - 1 and cr <= m.r then
+                return true
+            end
+        end
+        return reached[key(cc, cr)] == true
+    end
+    for row = 1, ROWS do
+        local line = level[row]
+        for col = 1, COLS do
+            local ch = line:sub(col, col)
+            local cc, cr = col - 1, row - 1
+            if (ch == "o" or ch == "*") and not cellReached(cc, cr) then
+                print(string.format("[level] pickup (col %d,row %d): unreachable", cc, cr))
+                problems = problems + 1
+            elseif ch == "F" and not reached[key(cc, cr + 1)] then
+                print(string.format("[level] flag (col %d,row %d): unreachable", cc, cr))
+                problems = problems + 1
+            end
+        end
+    end
+
+    print(string.format("[level] validate: %d problem(s). Physics -> stand needs %d tiles "
+        .. "headroom; a jump climbs <= %d and carries ~%d across.",
+        problems, minClear, maxRise, hReach))
+    return problems
+end
+
+-- Generate a Source by evaluating fn(t) -> amplitude (-1..1) per sample. Same
+-- code-not-assets trick as pong-demo and the solitaire chimes.
+local function makeSound(duration, fn)
+    local rate = 44100
+    local n = math.max(1, math.floor(rate * duration))
+    local data = love.sound.newSoundData(n, rate, 16, 1)
+    for i = 0, n - 1 do
+        local a = fn(i / rate)
+        data:setSample(i, math.max(-1, math.min(1, a)))
+    end
+    return love.audio.newSource(data, "static")
+end
+
+local function buildEntities()
+    local its, fl, ens, haz, ways, cps = {}, nil, {}, {}, {}, {}
+    for r = 1, ROWS do
+        local line = level[r]
+        for c = 1, COLS do
+            local ch = line:sub(c, c)
+            local col, row = c - 1, r - 1
+            local x, y = col * TILE, row * TILE
+            if ch == "o" then
+                its[#its + 1] = { x = x, y = y, kind = "coin", value = 1, taken = false }
+            elseif ch == "*" then
+                its[#its + 1] = { x = x, y = y, kind = "gem", value = 5, taken = false }
+            elseif ch == "F" then
+                fl = { x = x, y = y }
+            elseif ch == "x" then
+                haz[#haz + 1] = { x = x, y = y }
+            elseif ch == "-" then
+                -- One-way platform: a TILE-wide top surface (dx/dy=0, doesn't move).
+                ways[#ways + 1] = { x = x, y = y, w = TILE, kind = "oneway", dx = 0, dy = 0 }
+            elseif ch == "K" then
+                -- Checkpoint: touching it moves the respawn point to stand here.
+                cps[#cps + 1] = {
+                    x = x, y = y, active = false,
+                    spawnX = col * TILE + (TILE - PLAYER_W) / 2,
+                    spawnY = (row + 1) * TILE - PLAYER_H,
+                }
+            elseif ENEMY_DEFS[ch] then
+                local def = ENEMY_DEFS[ch]
+                ens[#ens + 1] = {
+                    def = def, w = def.w, h = def.h,
+                    x = col * TILE + (TILE - def.w) / 2,
+                    y = (row + 1) * TILE - def.h,
+                    dir = -1, animTime = 0, dead = false, deadTimer = 0,
+                }
+            end
+        end
+    end
+    return its, fl, ens, haz, ways, cps
+end
+
+-- Build the moving platforms from the MOVERS config. Each carries its base
+-- position, its current position, and this-frame's delta (dx,dy) used to carry
+-- a rider. Rebuilt on reset so a fresh game starts them at rest.
+local function buildMovers()
+    local list = {}
+    for _, m in ipairs(MOVERS) do
+        local bx, by = m.col * TILE, m.row * TILE
+        list[#list + 1] = {
+            kind = "mover", axis = m.axis, amp = m.amp * TILE, speed = m.speed,
+            bx = bx, by = by, x = bx, y = by, w = m.tiles * TILE, dx = 0, dy = 0,
+        }
+    end
+    return list
+end
+
+-- ---------------------------------------------------------------------------
+-- Collision + AI (unchanged from Step 5).
+-- ---------------------------------------------------------------------------
+local function moveX(dt)
+    player.x = player.x + player.vx * dt
+    local top    = toTile(player.y)
+    local bottom = toTile(player.y + PLAYER_H - 1)
+    if player.vx > 0 then
+        local col = toTile(player.x + PLAYER_W)
+        for row = top, bottom do
+            if isSolid(col, row) then player.x = col * TILE - PLAYER_W; player.vx = 0; break end
+        end
+    elseif player.vx < 0 then
+        local col = toTile(player.x)
+        for row = top, bottom do
+            if isSolid(col, row) then player.x = (col + 1) * TILE; player.vx = 0; break end
+        end
+    end
+end
+
+local function moveY(dt)
+    player.y = player.y + player.vy * dt
+    local left  = toTile(player.x)
+    local right = toTile(player.x + PLAYER_W - 1)
+    player.onGround = false
+    if player.vy > 0 then
+        local row = toTile(player.y + PLAYER_H)
+        for col = left, right do
+            if isSolid(col, row) then
+                player.y = row * TILE - PLAYER_H; player.vy = 0; player.onGround = true; break
+            end
+        end
+    elseif player.vy < 0 then
+        local row = toTile(player.y)
+        for col = left, right do
+            if isSolid(col, row) then player.y = (row + 1) * TILE; player.vy = 0; break end
+        end
+    end
+end
+
+-- Move each moving platform along its sine path and record how far it shifted
+-- this frame (dx,dy) so a rider can be carried by exactly that much.
+local function updateMovers()
+    for _, p in ipairs(platforms) do
+        if p.kind == "mover" then
+            local ox, oy = p.x, p.y
+            local off = math.sin(time * p.speed) * p.amp
+            if p.axis == "x" then p.x = p.bx + off else p.y = p.by + off end
+            p.dx, p.dy = p.x - ox, p.y - oy
+        end
+    end
+end
+
+-- Land on a one-way / moving platform. The key idea that makes a platform
+-- "one-way": only collide with its TOP, and only when descending onto it from
+-- above (feet crossed the top edge this frame). Jumping up from below never
+-- triggers it, and while dropping (dropTimer) we ignore tops entirely.
+-- `prevFeet` is where the feet were before this frame's vertical move.
+local function landOnPlatforms(prevFeet)
+    if dropTimer > 0 then return end
+    local feet = player.y + PLAYER_H
+    for _, p in ipairs(platforms) do
+        local overlapX = player.x < p.x + p.w and p.x < player.x + PLAYER_W
+        if overlapX and player.vy >= 0 and prevFeet <= p.y and feet >= p.y then
+            player.y = p.y - PLAYER_H
+            player.vy = 0
+            player.onGround = true
+            player.standingOn = p
+            return
+        end
+    end
+end
+
+local function updateEnemy(e, dt)
+    if e.dead then
+        if e.deadTimer > 0 then e.deadTimer = e.deadTimer - dt end
+        return
+    end
+    e.animTime = e.animTime + dt
+    e.x = e.x + e.dir * e.def.speed * dt
+    local midRow  = toTile(e.y + e.h / 2)
+    local footRow = toTile(e.y + e.h + 1)
+    if e.dir > 0 then
+        local col = toTile(e.x + e.w)
+        if isSolid(col, midRow) then
+            e.x = col * TILE - e.w; e.dir = -1
+        elseif not isSolid(col, footRow) then
+            e.dir = -1
+        end
+    else
+        local col = toTile(e.x)
+        if isSolid(col, midRow) then
+            e.x = (col + 1) * TILE; e.dir = 1
+        elseif not isSolid(col, footRow) then
+            e.dir = 1
+        end
+    end
+end
+
+local function respawn()
+    player.x, player.y = respawnX, respawnY   -- last checkpoint, or the start
+    player.vx, player.vy, player.kbx = 0, 0, 0
+    player.onGround = false
+    player.standingOn = nil
+    dropTimer = 0
+end
+
+local function hurt(fromX)
+    if invinc > 0 or state ~= "play" then return end
+    health = health - 1
+    invinc = INVINC_TIME
+    local dir = (player.x + PLAYER_W / 2 < fromX) and -1 or 1
+    player.kbx = dir * KB_SPEED
+    player.vy  = -KB_HOP
+    player.onGround = false
+    if health <= 0 then state = "gameover"; play(snd.lose) else play(snd.hurt) end
+end
+
+local function updateCamera()
+    local px = player.x + PLAYER_W / 2
+    local py = player.y + PLAYER_H / 2
+    local sx, sy = px - camera.x, py - camera.y
+    if sx < DEAD_X         then camera.x = px - DEAD_X end
+    if sx > WIN_W - DEAD_X then camera.x = px - (WIN_W - DEAD_X) end
+    if sy < DEAD_Y         then camera.y = py - DEAD_Y end
+    if sy > WIN_H - DEAD_Y then camera.y = py - (WIN_H - DEAD_Y) end
+    camera.x = clamp(camera.x, 0, math.max(0, WORLD_W - WIN_W))
+    camera.y = clamp(camera.y, 0, math.max(0, WORLD_H - WIN_H))
+end
+
+local function resetGame()
+    local ways, cps
+    items, flag, enemies, hazards, ways, cps = buildEntities()
+    checkpoints = cps
+    -- One-way platforms and movers share one list for the landing logic.
+    platforms = {}
+    for _, p in ipairs(ways) do platforms[#platforms + 1] = p end
+    for _, p in ipairs(buildMovers()) do platforms[#platforms + 1] = p end
+    score, health, invinc, state = 0, MAX_HEALTH, 0, "play"
+    coyote, buffer, dropTimer = 0, 0, 0
+    time = 0                            -- restart the world clock so movers begin at rest
+    player.standingOn = nil
+    respawnX, respawnY = SPAWN_X, SPAWN_Y
+    respawn()
+    updateCamera()
+end
+
+-- ---------------------------------------------------------------------------
+-- love.load.
+-- ---------------------------------------------------------------------------
+local function loadEnemyArt(base)
+    return {
+        idle = love.graphics.newImage(GFX .. "Enemies/" .. base .. ".png"),
+        move = love.graphics.newImage(GFX .. "Enemies/" .. base .. "_move.png"),
+        dead = love.graphics.newImage(GFX .. "Enemies/" .. base .. "_dead.png"),
+    }
+end
+
+function love.load()
+    love.graphics.setBackgroundColor(0.53, 0.81, 0.92)
+
+    tiles.grassMid   = love.graphics.newImage(GFX .. "Ground/Grass/grassMid.png")
+    tiles.grassLeft  = love.graphics.newImage(GFX .. "Ground/Grass/grassLeft.png")
+    tiles.grassRight = love.graphics.newImage(GFX .. "Ground/Grass/grassRight.png")
+    tiles.center     = love.graphics.newImage(GFX .. "Ground/Grass/grassCenter.png")
+    tiles.brick      = love.graphics.newImage(GFX .. "Tiles/brickBrown.png")
+    tiles.crate      = love.graphics.newImage(GFX .. "Tiles/boxCrate.png")
+
+    local P = GFX .. "Players/Variable sizes/Green/alienGreen_"
+    frames.stand = love.graphics.newImage(P .. "stand.png")
+    frames.walk1 = love.graphics.newImage(P .. "walk1.png")
+    frames.walk2 = love.graphics.newImage(P .. "walk2.png")
+    frames.jump  = love.graphics.newImage(P .. "jump.png")
+
+    sprites.coin   = love.graphics.newImage(GFX .. "Items/coinGold.png")
+    sprites.gem    = love.graphics.newImage(GFX .. "Items/gemBlue.png")
+    sprites.flag1  = love.graphics.newImage(GFX .. "Items/flagGreen1.png")
+    sprites.flag2  = love.graphics.newImage(GFX .. "Items/flagGreen2.png")
+    sprites.spikes = love.graphics.newImage(GFX .. "Tiles/spikes.png")
+    sprites.bg     = love.graphics.newImage(GFX .. "Backgrounds/blue_grass.png")
+    sprites.oneway = love.graphics.newImage(GFX .. "Ground/Grass/grassHalf_mid.png")   -- thin ledge
+    sprites.mover  = love.graphics.newImage(GFX .. "Ground/Stone/stoneHalf_mid.png")   -- moving platform
+    sprites.cpDown = love.graphics.newImage(GFX .. "Items/flagBlue_down.png")          -- checkpoint (off)
+    sprites.cpUp1  = love.graphics.newImage(GFX .. "Items/flagBlue1.png")              -- checkpoint (on)
+    sprites.cpUp2  = love.graphics.newImage(GFX .. "Items/flagBlue2.png")
+
+    enemyArt.frog  = loadEnemyArt("frog")
+    enemyArt.mouse = loadEnemyArt("mouse")
+
+    for i = 0, 9 do
+        hud.digits[i] = love.graphics.newImage(GFX .. "HUD/hud" .. i .. ".png")
+    end
+    hud.coin       = love.graphics.newImage(GFX .. "HUD/hudCoin.png")
+    hud.heartFull  = love.graphics.newImage(GFX .. "HUD/hudHeart_full.png")
+    hud.heartEmpty = love.graphics.newImage(GFX .. "HUD/hudHeart_empty.png")
+
+    fonts.big   = love.graphics.newFont(40)
+    fonts.small = love.graphics.newFont(18)
+
+    -- Beeps: a rising blip to jump, a bright ping for coins, a two-tone chime for
+    -- gems, a downward thunk to stomp, a low buzz when hurt, and short arpeggios
+    -- for win/lose. All pure math — no audio files shipped.
+    snd.jump  = makeSound(0.12, function(t) local f = 360 + 700 * t
+        return 0.30 * math.exp(-t * 10) * (math.sin(2 * PI * f * t) >= 0 and 1 or -1) end)
+    snd.coin  = makeSound(0.09, function(t) return 0.30 * math.exp(-t * 22) * math.sin(2 * PI * 1046 * t) end)
+    snd.gem   = makeSound(0.20, function(t) return 0.26 * math.exp(-t * 10) *
+        (math.sin(2 * PI * 880 * t) + 0.5 * math.sin(2 * PI * 1320 * t)) end)
+    snd.stomp = makeSound(0.10, function(t) return 0.35 * math.exp(-t * 26) * math.sin(2 * PI * (360 - 900 * t) * t) end)
+    snd.hurt  = makeSound(0.28, function(t) return 0.38 * math.exp(-t * 7) * (math.sin(2 * PI * 150 * t) >= 0 and 1 or -1) end)
+    snd.win   = makeSound(0.90, function(t)
+        local notes = { 523.25, 659.25, 783.99, 1046.5 }
+        local slot = math.min(#notes, math.floor(t / 0.18) + 1)
+        return 0.28 * math.exp(-(t - (slot - 1) * 0.18) * 5) * math.sin(2 * PI * notes[slot] * t) end)
+    snd.lose  = makeSound(0.70, function(t)
+        local notes = { 392, 329.63, 261.63 }
+        local slot = math.min(#notes, math.floor(t / 0.22) + 1)
+        return 0.30 * math.exp(-(t - (slot - 1) * 0.22) * 5) * math.sin(2 * PI * notes[slot] * t) end)
+
+    -- Landing dust: one code-made white dot, tinted tan, flung upward and pulled
+    -- back down by "gravity" so it settles like kicked-up grit.
+    local dotData = love.image.newImageData(3, 3)
+    dotData:mapPixel(function() return 1, 1, 1, 1 end)
+    dust = love.graphics.newParticleSystem(love.graphics.newImage(dotData), 128)
+    dust:setParticleLifetime(0.2, 0.5)
+    dust:setSizes(2.0, 0.4)
+    dust:setSizeVariation(1)
+    dust:setSpeed(40, 120)
+    dust:setDirection(-PI / 2)
+    dust:setSpread(PI)
+    dust:setLinearAcceleration(0, 300, 0, 700)
+    dust:setColors(0.85, 0.78, 0.6, 0.9, 0.85, 0.78, 0.6, 0)
+
+    SPAWN_X = 2 * TILE
+    SPAWN_Y = 10 * TILE - PLAYER_H
+    validateLevel()          -- warn (in the console) about any impossible platforms
+    resetGame()
+end
+
+-- ---------------------------------------------------------------------------
+-- love.update.
+-- ---------------------------------------------------------------------------
+function love.update(dt)
+    time = time + dt
+    dust:update(dt)                     -- puffs finish playing in any state
+    if state ~= "play" then return end
+
+    if invinc > 0 then invinc = math.max(0, invinc - dt) end
+
+    -- Move platforms first, then CARRY the rider by the platform's own delta, so
+    -- standing on a moving platform moves you with it (a moving frame of reference).
+    updateMovers()
+    if player.standingOn and player.standingOn.kind == "mover" then
+        player.x = player.x + player.standingOn.dx
+        player.y = player.y + player.standingOn.dy
+    end
+
+    player.vx = 0
+    if love.keyboard.isDown("left", "a") then
+        player.vx = -MOVE_SPEED; player.facing = -1
+    elseif love.keyboard.isDown("right", "d") then
+        player.vx = MOVE_SPEED;  player.facing = 1
+    end
+    player.vx = player.vx + player.kbx
+    player.kbx = player.kbx * (1 - math.min(1, dt * 6))
+
+    player.vy = math.min(player.vy + GRAVITY * dt, MAX_FALL)
+    moveX(dt)
+
+    local prevFeet    = player.y + PLAYER_H     -- feet position before the vertical move
+    local wasOnGround = player.onGround
+    local fallSpeed   = player.vy
+    moveY(dt)
+
+    -- Tiles set onGround above; now try the entity platforms. Forget last frame's
+    -- platform first — landOnPlatforms re-establishes it only if we're still on one.
+    player.standingOn = nil
+    landOnPlatforms(prevFeet)
+
+    -- Drop-through: press Down while on a platform to fall through it for a moment.
+    if dropTimer > 0 then dropTimer = math.max(0, dropTimer - dt) end
+    if player.standingOn and dropTimer <= 0 and love.keyboard.isDown("down", "s") then
+        dropTimer = DROP_TIME
+        player.standingOn = nil
+        player.onGround = false
+    end
+
+    -- Kick up dust on a hard landing (airborne last frame, grounded now, fast).
+    if player.onGround and not wasOnGround and fallSpeed > LAND_SPEED then
+        dust:setPosition(player.x + PLAYER_W / 2, player.y + PLAYER_H)
+        dust:emit(10)
+    end
+
+    -- Coyote + jump-buffer timers, then fire a jump if a remembered press lines
+    -- up with a still-valid coyote window. Doing it here (not in keypressed) is
+    -- what lets "pressed a hair early" and "walked off a hair ago" both work.
+    if player.onGround then coyote = COYOTE_TIME else coyote = math.max(0, coyote - dt) end
+    buffer = math.max(0, buffer - dt)
+    if buffer > 0 and coyote > 0 then
+        player.vy = -JUMP_SPEED
+        player.onGround = false
+        player.standingOn = nil         -- detach from the platform when we jump
+        coyote, buffer = 0, 0
+        play(snd.jump)
+    end
+
+    if player.y > WORLD_H then           -- pit fall costs a heart
+        health = health - 1
+        invinc = INVINC_TIME
+        if health <= 0 then state = "gameover"; play(snd.lose) else respawn(); play(snd.hurt) end
+    end
+
+    updateCamera()
+
+    for _, e in ipairs(enemies) do updateEnemy(e, dt) end
+
+    for _, it in ipairs(items) do
+        if not it.taken and overlaps(player.x, player.y, PLAYER_W, PLAYER_H,
+                                     it.x, it.y, TILE, TILE) then
+            it.taken = true
+            score = score + it.value
+            play(it.kind == "coin" and snd.coin or snd.gem)
+        end
+    end
+
+    for _, e in ipairs(enemies) do
+        if not e.dead and overlaps(player.x, player.y, PLAYER_W, PLAYER_H,
+                                   e.x, e.y, e.w, e.h) then
+            if player.vy > 0 and (player.y + PLAYER_H) < e.y + e.h * STOMP_FRAC then
+                e.dead = true; e.deadTimer = 0.5
+                player.vy = -STOMP_BOUNCE
+                player.onGround = false
+                play(snd.stomp)
+            else
+                hurt(e.x + e.w / 2)
+            end
+        end
+    end
+
+    for _, hz in ipairs(hazards) do
+        if overlaps(player.x, player.y, PLAYER_W, PLAYER_H,
+                    hz.x + 6, hz.y + TILE * 0.5, TILE - 12, TILE * 0.5) then
+            hurt(hz.x + TILE / 2)
+        end
+    end
+
+    -- Activate a checkpoint on touch: it becomes the new respawn point.
+    for _, cp in ipairs(checkpoints) do
+        if not cp.active and overlaps(player.x, player.y, PLAYER_W, PLAYER_H,
+                                      cp.x, cp.y, TILE, TILE) then
+            cp.active = true
+            respawnX, respawnY = cp.spawnX, cp.spawnY
+            play(snd.gem)
+        end
+    end
+
+    if flag and overlaps(player.x, player.y, PLAYER_W, PLAYER_H,
+                         flag.x, flag.y, TILE, TILE) then
+        state = "win"; play(snd.win)
+    end
+
+    if player.onGround and player.vx ~= 0 then
+        player.walkTime = player.walkTime + dt
+    else
+        player.walkTime = 0
+    end
+end
+
+function love.keypressed(key)
+    if key == "escape" then
+        love.event.quit()
+    elseif key == "r" then
+        resetGame()
+    elseif (key == "space" or key == "up" or key == "w") and state == "play" then
+        buffer = JUMP_BUFFER            -- remember it; update decides when to fire
+    end
+end
+
+-- Releasing jump mid-rise cuts the upward speed -> a shorter hop (variable jump).
+function love.keyreleased(key)
+    if (key == "space" or key == "up" or key == "w") and player.vy < 0 then
+        player.vy = player.vy * JUMP_CUT
+    end
+end
+
+-- ---------------------------------------------------------------------------
+-- Drawing.
+-- ---------------------------------------------------------------------------
+
+-- Parallax: scale the background to the window height and tile it across, shifted
+-- by only a FRACTION of the camera. Slower-than-world motion reads as distance.
+local function drawBackground()
+    love.graphics.setColor(1, 1, 1)
+    local bg = sprites.bg
+    local s  = WIN_H / bg:getHeight()
+    local tw = bg:getWidth() * s
+    local x  = -((camera.x * PARALLAX) % tw)
+    while x < WIN_W do
+        love.graphics.draw(bg, x, 0, 0, s, s)
+        x = x + tw
+    end
+end
+
+local function tileImage(ch, col, row)
+    if ch == "B" then return tiles.brick end
+    if ch == "C" then return tiles.crate end
+    if isSolid(col, row - 1) then return tiles.center end
+    local leftOpen  = not isSolid(col - 1, row)
+    local rightOpen = not isSolid(col + 1, row)
+    if leftOpen  and not rightOpen then return tiles.grassLeft  end
+    if rightOpen and not leftOpen  then return tiles.grassRight end
+    return tiles.grassMid
+end
+
+local function drawLevel()
+    love.graphics.setColor(1, 1, 1)
+    local firstCol = math.max(0, toTile(camera.x))
+    local lastCol  = math.min(COLS - 1, toTile(camera.x + WIN_W))
+    local firstRow = math.max(0, toTile(camera.y))
+    local lastRow  = math.min(ROWS - 1, toTile(camera.y + WIN_H))
+    for row = firstRow, lastRow do
+        local line = level[row + 1]
+        for col = firstCol, lastCol do
+            local ch = line:sub(col + 1, col + 1)
+            if SOLID[ch] then
+                love.graphics.draw(tileImage(ch, col, row),
+                    col * TILE, row * TILE, 0, SCALE, SCALE)
+            end
+        end
+    end
+end
+
+local function drawItems()
+    love.graphics.setColor(1, 1, 1)
+    for _, it in ipairs(items) do
+        if not it.taken then
+            local bob = math.sin(time * 3 + it.x * 0.05) * 4
+            love.graphics.draw((it.kind == "coin") and sprites.coin or sprites.gem,
+                it.x, it.y + bob, 0, SCALE, SCALE)
+        end
+    end
+    for _, hz in ipairs(hazards) do
+        love.graphics.draw(sprites.spikes, hz.x, hz.y, 0, SCALE, SCALE)
+    end
+    if flag then
+        love.graphics.draw((math.floor(time * 4) % 2 == 0) and sprites.flag1 or sprites.flag2,
+            flag.x, flag.y, 0, SCALE, SCALE)
+    end
+end
+
+-- One-way + moving platforms. Each is drawn as one or more TILE-wide sprites
+-- across its width; the thin art's top lines up with the collision top (p.y).
+local function drawPlatforms()
+    love.graphics.setColor(1, 1, 1)
+    for _, p in ipairs(platforms) do
+        local img = (p.kind == "mover") and sprites.mover or sprites.oneway
+        for i = 0, math.floor(p.w / TILE + 0.5) - 1 do
+            love.graphics.draw(img, p.x + i * TILE, p.y, 0, SCALE, SCALE)
+        end
+    end
+end
+
+-- Checkpoints: a lowered flag until touched, then a raised, waving one.
+local function drawCheckpoints()
+    love.graphics.setColor(1, 1, 1)
+    for _, cp in ipairs(checkpoints) do
+        local img = cp.active
+            and ((math.floor(time * 4) % 2 == 0) and sprites.cpUp1 or sprites.cpUp2)
+            or sprites.cpDown
+        love.graphics.draw(img, cp.x, cp.y, 0, SCALE, SCALE)
+    end
+end
+
+local function drawEnemies()
+    love.graphics.setColor(1, 1, 1)
+    for _, e in ipairs(enemies) do
+        if not e.dead or e.deadTimer > 0 then
+            local art = enemyArt[e.def.art]
+            local img = e.dead and art.dead
+                or ((math.floor(e.animTime * 8) % 2 == 0) and art.idle or art.move)
+            local iw, ih = img:getWidth(), img:getHeight()
+            -- Face travel direction: e.dir * def.face corrects for whichever way
+            -- each sprite was drawn (see ENEMY_DEFS.face).
+            love.graphics.draw(img, e.x + e.w / 2, e.y + e.h, 0,
+                SCALE * e.dir * e.def.face, SCALE, iw / 2, ih)
+        end
+    end
+end
+
+local function currentFrame()
+    if not player.onGround then
+        return frames.jump
+    elseif player.vx ~= 0 then
+        return (math.floor(player.walkTime * 10) % 2 == 0) and frames.walk1 or frames.walk2
+    end
+    return frames.stand
+end
+
+local function drawPlayer()
+    if invinc > 0 and math.floor(time * 12) % 2 == 0 then return end
+    local img = currentFrame()
+    local iw, ih = img:getWidth(), img:getHeight()
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.draw(img, player.x + PLAYER_W / 2, player.y + PLAYER_H, 0,
+        SCALE * player.facing, SCALE, iw / 2, ih)
+end
+
+local function drawNumber(n, x, y)
+    local s = tostring(n)
+    local advance = 128 * HUD_SCALE * 0.62
+    for i = 1, #s do
+        love.graphics.draw(hud.digits[tonumber(s:sub(i, i))], x, y, 0, HUD_SCALE, HUD_SCALE)
+        x = x + advance
+    end
+end
+
+local function drawHUD()
+    love.graphics.setFont(fonts.small)
+    love.graphics.setColor(1, 1, 1)
+    local heartStep = 128 * HUD_SCALE * 0.72
+    for i = 1, MAX_HEALTH do
+        love.graphics.draw((i <= health) and hud.heartFull or hud.heartEmpty,
+            10 + (i - 1) * heartStep, 6, 0, HUD_SCALE, HUD_SCALE)
+    end
+    love.graphics.draw(hud.coin, 10, 6 + heartStep, 0, HUD_SCALE, HUD_SCALE)
+    drawNumber(score, 10 + heartStep, 6 + heartStep + 4)
+    love.graphics.print("A/D move  Space jump  Down drop-through  Stomp foes  R restart  Esc quit",
+        12, WIN_H - 22)
+end
+
+local function drawOverlay(title, tint)
+    love.graphics.setColor(0, 0, 0, 0.6)
+    love.graphics.rectangle("fill", 0, 0, WIN_W, WIN_H)
+    love.graphics.setColor(tint[1], tint[2], tint[3])
+    love.graphics.setFont(fonts.big)
+    love.graphics.printf(title, 0, WIN_H / 2 - 70, WIN_W, "center")
+    love.graphics.setFont(fonts.small)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.printf("Score: " .. score, 0, WIN_H / 2 - 6, WIN_W, "center")
+    love.graphics.printf("Press R to play again", 0, WIN_H / 2 + 22, WIN_W, "center")
+end
+
+function love.draw()
+    drawBackground()                    -- fixed-ish, behind everything
+
+    love.graphics.push()
+    love.graphics.translate(-camera.x, -camera.y)
+    drawLevel()
+    drawPlatforms()
+    drawItems()
+    drawCheckpoints()
+    drawEnemies()
+    drawPlayer()
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.draw(dust)            -- puffs live in world space
+    love.graphics.pop()
+
+    drawHUD()
+    if state == "win" then
+        drawOverlay("YOU WIN!", { 1, 1, 0.4 })
+    elseif state == "gameover" then
+        drawOverlay("GAME OVER", { 1, 0.5, 0.4 })
+    end
+end
+```
+
+## What the platformer adds to the ladder
+
+Pong is the loop. Breakout is collision response and a state machine. Klondike is the Lua. The platformer is the first one where the ground itself has behavior, where a surface can be solid in one direction and not the other, can carry you, or can move your respawn point across the level. None of that needed a new subsystem. It needed the collision layer to answer a slightly harder question about the tile under your feet.
+
+The compact version is this: keep the unconditional world in `SOLID` and put everything conditional in an entity list with its own rule; make "landing" an event between two foot positions, not a state at one; move the floor, then carry the rider, then run the physics; and let the level check itself against the same numbers that drive the jump. The rest is sprites.
