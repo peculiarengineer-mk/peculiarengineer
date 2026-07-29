@@ -9,7 +9,7 @@ You want your own Git host. Maybe you're getting off GitHub, maybe you just want
 
 For a private code host, that's a strange trade. Nothing about "my repos, for me and three collaborators" requires a public address. If the only people who should reach it are people you already trust, put it on your tailnet and the whole category of internet facing problems stops existing. No open ports, and no login page getting scanned at three in the morning.
 
-The Compose file for this is short. What makes it worth writing down is the sidecar pattern it uses, which is not obvious the first time, and a handful of settings that decide whether it works at all.
+The Compose file for this is short. What makes it worth writing down is the sidecar pattern it uses, which is not obvious the first time, and a handful of settings that decide whether it works at all. I built this from nothing on a fresh Ubuntu 26.04 box to check it, and the settings that went wrong were not the ones I expected, so those get their own section at the end.
 
 > **TL;DR.** Run Tailscale as its own container and give Forgejo `network_mode: service:ts-forgejo` so Forgejo has no published ports and its own tailnet identity. Point `TS_SERVE_CONFIG` at a serve JSON file and you get real HTTPS on `forgejo.your-tailnet.ts.net` with no port 80 and no HTTP-01 challenge. Persist `/var/lib/tailscale` or every restart creates a brand new node. Tag the device so its node key never expires. Do not set `START_SSH_SERVER`, because the image already runs sshd on port 22.
 
@@ -25,7 +25,7 @@ The Compose file for this is short. What makes it worth writing down is the side
 - [6. Cloning over SSH](#6-cloning-over-ssh)
 - [Who can actually reach it](#who-can-actually-reach-it)
 - [When you want it public after all](#when-you-want-it-public-after-all)
-- [Gotchas worth knowing](#gotchas-worth-knowing)
+- [Gotchas I hit](#gotchas-i-hit)
 - [Quick reference](#quick-reference)
 
 ## Prerequisites
@@ -54,11 +54,17 @@ The result is a real, publicly trusted certificate on a machine with no public p
 
 ## 1. Turn on HTTPS for your tailnet
 
-Do this before anything else, because the failure mode later reads like a bug in your config rather than a missing setting.
+Do this before anything else. Skipping it does not stop the stack coming up, which is exactly why it wastes your time later.
 
 In the Tailscale admin console, go to **DNS**, and under HTTPS Certificates click **Enable HTTPS**. Note the tailnet name it shows you, something like `tail1234.ts.net`. Every device in your tailnet gets a name under it, so your Forgejo node will end up at `forgejo.tail1234.ts.net`.
 
-If you skip this, `tailscale serve` cannot get a certificate, and the error talks about certificate provisioning rather than about a setting you never turned on.
+If you skip this, the sidecar still starts and still says it's running. It logs a line telling you HTTPS is not enabled and links the docs, which is fair enough, but `tailscale serve status` just answers `No serve config` with no reason attached. The command that gives you a straight answer is:
+
+```bash
+docker compose exec ts-forgejo tailscale cert forgejo.tail1234.ts.net
+```
+
+With HTTPS off you get `your Tailscale account does not support getting TLS certs`. With it on you get two files written and you can move on. I use that as the check before touching anything else, because every other symptom of this is ambiguous.
 
 ## 2. Make a tagged auth key
 
@@ -290,17 +296,33 @@ Then flip the switch in `serve.json` and restart the sidecar, which is the durab
 
 Funnel only works on ports 443, 8443, and 10000, so 443 is the one you want anyway.
 
+The node attribute is not optional, and skipping it is the worst kind of failure. I flipped `AllowFunnel` to `true` without it and everything told me it had worked. `tailscale funnel status` printed `Funnel on` with the URL under it, `tailscale serve status` agreed, and the logs said nothing at all. The name simply never appeared in public DNS, so from outside the tailnet it did not resolve, let alone serve. The node did not have the capability and no part of the tooling mentioned it.
+
+If you turn Funnel on, verify it from something that is not on your tailnet. A phone with WiFi off is enough:
+
+```bash
+dig +short @1.1.1.1 forgejo.tail1234.ts.net
+```
+
+An empty answer means Funnel is not really on, whatever the CLI told you.
+
 Once it's on, you have inherited every problem this post was avoiding. Registration lockdown and rate limiting become your concern again. It's a good escape hatch and a bad default. Set it back to `false` when you're done.
 
 The honest limitation: if the people you collaborate with will not join your tailnet, this setup is not for you. Tailnet only means tailnet only. Everyone who touches these repos needs Tailscale on their machine and a place in your ACLs. For a solo developer or a small team that already uses Tailscale, that cost is zero. For an open source project taking drive by contributions, it's a wall.
 
-## Gotchas worth knowing
+## Gotchas I hit
 
-**No state volume, so every restart mints a new node.** This is the big one. If `TS_STATE_DIR` has no volume behind it, the container loses its identity on restart, registers again as a fresh device, and Tailscale appends a suffix to make the name unique. Your node quietly becomes `forgejo-1`, then `forgejo-2`, your `ROOT_URL` now points at a name nothing is listening on, and your admin console fills up with dead devices. The certificate goes with it. Persist `/var/lib/tailscale`.
+**No state volume, so every restart mints a new node.** This is the big one, and I watched it happen. If `TS_STATE_DIR` has no volume behind it, the container loses its identity, registers again as a fresh device, and Tailscale appends a suffix to keep the name unique. Mine came back as `forgejo-1` on a new address while the old `forgejo` sat there marked offline.
+
+What makes it nasty is how healthy the result looks. The new node got its own certificate within seconds and served Forgejo on 443 without complaint. But `ROOT_URL` and `SSH_DOMAIN` live in `app.ini` inside the data volume, so they still held the old name, and the API cheerfully handed out clone URLs pointing at a node nothing is listening on. The server is fine. Every clone command it gives your users times out. Persist `/var/lib/tailscale`.
+
+**What losing that state does to you depends on your auth key.** With a reusable key you get the duplicate node above. With a single use key the container cannot register at all, fails with `invalid key: API key ... not valid`, and never comes up. Two completely different mornings from the same missing volume.
+
+**Auth failures loop instead of stopping.** Every registration failure I hit, whether a tag the policy did not allow or a spent key, left the container restarting rather than exiting. With `restart: unless-stopped` that continues forever. `docker compose ps` shows `restarting`, not an error, so if you run `up -d` and walk away you come back to something that has been failing quietly for however long you were gone. The reason is only ever in `docker compose logs`.
 
 **An untagged node drops off at six months, not three.** The auth key expiring at 90 days is the number everyone quotes, but that only blocks new registrations. The node itself runs until its node key hits the 180 day default, which is a much worse way to find out, because by then you've forgotten the setup entirely. Tag the device and key expiry is off.
 
-**HTTPS not enabled in the console.** `tailscale serve` cannot get a certificate and complains about provisioning. The setting is in the admin console under DNS, not in any file on the box, which is why it's easy to look for it in the wrong place.
+**The tag has to exist before you advertise it.** `tag:container` is my example name, not a default. If it is not in `tagOwners` in your policy the node refuses to join with `requested tags [tag:container] are invalid or not permitted`, which is at least an honest error. Use whatever tag your tailnet already has if you have one.
 
 **Tailscale SSH swallows Git over SSH.** If you add `--ssh` to `TS_EXTRA_ARGS`, tailscaled intercepts inbound tailnet connections to port 22 before they ever reach the SSH server in the container. There's no bind conflict and nothing looks broken in the logs. Your clones just stop working. Leave Tailscale SSH off on this node and use it on your other machines.
 
@@ -332,8 +354,13 @@ docker compose exec ts-forgejo tailscale serve status   # what is being served o
 # backup, written somewhere writable and then copied out
 docker compose exec -u 1000 -w /tmp forgejo \
   forgejo dump -c /data/gitea/conf/app.ini
-docker compose cp forgejo:/tmp/forgejo-dump.zip ./
+
+# the archive is named forgejo-dump-<timestamp>.zip, so read the name back
+DUMP=$(docker compose exec -T forgejo sh -c 'ls -1 /tmp/forgejo-dump-*.zip | tail -1')
+docker compose cp "forgejo:${DUMP%$'\r'}" ./
 ```
+
+That timestamp is the part that bites. `forgejo dump` prints the filename it wrote and then you are on your own, so a copy command with a fixed name in it fails every time and you find out when you need the backup.
 
 What this setup removes is most of the recurring maintenance. There's no certificate renewal to monitor, and no port forward on the router for someone to find in a scan.
 
