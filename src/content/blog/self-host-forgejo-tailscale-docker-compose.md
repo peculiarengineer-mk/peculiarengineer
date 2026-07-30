@@ -286,13 +286,15 @@ Two things have to be true first. Your tailnet policy needs the `funnel` node at
 ]
 ```
 
-Then flip the switch in `serve.json` and restart the sidecar, which is the durable way to do it since `TS_SERVE_CONFIG` reapplies that file every time the container starts:
+Then flip the switch in `serve.json` and restart, which is the durable way to do it since `TS_SERVE_CONFIG` reapplies that file every time the container starts:
 
 ```json
   "AllowFunnel": {
     "${TS_CERT_DOMAIN}:443": true
   }
 ```
+
+Restart with `docker compose restart` and no service name after you edit that file. Restarting only the Tailscale container is what leaves Forgejo answering `502` behind a network stack that moved out from under it, which is [the gotcha below](#gotchas-i-hit) and the one that wastes the most time.
 
 Funnel only works on ports 443, 8443, and 10000, so 443 is the one you want anyway.
 
