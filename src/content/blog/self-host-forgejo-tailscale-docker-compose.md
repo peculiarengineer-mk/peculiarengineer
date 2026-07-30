@@ -326,7 +326,11 @@ What makes it nasty is how healthy the result looks. The new node got its own ce
 
 **Tailscale SSH swallows Git over SSH.** If you add `--ssh` to `TS_EXTRA_ARGS`, tailscaled intercepts inbound tailnet connections to port 22 before they ever reach the SSH server in the container. There's no bind conflict and nothing looks broken in the logs. Your clones just stop working. Leave Tailscale SSH off on this node and use it on your other machines.
 
-**Restarting the sidecar takes Forgejo's network with it.** Because Forgejo borrows the sidecar's namespace, `docker compose restart ts-forgejo` leaves Forgejo running with a network stack that has moved out from under it. Restart both together when you touch the Tailscale container.
+**Restarting the sidecar alone breaks Forgejo in a way that looks like something else.** This one cost me the most time, because I did it to myself repeatedly while testing and kept diagnosing the wrong thing. `docker compose restart ts-forgejo` gives Forgejo a network stack that has moved out from under it. Forgejo keeps running, `docker compose ps` says both are `Up`, and the tailnet name still resolves.
+
+What you get is a broken instance that points nowhere useful. The web side answers `502`, because tailscaled terminates TLS perfectly well and then cannot reach `127.0.0.1:3000` any more. Git over SSH gives you `Connection refused`, or just hangs with no banner. Neither symptom points at the container you actually restarted.
+
+The fix is `docker compose restart` with no service name, so both come back together. I checked this twice: sidecar alone gives 502 and a refused clone, both together gives 200 and a clean clone. Any time you touch the Tailscale container, take Forgejo with it.
 
 **`ROOT_URL` left over from an earlier attempt.** If you tried this once with a different hostname, changing the environment variable is not always enough, because the installer wrote the old value into `app.ini` and that file lives in the volume. Check `/data/gitea/conf/app.ini` and fix it there, or start from a clean volume.
 
