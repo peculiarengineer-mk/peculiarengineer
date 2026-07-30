@@ -2,6 +2,7 @@
 title: "Your MCP server's search is bad: ranking, embeddings, and what each one fixes"
 description: 'Part Two of the MCP notes server. The search returned the wrong posts because it never ranked anything, and twenty lines fix that. Then local embeddings from Ollama for the questions keyword search cannot answer, with real numbers from a 496 chunk index: what the task prefixes are worth, why num_ctx does not do what the docs imply, and the query that neither search could find.'
 pubDate: 'Jul 27 2026'
+heroImage: '../../assets/mcp-search-hero.png'
 tags: ['MCP', 'ModelContextProtocol', 'Python', 'Embeddings', 'Ollama', 'SemanticSearch', 'uv', 'ClaudeCode', 'LLM', 'AI', 'SelfHosted', 'Tutorial']
 ---
 

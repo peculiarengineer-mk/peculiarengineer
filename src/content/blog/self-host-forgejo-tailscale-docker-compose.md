@@ -2,6 +2,7 @@
 title: 'Self-host Forgejo on your tailnet with Docker Compose and Tailscale Serve'
 description: 'Run your own Git host with no open ports, no public DNS, and no certbot. Forgejo behind a Tailscale sidecar container, real HTTPS on your ts.net name, and the state volume, node key expiry, and port 22 details that decide whether it works.'
 pubDate: 'Jul 28 2026'
+heroImage: '../../assets/forgejo-tailnet-hero.png'
 tags: ['Forgejo', 'Tailscale', 'Git', 'Docker', 'DockerCompose', 'SelfHosted', 'Homelab', 'Networking', 'VPN', 'Ubuntu2604']
 ---
 
