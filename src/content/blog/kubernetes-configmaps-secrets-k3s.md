@@ -339,9 +339,10 @@ You moved settings, a whole web page, and a password out of an image and into th
 
 That's Part Two. The [Kubernetes series hub](/blog/kubernetes-series/) tracks the whole run, and the parts still ahead pick up naturally from here:
 
-1. **Labels and Namespaces**, for organizing and isolating groups of objects.
-2. **Volumes**, to keep data alive when Pods disappear (Step 6 mounted a ConfigMap; real storage is the next step up).
-3. **Health probes** (liveness and readiness), to teach Kubernetes when your app is actually OK.
-4. **Ingress**, to route real outside web traffic to your Services.
+1. **[GitOps with Argo CD](/blog/gitops-argocd-k3s/)**, to stop applying YAML by hand and let a repo drive the cluster. (Now live: [read Part Three](/blog/gitops-argocd-k3s/).)
+2. **Labels and Namespaces**, for organizing and isolating groups of objects.
+3. **Volumes**, to keep data alive when Pods disappear (Step 6 mounted a ConfigMap; real storage is the next step up).
+4. **Health probes** (liveness and readiness), to teach Kubernetes when your app is actually OK.
+5. **Ingress**, to route real outside web traffic to your Services.
 
 Go change a ConfigMap and watch the page follow along. That's the part that made it click for me. `[ config OK ]`

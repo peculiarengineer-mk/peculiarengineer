@@ -20,9 +20,17 @@ const published = [
 		blurb:
 			'Pull settings, a whole web page, and a password out of the image and into the cluster, as env vars and mounted files, then change them live with no rebuild. Plus the base64 gotcha that trips everyone.',
 	},
+	{
+		n: 3,
+		href: '/blog/gitops-argocd-k3s/',
+		title: 'GitOps with Argo CD: let Git drive your cluster',
+		blurb:
+			'Put your manifests in Git and let Argo CD apply them. Change the cluster by hand and watch it change back, deploy by pushing a commit, roll back with git revert. Plus the six gotchas I hit doing it for real.',
+	},
 ];
 
 const upcoming = [
+	{ name: 'App of apps', blurb: 'Put the thing that deploys everything under GitOps too.' },
 	{ name: 'Labels and Namespaces', blurb: 'Organize and isolate groups of objects.' },
 	{ name: 'Volumes', blurb: 'Keep data alive when Pods disappear.' },
 	{
