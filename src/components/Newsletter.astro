@@ -1,0 +1,105 @@
+---
+import { NEWSLETTER_ACTION, NEWSLETTER_ENABLED, NEWSLETTER_READY } from '../consts';
+
+interface Props {
+	/** Buttondown tag recording where the subscriber signed up, for segmenting sends. */
+	tag?: string;
+	heading?: string;
+	blurb?: string;
+	cta?: string;
+	/** Small inline form for post footers vs. the fuller panel used on landing pages. */
+	compact?: boolean;
+}
+
+const {
+	tag = 'blog',
+	heading = 'Subscribe',
+	blurb = "New posts by email — Linux, Kubernetes, Cloudflare, and whatever broke this week. No spam, one click to unsubscribe.",
+	cta = 'Subscribe >',
+	compact = false,
+} = Astro.props;
+
+// Buttondown scopes its embed by username, so the id must be unique per form
+// on the page or the <label for> binding silently points at the wrong input.
+const inputId = `bd-email-${tag}`;
+---
+
+{
+	NEWSLETTER_ENABLED && (
+		<div class:list={['term-panel', 'newsletter', { compact }]}>
+			<span class="term-label">:: {heading} ::</span>
+			<p class="blurb">{blurb}</p>
+			{NEWSLETTER_READY ? (
+				<form action={NEWSLETTER_ACTION} method="post" target="popupwindow">
+					<label class="sr-only" for={inputId}>
+						Email address
+					</label>
+					<input
+						type="email"
+						name="email"
+						id={inputId}
+						placeholder="you@example.com"
+						required
+						autocomplete="email"
+					/>
+					<input type="hidden" name="tag" value={tag} />
+					<button type="submit">{cta}</button>
+				</form>
+			) : (
+				<p class="setup-warning">
+					<strong>Not wired up yet.</strong> Set <code>BUTTONDOWN_USERNAME</code> in{' '}
+					<code>src/consts.ts</code> before deploying.
+				</p>
+			)}
+		</div>
+	)
+}
+
+<style>
+	.newsletter {
+		margin: 2.5em 0;
+	}
+	.newsletter.compact {
+		margin: 3em 0 1em;
+	}
+	.blurb {
+		margin: 0 0 1em;
+		color: var(--sys-text);
+		font-family: var(--font-mono);
+		font-size: 0.9em;
+	}
+	.newsletter.compact .blurb {
+		font-size: 0.85em;
+	}
+	form {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75em;
+	}
+	input[type='email'] {
+		flex: 1 1 16em;
+		padding: 0.6em 0.75em;
+	}
+	button {
+		font-family: var(--font-mono);
+		font-size: 16px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		padding: 0.6em 1.2em;
+		background: var(--sys-bg);
+		color: var(--sys-fg);
+		border: 1px solid var(--sys-fg);
+		cursor: pointer;
+	}
+	button:hover {
+		background: var(--sys-fg);
+		color: var(--sys-bg);
+	}
+	.setup-warning {
+		margin: 0;
+		color: var(--sys-fg);
+		font-family: var(--font-mono);
+		font-size: 0.9em;
+	}
+</style>

@@ -4,6 +4,7 @@ import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
+import Newsletter from '../components/Newsletter.astro';
 import { SITE_DESCRIPTION, SITE_TITLE, sortByPubDate } from '../consts';
 
 const posts = (await getCollection('blog')).sort(sortByPubDate);
@@ -109,6 +110,12 @@ docker build \
 					<a href="/rss.xml"><span class="hex">0x03</span><h3>RSS Feed</h3></a>
 				</div>
 			</section>
+
+			<Newsletter
+				tag="home"
+				heading="Subscribe"
+				blurb="New posts by email — Linux, Kubernetes, Cloudflare, and whatever broke this week. No spam, one click to unsubscribe."
+			/>
 
 			<div class="rule">
 				+--------------------------------------------------------------------------+

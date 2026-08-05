@@ -5,11 +5,13 @@ import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
+import Newsletter from '../components/Newsletter.astro';
 
 type Props = Omit<CollectionEntry<'blog'>['data'], 'pubDate'> & {
 	pubDate?: Date;
 	showDate?: boolean;
 	kind?: 'article' | 'page';
+	showNewsletter?: boolean;
 };
 
 const {
@@ -21,6 +23,9 @@ const {
 	tags,
 	showDate = true,
 	kind = 'article',
+	// Standalone pages (/about, /hosting) opt in explicitly — /hosting carries its
+	// own signup and would otherwise render two forms on one page.
+	showNewsletter = kind === 'article',
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
@@ -148,6 +153,7 @@ const jsonLd =
 						<hr />
 					</div>
 					<slot />
+					{showNewsletter && <Newsletter tag="blog" heading="Subscribe" compact />}
 				</div>
 			</article>
 		</main>
