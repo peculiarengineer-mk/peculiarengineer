@@ -41,8 +41,23 @@ const pct = (x: number) => `${Math.round(x * 100)}%`;
 const usd = (x: number) => `$${x.toFixed(4)}`;
 const ms = (x: number) => `${Math.round(x)}ms`;
 const secs = (x: number) => (x >= 1000 ? `${(x / 1000).toFixed(1)}s` : `${Math.round(x)}ms`);
+// Wall-clock durations run to hours, where "5291.9s" stops meaning anything.
+const dur = (s: number) =>
+	s >= 3600
+		? `${Math.floor(s / 3600)}h ${Math.round((s % 3600) / 60)}m`
+		: s >= 90
+			? `${Math.round(s / 60)} min`
+			: `${Math.round(s)}s`;
 
 const modelIds = [...new Set(rows.map((r) => r.model))];
+
+// Stable, attribute-safe handle per model. Everything the filter can hide carries
+// this on a data-model attribute, so the client script never has to match on names.
+const modelKey = (id: string) =>
+	shortName(id)
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/(^-|-$)/g, '');
 
 // ── Per-model rollups ──
 const models = modelIds.map((id) => {
@@ -58,6 +73,7 @@ const models = modelIds.map((id) => {
 	const solved = scoredRows.filter((r) => r.passK >= 1).length;
 	return {
 		id,
+		key: modelKey(id),
 		name: shortName(id),
 		pass1: mean(scoredRows.map((r) => r.pass1)),
 		passK: mean(scoredRows.map((r) => r.passK)),
@@ -94,12 +110,36 @@ const cheapest = byCost[0];
 const priciest = byCost[byCost.length - 1];
 const fastest = byLatency[0];
 const perfectModels = models.filter((m) => m.solved === m.total);
+const fullCoverage = models.filter((m) => m.total === m.coverage);
 const fullCoveragePerfect = perfectModels.filter((m) => m.total === m.coverage);
 const filteredModels = models.filter((m) => m.excluded > 0);
-const cheapestComplete = [...fullCoveragePerfect].sort((a, b) => a.costPerCorrect - b.costPerCorrect)[0];
+// Best value among the models that actually ran the whole suite. Cost per solved problem,
+// not raw cost, so a cheap model that solves less does not win by default.
+const cheapestComplete = [...fullCoverage].sort((a, b) => a.costPerCorrect - b.costPerCorrect)[0];
+// "a and b" for two, "a, b, and c" once there are more.
+const listOf = (names: string[]) =>
+	names.length < 3 ? names.join(' and ') : `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
 const coverageCaveat = filteredModels.length
-	? `${filteredModels.map((m) => `${m.name} was filtered out of ${m.excluded} problems, so its perfect score covers ${m.solved}/${m.total}`).join('; ')}, not the full suite. `
+	? `${filteredModels.map((m) => `${m.name} was filtered out of ${m.excluded} problems, so its score covers ${m.solved}/${m.total}`).join('; ')}, not the full suite. `
 	: '';
+// The lead sentence has to survive a model that does not ace the bench.
+const words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+const word = (n: number) => words[n] ?? String(n);
+const perfectLead =
+	perfectModels.length === models.length
+		? `All ${word(models.length)} models hit`
+		: perfectModels.length === 1
+			? `${perfectModels[0].name} was the only model to hit`
+			: `${word(perfectModels.length)} of ${word(models.length)} models hit`;
+
+// Data the client filter needs to recompute the headline tiles for a subset.
+const filterData = models.map((m) => ({
+	key: m.key,
+	name: m.name,
+	cost: m.totalCost,
+	latency: m.avgLatency,
+	filtered: m.filtered,
+}));
 
 // ── Cost-vs-speed scatter geometry (lower-left = cheap + fast = better) ──
 const CW = 720;
@@ -109,9 +149,67 @@ const xMax = Math.max(...models.map((m) => m.totalCost)) * 1.12;
 const yMax = Math.max(...models.map((m) => m.avgLatency)) * 1.12;
 const sx = (v: number) => M.left + (v / xMax) * (CW - M.left - M.right);
 const sy = (v: number) => CH - M.bottom - (v / yMax) * (CH - M.top - M.bottom);
-const points = models.map((m) => ({ ...m, cx: sx(m.totalCost), cy: sy(m.avgLatency) }));
+const rawPoints = models.map((m) => ({
+	...m,
+	cx: sx(m.totalCost),
+	cy: sy(m.avgLatency),
+	full: `${m.name} · ${pct(m.pass1)}${m.excluded > 0 ? ` · ${m.total}/${m.coverage} coverage` : ''}`,
+}));
 const xTicks = Array.from({ length: 5 }, (_, i) => (xMax / 4) * i);
 const yTicks = Array.from({ length: 5 }, (_, i) => (yMax / 4) * i);
+
+// Label placement. With three models anything works; with a full roster the dots
+// bunch up and naive labels stack on top of each other. Place them top-down, take
+// the first candidate slot that collides with nothing already placed, and fall back
+// to nudging downward. Approximate widths are fine — 12px mono is ~6.7px per char.
+const LH = 13; // label line height
+const boxes: { x1: number; y1: number; x2: number; y2: number }[] = [];
+const hits = (b: { x1: number; y1: number; x2: number; y2: number }) =>
+	b.x1 < 2 ||
+	b.x2 > CW - 2 ||
+	b.y1 < M.top - LH ||
+	b.y2 > CH - 8 ||
+	boxes.some((o) => b.x1 < o.x2 && b.x2 > o.x1 && b.y1 < o.y2 && b.y2 > o.y1);
+
+// Past a handful of models the names cannot all fit next to their dots at any
+// placement, so the chart switches to numbered dots with a key underneath.
+const dense = models.length > 8;
+const numbered = [...rawPoints].sort((a, b) => a.totalCost - b.totalCost);
+const numberOf = new Map(numbered.map((p, i) => [p.key, i + 1]));
+
+// Seed the occupied list with the dots so no label is drawn across a circle.
+rawPoints.forEach((p) => {
+	const r = 6 + p.pass1 * 8 + 2;
+	boxes.push({ x1: p.cx - r, y1: p.cy - r, x2: p.cx + r, y2: p.cy + r });
+});
+
+const points = [...rawPoints]
+	.sort((a, b) => a.cy - b.cy || a.cx - b.cx)
+	.map((p) => {
+		const r = 6 + p.pass1 * 8;
+		const text = dense ? String(numberOf.get(p.key)) : p.full;
+		const w = text.length * 6.7;
+		// above, below, left, right — then the same four shifted down a line at a time.
+		const slots = [
+			{ x: p.cx, y: p.cy - r - 8, anchor: 'middle' },
+			{ x: p.cx, y: p.cy + r + 16, anchor: 'middle' },
+			{ x: p.cx - r - 8, y: p.cy + 4, anchor: 'end' },
+			{ x: p.cx + r + 8, y: p.cy + 4, anchor: 'start' },
+		];
+		for (let pass = 0; pass < 12; pass++) {
+			for (const s of slots) {
+				const y = s.y + pass * LH * (s.y > p.cy ? 1 : -1);
+				const x1 = s.anchor === 'middle' ? s.x - w / 2 : s.anchor === 'end' ? s.x - w : s.x;
+				const box = { x1, y1: y - LH + 3, x2: x1 + w, y2: y + 3 };
+				if (!hits(box)) {
+					boxes.push(box);
+					return { ...p, r, text, lx: s.x, ly: y, anchor: s.anchor };
+				}
+			}
+		}
+		// Everything collided. Draw it above anyway rather than dropping the label.
+		return { ...p, r, text, lx: p.cx, ly: p.cy - r - 8, anchor: 'middle' };
+	});
 
 // ── Failure modes, per-difficulty, per-language, per-problem ──
 const difficulties = ['easy', 'medium', 'hard'];
@@ -119,6 +217,7 @@ const languages = [...new Set(rows.map((r) => r.language))].sort();
 
 const perDifficulty = models.map((m) => ({
 	name: m.name,
+	key: m.key,
 	cells: difficulties.map((d) => {
 		const dr = rows.filter((r) => r.model === m.id && r.difficulty === d);
 		const scored = dr.filter((r) => r.filtered < r.attempts);
@@ -136,7 +235,13 @@ const problems = [...new Set(rows.map((r) => r.slug))].map((slug) => {
 		results: modelIds.map((id) => {
 			const row = pr.find((r) => r.model === id);
 			const excluded = !!row && row.filtered >= row.attempts;
-			return { name: shortName(id), solved: !excluded && (row?.passK ?? 0) >= 1, excluded, pass1: row?.pass1 ?? 0 };
+			return {
+				name: shortName(id),
+				key: modelKey(id),
+				solved: !excluded && (row?.passK ?? 0) >= 1,
+				excluded,
+				pass1: row?.pass1 ?? 0,
+			};
 		}),
 		solvedCount: pr.filter((r) => r.filtered < r.attempts && r.passK >= 1).length,
 		scoredCount: pr.filter((r) => r.filtered < r.attempts).length,
@@ -146,6 +251,12 @@ const diffOrder: Record<string, number> = { easy: 0, medium: 1, hard: 2 };
 problems.sort(
 	(a, b) => diffOrder[a.difficulty] - diffOrder[b.difficulty] || a.slug.localeCompare(b.slug),
 );
+
+// The table can hold rows from more than one harness run. When it does, say so
+// plainly rather than letting one date on the badge stand in for all of them.
+const runs: { display: string; models: string; problems: number; wallTimeSec: number; retries: number }[] =
+	meta.runs ?? [];
+const multiRun = runs.length > 1;
 
 const pageTitle = `LLM code benchmark — ${SITE_TITLE}`;
 const pageDesc = `A small, self-run coding benchmark: ${models.length} models on ${meta.problems} problems across ${languages.length} languages, scored on pass@k, cost, and speed. Last run ${meta.lastRunDisplay}.`;
@@ -163,42 +274,68 @@ const pageDesc = `A small, self-run coding benchmark: ${models.length} models on
 			<p class="run">
 				<span class="badge">LAST RUN {meta.lastRunDisplay}</span>
 				<span class="cfg"
-					>{models.length} models &middot; {meta.problems} problems &middot; {languages.length} languages
-					&middot; k={meta.k} &middot; temp={meta.temp} &middot; timeout {meta.timeout}</span
+					><span id="model-count">{models.length}</span> models &middot; {meta.problems} problems &middot; {
+						languages.length
+					} languages &middot; k={meta.k} &middot; temp={meta.temp} &middot; timeout {meta.timeout}</span
 				>
 			</p>
 
+			<!-- ── Model filter: everything below reacts to it. Hidden until the script
+			     un-hides it, so a no-JS reader never sees buttons that do nothing. ── -->
+			<div class="filterwrap" id="modelfilter" hidden>
+				<div class="filterbar">
+					<span class="flabel">grep -e</span>
+					{models.map((m) => (
+						<button type="button" class="chip" data-chip={m.key} aria-pressed="true">{m.name}</button>
+					))}
+					<button type="button" class="chip reset" data-chip-all aria-pressed="true">all</button>
+				</div>
+				<p class="fhint">
+					Isolate models to compare a subset. The chart, every table, the per-problem rows, and the
+					three headline numbers all follow the selection, and the selection lives in the URL so you
+					can link to it.
+				</p>
+			</div>
+
 			<p class="disclaimer">
-				A small benchmark I run myself, not an authoritative ranking. {meta.problems}
+				A small benchmark I run myself, not an authoritative ranking. {meta.problems}{' '}
 				problems &times; {meta.k} attempts is enough to show broad shape, not to split hairs.
 				Harness and problems are <a href={meta.harnessRepo}>open source</a>.
+				{multiRun && (
+					<>
+						{' '}This table stitches together {runs.length} runs on different dates, so read across rows with
+						that in mind: {listOf(runs.map((r) => `${r.models} on ${r.display}`))}. Same k, temperature,
+						timeout, and prompt style throughout, and only the {meta.problems} problems every run covered are
+						shown.
+					</>
+				)}
 			</p>
 
 			<!-- ── The actual finding ── -->
 			<div class="term-panel finding">
 				<span class="term-label">:: THE FINDING ::</span>
 				<p>
-					All three models hit <strong>100% pass@{meta.k}</strong> on the problems they were allowed to
-					answer. That sentence needs the second half. {coverageCaveat}{fullCoveragePerfect
-						.map((m) => m.name)
-						.join(' and ')} covered all {meta.problems}. {cheapestComplete.name} was the cheapest complete run
+					{perfectLead} <strong>100% pass@{meta.k}</strong> on the problems they were allowed to
+					answer. That sentence needs the second half. {coverageCaveat}{listOf(fullCoverage.map((m) => m.name))}{' '}covered all {meta.problems}. {cheapestComplete.name} was the best value of the complete runs
 					at <strong>{usd(cheapestComplete.costPerCorrect)} per solved problem</strong>. Perfect after exclusions
 					and perfect across the whole bench are not the same result.
 				</p>
 				<div class="stats">
 					<div class="stat">
-						<span class="k">cost spread</span>
-						<span class="v">{costSpread.toFixed(1)}&times;</span>
-						<span class="s">{cheapest.name} → {priciest.name}</span>
+						<span class="k" id="stat-cost-k">cost spread</span>
+						<span class="v" id="stat-cost-v">{costSpread.toFixed(1)}&times;</span>
+						<span class="s" id="stat-cost-s">{cheapest.name} → {priciest.name}</span>
 					</div>
 					<div class="stat">
-						<span class="k">latency spread</span>
-						<span class="v">{latencySpread.toFixed(1)}&times;</span>
-						<span class="s">{secs(fastest.avgLatency)} → {secs(byLatency[byLatency.length - 1].avgLatency)}</span>
+						<span class="k" id="stat-lat-k">latency spread</span>
+						<span class="v" id="stat-lat-v">{latencySpread.toFixed(1)}&times;</span>
+						<span class="s" id="stat-lat-s">
+							{secs(fastest.avgLatency)} → {secs(byLatency[byLatency.length - 1].avgLatency)}
+						</span>
 					</div>
 					<div class="stat">
 						<span class="k">filtered attempts</span>
-						<span class="v">{sum(models.map((m) => m.filtered))}</span>
+						<span class="v" id="stat-filt-v">{sum(models.map((m) => m.filtered))}</span>
 						<span class="s">blocked by provider filter</span>
 					</div>
 				</div>
@@ -209,7 +346,8 @@ const pageDesc = `A small, self-run coding benchmark: ${models.length} models on
 			<p class="cap">
 				<strong>Among models with the same coverage, lower and farther left means cheaper and faster.</strong>
 				Larger dots mean the model passed more often on the first try. A dashed dot did not complete
-				the full suite, and its label shows how much was actually scored.
+				the full suite, and its label shows how much was actually scored. Filtering hides dots but
+				leaves the axes alone, so nothing moves when you narrow the field.
 			</p>
 			<div class="chartwrap">
 				<svg
@@ -237,31 +375,27 @@ const pageDesc = `A small, self-run coding benchmark: ${models.length} models on
 						total cost (USD, lower is better) →
 					</text>
 					<!-- points -->
-					{points.map((p) => {
-						const r = 6 + p.pass1 * 8;
-						// Far-right points read leftward so a long name can't overflow the edge;
-						// everything else labels centered above its dot, which keeps neighbours
-						// at the same height (grok / gpt) from colliding horizontally.
-						const flipLeft = p.cx > CW * 0.72;
-						const above = p.cy - r - 16 > M.top;
-						const lx = flipLeft ? p.cx - r - 8 : p.cx;
-						const ly = flipLeft ? p.cy + 4 : above ? p.cy - r - 8 : p.cy + r + 16;
-						return (
-							<g>
-								<circle cx={p.cx} cy={p.cy} r={r} class={`dot ${p.excluded > 0 ? 'partial' : ''}`} />
-								<text
-									x={lx}
-									y={ly}
-									text-anchor={flipLeft ? 'end' : 'middle'}
-									class="dotlabel"
-								>
-									{p.name} · {pct(p.pass1)}{p.excluded > 0 ? ` · ${p.total}/${p.coverage} coverage` : ''}
-								</text>
-							</g>
-						);
-					})}
+					{points.map((p) => (
+						<g data-model={p.key}>
+							<circle cx={p.cx} cy={p.cy} r={p.r} class={`dot ${p.excluded > 0 ? 'partial' : ''}`}>
+								<title>{p.full}</title>
+							</circle>
+							<text x={p.lx} y={p.ly} text-anchor={p.anchor} class={`dotlabel ${dense ? 'num' : ''}`}>
+								{p.text}
+							</text>
+						</g>
+					))}
 				</svg>
 			</div>
+			{dense && (
+				<ol class="legend">
+					{numbered.map((p, i) => (
+						<li data-model={p.key}>
+							<span class="lnum">{i + 1}</span> {p.full}
+						</li>
+					))}
+				</ol>
+			)}
 
 			<!-- ── Leaderboard ── -->
 			<h2>Leaderboard</h2>
@@ -282,7 +416,7 @@ const pageDesc = `A small, self-run coding benchmark: ${models.length} models on
 					</thead>
 					<tbody>
 						{ranked.map((m) => (
-							<tr>
+							<tr data-model={m.key}>
 								<td>{m.name}</td>
 								<td data-sort={m.pass1} class="num">{pct(m.pass1)}</td>
 								<td data-sort={m.passK} class="num">{pct(m.passK)}</td>
@@ -307,7 +441,7 @@ const pageDesc = `A small, self-run coding benchmark: ${models.length} models on
 					</thead>
 					<tbody>
 						{ranked.map((m) => (
-							<tr>
+							<tr data-model={m.key}>
 								<td>{m.name}</td>
 								<td data-sort={m.passedAttempts} class="num good">{m.passedAttempts} <span class="ci">({pct(m.passedAttempts / m.totalAttempts)})</span></td>
 								<td data-sort={m.wrong} class="num">{m.wrong} <span class="ci">({pct(m.wrong / m.totalAttempts)})</span></td>
@@ -330,7 +464,7 @@ const pageDesc = `A small, self-run coding benchmark: ${models.length} models on
 					</thead>
 					<tbody>
 						{perDifficulty.map((m) => (
-							<tr>
+							<tr data-model={m.key}>
 								<td>{m.name}</td>
 								{m.cells.map((c) => (
 									<td class="num">{pct(c.solved / c.total)} <span class="ci">({c.solved}/{c.total})</span></td>
@@ -353,7 +487,12 @@ const pageDesc = `A small, self-run coding benchmark: ${models.length} models on
 					</summary>
 					<p class="pills">
 						{p.results.map((r) => (
-							<span class={`pill ${r.excluded ? 'filtered' : r.solved ? 'pass' : 'fail'} ${r.solved && r.pass1 < 1 ? 'shaky' : ''}`}>
+							<span
+								class={`pill ${r.excluded ? 'filtered' : r.solved ? 'pass' : 'fail'} ${r.solved && r.pass1 < 1 ? 'shaky' : ''}`}
+								data-model={r.key}
+								data-solved={r.solved ? '1' : '0'}
+								data-excluded={r.excluded ? '1' : '0'}
+							>
 								{r.name} {r.excluded ? 'filtered' : r.solved ? '✓' : '✕'}
 							</span>
 						))}
@@ -366,8 +505,15 @@ const pageDesc = `A small, self-run coding benchmark: ${models.length} models on
 					pass@k is the unbiased Chen et&nbsp;al. (2021) estimator over {meta.k} attempts per
 					problem. Here, pass@{meta.k} means at least one of the {meta.k} attempts solved the problem.
 					Costs are billed OpenRouter prices; latency is full response time, not
-					time-to-first-token. Run of {meta.lastRunDisplay} took {secs(meta.wallTimeSec * 1000)} wall
-					time with {meta.totalRetries} retries. Problems blocked by a provider content filter are
+					time-to-first-token. {multiRun
+						? runs
+								.map(
+									(r) =>
+										`The ${r.display} run (${r.models}) covered ${r.problems} problems in ${dur(r.wallTimeSec)} wall time with ${r.retries} retries.`,
+								)
+								.join(' ')
+						: `Run of ${meta.lastRunDisplay} took ${dur(meta.wallTimeSec)} wall time with ${meta.totalRetries} retries.`}{' '}
+					Problems blocked by a provider content filter are
 					excluded from that model's pass rates and shown as reduced coverage instead. Numbers here
 					are a snapshot. Models change fast, so
 					treat the date, not the ranking, as the load-bearing part. Full harness, problem set, and
@@ -376,6 +522,160 @@ const pageDesc = `A small, self-run coding benchmark: ${models.length} models on
 			</footer>
 		</main>
 		<Footer />
+
+		<script is:inline define:vars={{ filterData }}>
+			// Model isolation. Every element that belongs to exactly one model carries
+			// data-model, so hiding is one pass over the document. The aggregate numbers
+			// that would go stale (headline tiles, per-problem counts) get recomputed.
+			(function () {
+				var wrap = document.getElementById('modelfilter');
+				if (!wrap) return;
+				wrap.hidden = false;
+
+				var allKeys = filterData.map(function (m) {
+					return m.key;
+				});
+				var active = {};
+				allKeys.forEach(function (k) {
+					active[k] = true;
+				});
+
+				var params = new URLSearchParams(window.location.search);
+				var wanted = (params.get('models') || '').split(',').filter(function (k) {
+					return allKeys.indexOf(k) !== -1;
+				});
+				if (wanted.length) {
+					allKeys.forEach(function (k) {
+						active[k] = wanted.indexOf(k) !== -1;
+					});
+				}
+
+				var selected = function () {
+					return filterData.filter(function (m) {
+						return active[m.key];
+					});
+				};
+				var usd = function (x) {
+					return '$' + x.toFixed(4);
+				};
+				var secs = function (x) {
+					return x >= 1000 ? (x / 1000).toFixed(1) + 's' : Math.round(x) + 'ms';
+				};
+				var setText = function (id, s) {
+					var el = document.getElementById(id);
+					if (el) el.textContent = s;
+				};
+
+				function paintTiles(sel) {
+					setText('model-count', String(sel.length));
+					setText(
+						'stat-filt-v',
+						String(
+							sel.reduce(function (a, m) {
+								return a + m.filtered;
+							}, 0),
+						),
+					);
+
+					// One model has no spread to report, so the tiles show its own totals instead.
+					if (sel.length < 2) {
+						var m = sel[0];
+						setText('stat-cost-k', 'total cost');
+						setText('stat-cost-v', m ? usd(m.cost) : '—');
+						setText('stat-cost-s', m ? m.name : 'nothing selected');
+						setText('stat-lat-k', 'avg latency');
+						setText('stat-lat-v', m ? secs(m.latency) : '—');
+						setText('stat-lat-s', m ? m.name : 'nothing selected');
+						return;
+					}
+
+					var byCost = sel.slice().sort(function (a, b) {
+						return a.cost - b.cost;
+					});
+					var byLat = sel.slice().sort(function (a, b) {
+						return a.latency - b.latency;
+					});
+					var cLo = byCost[0];
+					var cHi = byCost[byCost.length - 1];
+					var lLo = byLat[0];
+					var lHi = byLat[byLat.length - 1];
+					setText('stat-cost-k', 'cost spread');
+					setText('stat-cost-v', cLo.cost > 0 ? (cHi.cost / cLo.cost).toFixed(1) + '×' : '—');
+					setText('stat-cost-s', cLo.name + ' → ' + cHi.name);
+					setText('stat-lat-k', 'latency spread');
+					setText('stat-lat-v', lLo.latency > 0 ? (lHi.latency / lLo.latency).toFixed(1) + '×' : '—');
+					setText('stat-lat-s', secs(lLo.latency) + ' → ' + secs(lHi.latency));
+				}
+
+				function paintProblems() {
+					document.querySelectorAll('details').forEach(function (d) {
+						var solved = 0;
+						var scored = 0;
+						d.querySelectorAll('.pill').forEach(function (p) {
+							if (!active[p.getAttribute('data-model')]) return;
+							if (p.getAttribute('data-excluded') === '1') return;
+							scored++;
+							if (p.getAttribute('data-solved') === '1') solved++;
+						});
+						var count = d.querySelector('.pcount');
+						if (count) count.textContent = 'solved by ' + solved + '/' + scored + ' scored';
+					});
+				}
+
+				function render(pushUrl) {
+					document.querySelectorAll('[data-model]').forEach(function (el) {
+						el.classList.toggle('filtered-out', !active[el.getAttribute('data-model')]);
+					});
+					var sel = selected();
+					wrap.querySelectorAll('[data-chip]').forEach(function (b) {
+						b.setAttribute('aria-pressed', active[b.getAttribute('data-chip')] ? 'true' : 'false');
+					});
+					var allOn = sel.length === allKeys.length;
+					var reset = wrap.querySelector('[data-chip-all]');
+					if (reset) reset.setAttribute('aria-pressed', allOn ? 'true' : 'false');
+
+					paintTiles(sel);
+					paintProblems();
+
+					if (pushUrl) {
+						var url = new URL(window.location.href);
+						if (allOn) url.searchParams.delete('models');
+						else
+							url.searchParams.set(
+								'models',
+								sel
+									.map(function (m) {
+										return m.key;
+									})
+									.join(','),
+							);
+						// Commas survive as commas so the shared link stays readable.
+						history.replaceState(null, '', url.pathname + url.search.replace(/%2C/g, ',') + url.hash);
+					}
+				}
+
+				wrap.addEventListener('click', function (e) {
+					var btn = e.target.closest('button');
+					if (!btn) return;
+					if (btn.hasAttribute('data-chip-all')) {
+						allKeys.forEach(function (k) {
+							active[k] = true;
+						});
+					} else {
+						var k = btn.getAttribute('data-chip');
+						active[k] = !active[k];
+						// Turning off the last one would blank the page, so treat it as a reset.
+						if (!selected().length)
+							allKeys.forEach(function (key) {
+								active[key] = true;
+							});
+					}
+					render(true);
+				});
+
+				render(false);
+			})();
+		</script>
 
 		<script is:inline>
 			// Click-to-sort on every table. data-sort carries the numeric value.
@@ -437,6 +737,57 @@ const pageDesc = `A small, self-run coding benchmark: ${models.length} models on
 		max-width: 68ch;
 		border-left: 3px solid var(--sys-dim);
 		padding-left: 1em;
+	}
+
+	.filterwrap {
+		margin: 0 0 1.5em;
+	}
+	.filterbar {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5em;
+	}
+	.flabel {
+		font-size: 0.72rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--sys-dim);
+	}
+	.chip {
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
+		line-height: 1.7;
+		background: transparent;
+		color: var(--sys-text);
+		border: 1px solid var(--sys-dim);
+		padding: 0.1em 0.7em;
+		cursor: pointer;
+	}
+	.chip:hover {
+		color: var(--sys-fg);
+		border-color: var(--sys-fg);
+	}
+	.chip[aria-pressed='true'] {
+		background: var(--sys-fg);
+		border-color: var(--sys-fg);
+		color: var(--sys-bg);
+	}
+	.chip.reset {
+		border-style: dashed;
+	}
+	.chip:focus-visible {
+		outline: 2px solid var(--sys-fg);
+		outline-offset: 2px;
+	}
+	.fhint {
+		color: var(--sys-dim);
+		font-size: 0.8rem;
+		max-width: 70ch;
+		margin: 0.7em 0 0;
+	}
+	.filtered-out {
+		display: none;
 	}
 
 	.finding {
@@ -521,6 +872,27 @@ const pageDesc = `A small, self-run coding benchmark: ${models.length} models on
 	svg .dotlabel {
 		fill: var(--sys-text);
 		font: 12px var(--font-mono);
+	}
+	svg .dotlabel.num {
+		fill: var(--sys-fg);
+		font-weight: 700;
+	}
+
+	.legend {
+		list-style: none;
+		padding: 0;
+		margin: -1.5em 0 2.5em;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(19em, 1fr));
+		gap: 0.1em 1.5em;
+		font-size: 0.82rem;
+		color: var(--sys-text);
+	}
+	.legend .lnum {
+		display: inline-block;
+		min-width: 1.6em;
+		color: var(--sys-fg);
+		font-weight: 700;
 	}
 
 	.tablewrap {
