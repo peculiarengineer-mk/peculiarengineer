@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs>
+    <radialGradient id="glow" cx="30%" cy="35%" r="80%">
+      <stop offset="0%" stop-color="#161208"/>
+      <stop offset="100%" stop-color="#0b0906"/>
+    </radialGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#1e1810" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1360" height="680" fill="url(#glow)"/>
+  <rect width="1360" height="680" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- big ghost lane markers, bottom-right -->
+  <g opacity="0.55" stroke="#3a2d13" stroke-width="8" fill="none" stroke-linecap="round">
+    <path d="M1170 606 H1252"/>
+    <path d="M1170 652 H1252" stroke-dasharray="22 16"/>
+    <path d="M1246 588 L1272 606 L1246 624"/>
+    <path d="M1246 634 L1272 652 L1246 670"/>
+  </g>
+
+  <!-- badge top-right -->
+  <g>
+    <rect x="1006" y="48" width="306" height="46" rx="8" fill="none" stroke="#8a7442" stroke-width="1.5"/>
+    <text x="1032" y="77" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" letter-spacing="2" fill="#e5a83c">&#9670; CLAUDE CODE &#183; KIMI</text>
+  </g>
+
+  <!-- terminal window -->
+  <g>
+    <rect x="72" y="120" width="672" height="462" rx="11" fill="#100c06" stroke="#8a7442" stroke-width="1.5"/>
+    <line x1="72" y1="178" x2="744" y2="178" stroke="#1e1810" stroke-width="1.5"/>
+    <circle cx="104" cy="149" r="7" fill="#8a7442"/>
+    <circle cx="128" cy="149" r="7" fill="#8a7442"/>
+    <circle cx="152" cy="149" r="7" fill="#8a7442"/>
+    <text x="200" y="156" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#8a7442">two tabs &#183; two subscriptions</text>
+
+    <text x="104" y="222" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="16" fill="#e5a83c"><tspan fill="#f2bc5c">$</tspan> claude-kimi</text>
+    <text x="104" y="248" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#4fbf87"><tspan fill="#4fbf87">&#10003;</tspan> api.kimi.com/coding/ <tspan fill="#8a7442">&#183;</tspan> Kimi K3</text>
+
+    <text x="104" y="316" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="16" fill="#e5a83c"><tspan fill="#f2bc5c">$</tspan> claude</text>
+    <text x="104" y="342" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#4fbf87"><tspan fill="#4fbf87">&#10003;</tspan> api.anthropic.com <tspan fill="#8a7442">&#183;</tspan> Opus 5<tspan fill="#e5a83c">&#9608;</tspan></text>
+
+    <text x="104" y="410" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#8a7442">--settings, not a shell export</text>
+
+    <text x="104" y="486" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" fill="#8a7442">nothing in the first lane changes.</text>
+    <text x="104" y="514" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" fill="#8a7442">that&#8217;s the whole point.</text>
+  </g>
+
+  <!-- right column: the lanes, then the lie -->
+  <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace">
+    <text x="852" y="196" font-size="20" letter-spacing="2" fill="#8a7442">THE TWO LANES</text>
+
+    <rect x="852" y="216" width="456" height="80" rx="8" fill="none" stroke="#8a7442" stroke-width="2" stroke-dasharray="7 5"/>
+    <text x="876" y="250" font-size="18" fill="#8a7442">claude <tspan fill="#3a2d13">&#8594;</tspan> api.anthropic.com</text>
+    <text x="876" y="278" font-size="17" fill="#8a7442">billed to your Claude plan</text>
+
+    <rect x="852" y="314" width="456" height="80" rx="8" fill="none" stroke="#e5a83c" stroke-width="2"/>
+    <text x="876" y="348" font-size="18" fill="#f2bc5c">claude-kimi <tspan fill="#e5a83c">&#8594;</tspan> api.kimi.com/coding/</text>
+    <text x="876" y="376" font-size="17" fill="#f2bc5c">billed to your Kimi Code plan</text>
+
+    <text x="852" y="444" font-size="20" letter-spacing="2" fill="#8a7442">THE 401 THAT LIES</text>
+
+    <rect x="852" y="462" width="456" height="80" rx="8" fill="none" stroke="#f2837a" stroke-width="2"/>
+    <text x="876" y="496" font-size="17" fill="#f2837a">k3[1m] <tspan fill="#8a7442">&#8594;</tspan> 401 authentication_error</text>
+    <text x="876" y="524" font-size="16" fill="#8a7442">&#8230; but the body says model id</text>
+
+    <text x="852" y="568" font-size="17" fill="#8a7442">&#8594; read the body, not the status code</text>
+  </g>
+</svg>
