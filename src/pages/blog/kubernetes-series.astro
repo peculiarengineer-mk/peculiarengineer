@@ -27,10 +27,16 @@ const published = [
 		blurb:
 			'Put your manifests in Git and let Argo CD apply them. Change the cluster by hand and watch it change back, deploy by pushing a commit, roll back with git revert. Plus the six gotchas I hit doing it for real.',
 	},
+	{
+		n: 4,
+		href: '/blog/kubernetes-app-of-apps-argocd/',
+		title: 'App of apps: who deploys the deployer',
+		blurb:
+			'Move the Application objects themselves into Git so one root app deploys the rest. The adoption that does not bounce your Pods, the two ways a wrong path refuses to destroy anything, and the finalizer that wipes the cluster two levels deep in one command.',
+	},
 ];
 
 const upcoming = [
-	{ name: 'App of apps', blurb: 'Put the thing that deploys everything under GitOps too.' },
 	{ name: 'Labels and Namespaces', blurb: 'Organize and isolate groups of objects.' },
 	{ name: 'Volumes', blurb: 'Keep data alive when Pods disappear.' },
 	{
