@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs>
+    <radialGradient id="glow" cx="28%" cy="32%" r="82%">
+      <stop offset="0%" stop-color="#160a0d"/>
+      <stop offset="100%" stop-color="#090607"/>
+    </radialGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#1f1013" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1360" height="680" fill="url(#glow)"/>
+  <rect width="1360" height="680" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- ghost server stack, bottom right -->
+  <g opacity="0.5" stroke="#3d1620" stroke-width="7" fill="none" stroke-linecap="round">
+    <rect x="1176" y="612" width="128" height="30" rx="6"/>
+    <rect x="1176" y="654" width="128" height="30" rx="6"/>
+    <circle cx="1200" cy="627" r="4" fill="#3d1620" stroke="none"/>
+    <circle cx="1200" cy="669" r="4" fill="#3d1620" stroke="none"/>
+  </g>
+
+  <!-- badge top right -->
+  <g>
+    <rect x="1002" y="48" width="310" height="46" rx="8" fill="none" stroke="#8f6169" stroke-width="1.5"/>
+    <text x="1026" y="77" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" letter-spacing="2" fill="#e2495f">&#9670; HETZNER &#183; OPENTOFU</text>
+  </g>
+
+  <!-- terminal window -->
+  <g>
+    <rect x="72" y="120" width="672" height="462" rx="11" fill="#0f0709" stroke="#8f6169" stroke-width="1.5"/>
+    <line x1="72" y1="178" x2="744" y2="178" stroke="#1f1013" stroke-width="1.5"/>
+    <circle cx="104" cy="149" r="7" fill="#8f6169"/>
+    <circle cx="128" cy="149" r="7" fill="#8f6169"/>
+    <circle cx="152" cy="149" r="7" fill="#8f6169"/>
+    <text x="200" y="156" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#8f6169">born, used, destroyed</text>
+
+    <text x="104" y="222" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="16" fill="#e2495f"><tspan fill="#f4788a">$</tspan> lab up --image ubuntu-26.04 --ttl 1</text>
+    <text x="104" y="248" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#8f6169">Waiting for SSH on 128.140.11.62:22 ...</text>
+    <text x="104" y="274" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#4fbf87"><tspan fill="#4fbf87">&#10003;</tspan> Lab ready <tspan fill="#8f6169">&#183; 62s</tspan></text>
+
+    <text x="104" y="342" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="16" fill="#e2495f"><tspan fill="#f4788a">$</tspan> lab ssh -c &#39;lsb_release -d&#39;</text>
+    <text x="104" y="368" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#4fbf87">Ubuntu 26.04 LTS <tspan fill="#8f6169">(Resolute Raccoon)</tspan></text>
+
+    <text x="104" y="436" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="16" fill="#e2495f"><tspan fill="#f4788a">$</tspan> lab down</text>
+    <text x="104" y="462" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#8f6169">Destroy complete. 2 destroyed.<tspan fill="#e2495f">&#9608;</tspan></text>
+
+    <text x="104" y="530" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" fill="#8f6169">a real kernel. real systemd.</text>
+    <text x="104" y="556" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" fill="#8f6169">gone before you forget it.</text>
+  </g>
+
+  <!-- right column -->
+  <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace">
+    <text x="852" y="196" font-size="20" letter-spacing="2" fill="#8f6169">STATE, ONE PER LAB</text>
+
+    <rect x="852" y="216" width="456" height="72" rx="8" fill="none" stroke="#8f6169" stroke-width="2" stroke-dasharray="7 5"/>
+    <text x="876" y="248" font-size="16" fill="#8f6169">s3://bucket/labs/<tspan fill="#f4788a">&lt;id&gt;</tspan>/state.tfstate</text>
+    <text x="876" y="274" font-size="16" fill="#8f6169">separate keys, separate locks</text>
+
+    <text x="852" y="336" font-size="20" letter-spacing="2" fill="#8f6169">THE FOOTGUN</text>
+
+    <rect x="852" y="356" width="456" height="108" rx="8" fill="none" stroke="#f2837a" stroke-width="2"/>
+    <text x="876" y="388" font-size="16" fill="#f2837a">_public_ip() timed out</text>
+    <text x="876" y="414" font-size="16" fill="#f2837a">&#8594; ssh cidr: 0.0.0.0/0</text>
+    <text x="876" y="442" font-size="15" fill="#8f6169">root, open, no warning printed</text>
+
+    <text x="852" y="506" font-size="20" letter-spacing="2" fill="#8f6169">THE BACKSTOP</text>
+
+    <rect x="852" y="526" width="456" height="72" rx="8" fill="none" stroke="#e2495f" stroke-width="2"/>
+    <text x="876" y="558" font-size="16" fill="#f4788a">label_selector=lab%3Dtrue</text>
+    <text x="876" y="584" font-size="15" fill="#f4788a">what am I still being billed for?</text>
+  </g>
+</svg>
