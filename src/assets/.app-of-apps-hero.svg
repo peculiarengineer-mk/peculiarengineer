@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs>
+    <radialGradient id="glow" cx="28%" cy="32%" r="82%">
+      <stop offset="0%" stop-color="#0b1220"/>
+      <stop offset="100%" stop-color="#05070d"/>
+    </radialGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#141d2e" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1360" height="680" fill="url(#glow)"/>
+  <rect width="1360" height="680" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- ghost tree, bottom right -->
+  <g opacity="0.5" stroke="#1e2b45" stroke-width="6" fill="none" stroke-linecap="round">
+    <circle cx="1180" cy="596" r="15"/>
+    <path d="M1180 611 V636 M1180 636 H1130 M1180 636 H1240 M1130 636 V652 M1240 636 V652"/>
+    <circle cx="1130" cy="664" r="12"/>
+    <circle cx="1240" cy="664" r="12"/>
+  </g>
+
+  <!-- badge -->
+  <g>
+    <rect x="1000" y="48" width="312" height="46" rx="8" fill="none" stroke="#7387a6" stroke-width="1.5"/>
+    <text x="1024" y="77" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" letter-spacing="2" fill="#5aa9e6">&#9670; PART FOUR &#183; ARGO CD</text>
+  </g>
+
+  <!-- terminal -->
+  <g>
+    <rect x="72" y="120" width="672" height="462" rx="11" fill="#080c15" stroke="#7387a6" stroke-width="1.5"/>
+    <line x1="72" y1="178" x2="744" y2="178" stroke="#141d2e" stroke-width="1.5"/>
+    <circle cx="104" cy="149" r="7" fill="#7387a6"/>
+    <circle cx="128" cy="149" r="7" fill="#7387a6"/>
+    <circle cx="152" cy="149" r="7" fill="#7387a6"/>
+    <text x="200" y="156" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#7387a6">who deploys the deployer</text>
+
+    <text x="104" y="218" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#5aa9e6"><tspan fill="#8fd0f5">$</tspan> git push</text>
+    <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14">
+      <text x="104" y="250" fill="#7387a6">NAME</text><text x="300" y="250" fill="#7387a6">SYNC</text><text x="470" y="250" fill="#7387a6">HEALTH</text>
+      <text x="104" y="276" fill="#8fd0f5">hello</text><text x="300" y="276" fill="#4fbf87">Synced</text><text x="470" y="276" fill="#4fbf87">Healthy</text>
+      <text x="104" y="300" fill="#8fd0f5">root</text><text x="300" y="300" fill="#4fbf87">Synced</text><text x="470" y="300" fill="#4fbf87">Healthy</text>
+      <text x="104" y="324" fill="#8fd0f5">whoami</text><text x="300" y="324" fill="#4fbf87">Synced</text><text x="470" y="324" fill="#4fbf87">Healthy</text>
+    </g>
+    <text x="104" y="356" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14" fill="#7387a6">no kubectl was run.</text>
+
+    <text x="104" y="414" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#5aa9e6"><tspan fill="#8fd0f5">$</tspan> kubectl delete application root</text>
+    <text x="104" y="440" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14" fill="#f2837a">deployments.apps &#34;hello&#34; not found</text>
+    <text x="104" y="464" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14" fill="#f2837a">No resources found.<tspan fill="#5aa9e6">&#9608;</tspan></text>
+
+    <text x="104" y="518" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#7387a6">one command.</text>
+    <text x="104" y="546" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="17" fill="#7387a6">two levels of cascade.</text>
+  </g>
+
+  <!-- right column -->
+  <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace">
+    <text x="852" y="196" font-size="20" letter-spacing="2" fill="#7387a6">ADOPTION IS FREE</text>
+    <rect x="852" y="216" width="456" height="80" rx="8" fill="none" stroke="#7387a6" stroke-width="2" stroke-dasharray="7 5"/>
+    <text x="876" y="248" font-size="14" fill="#4fbf87">pod uid unchanged</text>
+    <text x="876" y="274" font-size="14" fill="#7387a6">patched in place, nothing bounced</text>
+
+    <text x="852" y="340" font-size="20" letter-spacing="2" fill="#7387a6">THE GUARD NOBODY MENTIONS</text>
+    <rect x="852" y="360" width="456" height="86" rx="8" fill="none" stroke="#5aa9e6" stroke-width="2"/>
+    <text x="876" y="392" font-size="14" fill="#8fd0f5">SyncError: Skipping sync attempt:</text>
+    <text x="876" y="416" font-size="14" fill="#8fd0f5">auto-sync will wipe out all resources</text>
+
+    <text x="852" y="490" font-size="20" letter-spacing="2" fill="#7387a6">AND THE DEADLOCK</text>
+    <rect x="852" y="510" width="456" height="86" rx="8" fill="none" stroke="#f2837a" stroke-width="2"/>
+    <text x="876" y="542" font-size="14" fill="#f2837a">root stuck Terminating</text>
+    <text x="876" y="566" font-size="14" fill="#7387a6">its finalizer waits for itself</text>
+  </g>
+</svg>
