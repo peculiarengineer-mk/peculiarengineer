@@ -72,7 +72,7 @@ const jsonLd =
 
 <html lang="en">
 	<head>
-		<BaseHead title={title} description={description} image={heroImage} ogType="article" />
+		<BaseHead title={title} description={description} image={heroImage} ogType={kind === 'page' ? 'website' : 'article'} />
 		<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 		<style>
 			main {
