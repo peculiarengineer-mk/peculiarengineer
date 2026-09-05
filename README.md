@@ -8,7 +8,7 @@ Live site: <https://peculiarengineer.com>
 
 ## Stack
 
-- **[Astro 6](https://astro.build)** — static site generation
+- **[Astro 7](https://astro.build)** — static site generation
 - **Content Collections** with Zod-validated frontmatter (`src/content.config.ts`)
 - **MDX**, **RSS**, and **sitemap** support
 - Local **Atkinson** font hosting with `display: swap`
@@ -19,13 +19,16 @@ Live site: <https://peculiarengineer.com>
 ```text
 src/
 ├── assets/            # Images and self-hosted fonts
-├── components/        # BaseHead, Header, Footer, HeaderLink, FormattedDate
+├── components/        # BaseHead, Header, Footer, CommandSearch, LoveGame, Newsletter
 ├── content/blog/      # Blog posts (Markdown / MDX)
+├── content/experiments/ # Side projects listed on /experiments
+├── data/              # Benchmark results rendered on /benchmark
 ├── layouts/           # BlogPost layout (used by posts and the About page)
-├── pages/             # Routes: /, /blog, /blog/[slug], /about, /rss.xml
-├── styles/            # global.css (based on Bear Blog)
-├── consts.ts          # SITE_TITLE / SITE_DESCRIPTION
-└── content.config.ts  # Blog collection schema
+├── pages/             # Routes: /, /blog, /blog/[slug], /series, /experiments,
+│                      #         /benchmark, /about, /rss.xml, /search.json
+├── styles/            # global.css and listing.css (terminal theme, Bear Blog roots)
+├── consts.ts          # SITE_TITLE / SITE_DESCRIPTION, newsletter switches
+└── content.config.ts  # Blog and experiments collection schemas
 ```
 
 ## Writing a post
@@ -36,9 +39,10 @@ Add a Markdown or MDX file to `src/content/blog/`. Required frontmatter:
 ---
 title: 'Your title'
 description: 'One-line summary for SEO and the blog index.'
-pubDate: 2026-06-07
-# updatedDate: 2026-06-10   # optional
-# heroImage: ../../assets/blog-placeholder-1.jpg   # optional
+pubDate: 'Jun 07 2026'
+# updatedDate: 'Jun 10 2026'   # optional
+# heroImage: '../../assets/blog-placeholder-1.jpg'   # optional
+# tags: ['Ubuntu', 'Linux']   # optional, shown on the post and as RSS categories
 ---
 ```
 
@@ -54,6 +58,7 @@ Run from the project root:
 | `npm run dev`     | Start the dev server at `localhost:4321`     |
 | `npm run build`   | Build the production site to `./dist/`       |
 | `npm run preview` | Preview the production build locally         |
+| `npx astro check` | Type-check the Astro components              |
 
 Requires Node `>=22.12.0` (see `.nvmrc`).
 

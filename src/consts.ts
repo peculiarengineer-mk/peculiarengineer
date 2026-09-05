@@ -16,7 +16,7 @@ export const BUTTONDOWN_USERNAME = 'peculiarengineer';
 // for a newsletter to be worth running. Flip to true to bring them all back.
 export const NEWSLETTER_ENABLED = false;
 
-export const NEWSLETTER_READY = BUTTONDOWN_USERNAME !== 'CHANGEME';
+export const NEWSLETTER_READY = (BUTTONDOWN_USERNAME as string) !== 'CHANGEME';
 export const NEWSLETTER_ACTION = `https://buttondown.com/api/emails/embed-subscribe/${BUTTONDOWN_USERNAME}`;
 
 export function sortByPubDate<T extends { data: { pubDate: Date } }>(a: T, b: T): number {

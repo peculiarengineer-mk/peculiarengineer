@@ -96,22 +96,30 @@
 </style>
 
 <script>
-	const form = document.getElementById('cmd-form');
-	const input = document.getElementById('cmd-input');
-	const output = document.getElementById('cmd-output');
+	interface Entry {
+		title: string;
+		description: string;
+		slug: string;
+		date: string;
+		body: string;
+	}
+
+	const form = document.getElementById('cmd-form') as HTMLFormElement;
+	const input = document.getElementById('cmd-input') as HTMLInputElement;
+	const output = document.getElementById('cmd-output') as HTMLElement;
 
 	const HINT = 'Type a query to search the archive. Commands: help · ls · clear';
 
-	let index = [];
-	let results = [];
+	let index: Entry[] = [];
+	let results: Entry[] = [];
 	let active = -1;
-	let loaded = null;
+	let loaded: Promise<void> | null = null;
 
 	function load() {
 		if (!loaded) {
 			loaded = fetch('/search.json')
 				.then((r) => r.json())
-				.then((d) => {
+				.then((d: Entry[]) => {
 					index = d;
 				})
 				.catch(() => {
@@ -121,7 +129,7 @@
 		return loaded;
 	}
 
-	function fmtDate(iso) {
+	function fmtDate(iso: string) {
 		return new Date(iso).toLocaleDateString('en-us', {
 			year: 'numeric',
 			month: 'short',
@@ -129,7 +137,7 @@
 		});
 	}
 
-	function render(items, msg) {
+	function render(items: Entry[], msg?: string) {
 		output.innerHTML = '';
 		if (msg) {
 			const p = document.createElement('p');
@@ -157,7 +165,7 @@
 		}
 	}
 
-	function search(q) {
+	function search(q: string) {
 		const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
 		return index.filter((it) => {
 			const hay = `${it.title} ${it.description} ${it.body}`.toLowerCase();
