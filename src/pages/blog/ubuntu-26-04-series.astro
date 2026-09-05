@@ -97,6 +97,30 @@ const groups = [
 		],
 	},
 	{
+		name: 'Know what it is doing underneath',
+		blurb: 'The subsystems that changed on this release, tested until they made sense.',
+		posts: [
+			{
+				href: '/blog/sudo-rs-vs-gnu-sudo-ubuntu-26-04/',
+				title: 'sudo-rs, and where it differs',
+				blurb:
+					'The default sudo is the Rust rewrite now. The sudoers settings it silently drops, the flags it does not have, the stricter visudo, and the one command that puts GNU sudo back.',
+			},
+			{
+				href: '/blog/users-groups-permissions-ubuntu-26-04/',
+				title: 'Users, groups, and permissions',
+				blurb:
+					'The whole model in one place, hung on the case that sends everyone to search: a container writing files as a UID the host has never heard of. setgid, ACLs, umask, and what uutils chmod changed.',
+			},
+			{
+				href: '/blog/swap-and-zram-ubuntu-26-04/',
+				title: 'Swap and zram',
+				blurb:
+					'A cloud box ships with zero swap and no systemd-oomd. Set up zram the generator way, then watch it buy a gigabyte on compressible memory and lose to no swap at all on random data.',
+			},
+		],
+	},
+	{
 		name: 'Getting to 26.04 in the first place',
 		blurb: 'And what changes underneath when you do.',
 		posts: [
