@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs>
+    <radialGradient id="glow" cx="30%" cy="32%" r="82%">
+      <stop offset="0%" stop-color="#171310"/>
+      <stop offset="100%" stop-color="#0a0807"/>
+    </radialGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#251e18" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1360" height="680" fill="url(#glow)"/>
+  <rect width="1360" height="680" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- ghost RAM chip bottom right -->
+  <g opacity="0.5" stroke="#3a2f24" stroke-width="6" fill="none" stroke-linejoin="round">
+    <rect x="1150" y="556" width="92" height="52" rx="4"/>
+    <path d="M1166 556 v-10 M1188 556 v-10 M1210 556 v-10"/>
+  </g>
+
+  <!-- badge -->
+  <g>
+    <rect x="964" y="48" width="348" height="46" rx="8" fill="none" stroke="#9a8a76" stroke-width="1.5"/>
+    <text x="988" y="77" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" letter-spacing="2" fill="#e8a33d">&#9670; UBUNTU 26.04 &#183; ZRAM</text>
+  </g>
+
+  <!-- terminal -->
+  <g>
+    <rect x="72" y="120" width="672" height="462" rx="11" fill="#0e0b09" stroke="#9a8a76" stroke-width="1.5"/>
+    <line x1="72" y1="178" x2="744" y2="178" stroke="#251e18" stroke-width="1.5"/>
+    <circle cx="104" cy="149" r="7" fill="#9a8a76"/>
+    <circle cx="128" cy="149" r="7" fill="#9a8a76"/>
+    <circle cx="152" cy="149" r="7" fill="#9a8a76"/>
+    <text x="200" y="156" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#9a8a76">a cloud box ships with none</text>
+
+    <text x="104" y="216" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#e8a33d"><tspan fill="#f5c56b">$</tspan> free -h</text>
+    <text x="104" y="240" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14" fill="#9a8a76">Mem:   3.7Gi</text>
+    <text x="104" y="264" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14" fill="#f2837a">Swap:     0B      &#8592; nothing</text>
+
+    <text x="104" y="316" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14" fill="#9a8a76"># /etc/systemd/zram-generator.conf</text>
+    <text x="104" y="340" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14" fill="#f5c56b">[zram0]</text>
+    <text x="104" y="364" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14" fill="#e8a33d">zram-size = <tspan fill="#f5c56b">ram / 2</tspan></text>
+    <text x="104" y="388" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14" fill="#e8a33d">compression-algorithm = <tspan fill="#4fbf87">zstd</tspan></text>
+    <text x="104" y="412" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14" fill="#e8a33d">swap-priority = <tspan fill="#f5c56b">100</tspan></text>
+
+    <text x="104" y="464" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14" fill="#e8a33d"># /etc/sysctl.d/99-zram.conf</text>
+    <text x="104" y="488" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14" fill="#e8a33d">vm.swappiness = <tspan fill="#f5c56b">180</tspan>  <tspan fill="#9a8a76"># not a typo</tspan></text>
+
+    <text x="104" y="540" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="16" fill="#9a8a76">compressible pages only.<tspan fill="#e8a33d">&#9608;</tspan></text>
+  </g>
+
+  <!-- right column: bar chart, GB reached before OOM -->
+  <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace">
+    <text x="852" y="200" font-size="20" letter-spacing="2" fill="#9a8a76">GB REACHED BEFORE OOM</text>
+    <text x="852" y="230" font-size="14" fill="#9a8a76">no swap</text>
+    <rect x="876" y="236" width="400" height="40" rx="5" fill="none" stroke="#251e18" stroke-width="1.5"/>
+    <rect x="876" y="236" width="262" height="40" rx="5" fill="#9a8a76" opacity="0.85"/>
+    <text x="1126" y="263" font-size="15" text-anchor="end" fill="#0a0807" font-weight="700">3.4 GB</text>
+    <text x="852" y="296" font-size="14" fill="#9a8a76">zram · text</text>
+    <rect x="876" y="302" width="400" height="40" rx="5" fill="none" stroke="#251e18" stroke-width="1.5"/>
+    <rect x="876" y="302" width="338" height="40" rx="5" fill="#4fbf87" opacity="0.85"/>
+    <text x="1202" y="329" font-size="15" text-anchor="end" fill="#0a0807" font-weight="700">4.4 GB</text>
+    <text x="852" y="362" font-size="14" fill="#9a8a76">zram · random</text>
+    <rect x="876" y="368" width="400" height="40" rx="5" fill="none" stroke="#251e18" stroke-width="1.5"/>
+    <rect x="876" y="368" width="254" height="40" rx="5" fill="#f2837a" opacity="0.85"/>
+    <text x="1118" y="395" font-size="15" text-anchor="end" fill="#0a0807" font-weight="700">3.3 GB</text>
+    <text x="852" y="456" font-size="13" fill="#f5c56b">same 1.9 GB zram. only the data changed.</text>
+    <text x="852" y="478" font-size="13" fill="#9a8a76">random memory does worse than no swap.</text>
+  </g>
+</svg>
