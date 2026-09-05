@@ -106,6 +106,16 @@ input {
 	color: var(--sys-fg);
 	border: 1px solid var(--sys-dim);
 }
+/* Markdown tables are wrapped by src/plugins/rehype-table-wrap.mjs so a wide
+   table scrolls inside its own box instead of widening the page on phones. */
+.table-wrap {
+	max-width: 100%;
+	overflow-x: auto;
+	margin: 1em 0;
+}
+.table-wrap table {
+	margin: 0;
+}
 table {
 	width: 100%;
 	border-collapse: collapse;

@@ -3,11 +3,15 @@
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig, fontProviders } from 'astro/config';
+import rehypeTableWrap from './src/plugins/rehype-table-wrap.mjs';
 
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://peculiarengineer.com',
 	integrations: [mdx(), sitemap()],
+	markdown: {
+		rehypePlugins: [rehypeTableWrap],
+	},
 	fonts: [
 		{
 			provider: fontProviders.google(),
