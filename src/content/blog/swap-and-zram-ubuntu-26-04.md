@@ -1,7 +1,7 @@
 ---
 title: 'Swap and zram on Ubuntu 26.04: a cloud box ships with none, and zram only helps if you understand it'
 description: 'A fresh 26.04 server has zero swap and no systemd-oomd, so the kernel OOM killer is your only backstop. Set up zram the systemd-generator way, then watch it buy a gigabyte of headroom on compressible memory and lose to no swap at all on random data. Measured on a 3.7 GB box.'
-pubDate: 'Sep 6 2026'
+pubDate: 'Sep 5 2026'
 heroImage: '../../assets/zram-hero.png'
 tags: ['Ubuntu', 'Ubuntu2604', 'zram', 'Swap', 'Memory', 'Linux', 'Performance', 'SysAdmin', 'systemd']
 ---

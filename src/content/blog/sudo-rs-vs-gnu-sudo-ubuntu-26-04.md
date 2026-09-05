@@ -1,7 +1,7 @@
 ---
 title: 'sudo-rs on Ubuntu 26.04: every place it differs from the sudo you know'
 description: 'Ubuntu 26.04 makes sudo-rs, the Rust rewrite, the default sudo. Tested against GNU sudo on a real box: the sudoers settings it silently rejects, the flags it drops, the visudo that is stricter than the old one, and the one command that switches back.'
-pubDate: 'Sep 4 2026'
+pubDate: 'Sep 5 2026'
 heroImage: '../../assets/sudo-rs-hero.png'
 tags: ['Ubuntu', 'Ubuntu2604', 'sudo', 'sudo-rs', 'Linux', 'Security', 'SysAdmin', 'Rust']
 ---
