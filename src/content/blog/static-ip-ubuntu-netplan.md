@@ -6,6 +6,8 @@ heroImage: '../../assets/netplan-static-ip-hero.png'
 tags: ['Ubuntu', 'Linux', 'Netplan', 'Networking', 'StaticIP', 'Homelab', 'SysAdmin', 'SelfHosted']
 ---
 
+> On Ubuntu 26.04? There is a [26.04 version of this guide](/blog/set-static-ip-ubuntu-26-04-netplan/) verified on that release. The Netplan basics below have not changed.
+
 The moment you start treating an Ubuntu box as a server, something you SSH into, a
 thing that runs Plex or a database or just sits in the corner doing a job, you hit
 the same wall: its IP address keeps changing. DHCP handed it `192.168.1.47` today

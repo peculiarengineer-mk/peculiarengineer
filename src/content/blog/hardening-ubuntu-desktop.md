@@ -6,6 +6,8 @@ heroImage: '../../assets/ubuntu-hardening-hero.png'
 tags: ['Ubuntu', 'Linux', 'Security', 'Hardening', 'Firewall', 'Encryption', 'Backup', 'Desktop']
 ---
 
+> On Ubuntu 26.04? The [26.04 desktop hardening post](/blog/hardening-ubuntu-26-04-desktop/) covers what changed in that release. Everything below still applies.
+
 Most Linux hardening guides are written for people who run datacenters. They assume you have a threat model, a change control process, and a tolerance for editing config files you have never heard of. If you are a regular person who put Ubuntu on a laptop because you got tired of something else, that advice is overkill, and worse, it leaves you with a machine that is technically hardened and practically unusable.
 
 This is the other guide. What I want is a normal Ubuntu desktop that is meaningfully harder to compromise, set up in an afternoon, that I never have to think about again. No enterprise jargon, no twelve layer defense in depth. Just the handful of things that actually do something for one person and one computer.

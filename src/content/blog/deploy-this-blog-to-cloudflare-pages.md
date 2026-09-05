@@ -3,6 +3,7 @@ title: 'Deploy an Astro blog to Cloudflare Pages'
 description: 'A start-to-finish runbook for getting this blog live on Cloudflare Pages, with a free *.pages.dev URL and optional custom domain.'
 pubDate: 'Jun 05 2026'
 heroImage: '../../assets/blog-placeholder-1.jpg'
+tags: ['Astro', 'Cloudflare', 'CloudflarePages', 'StaticSite', 'Deployment', 'Blog']
 ---
 
 This is the runbook I used to put this very blog online. It takes about 10

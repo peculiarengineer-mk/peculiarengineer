@@ -3,6 +3,7 @@ title: 'Enable SSH on an Ubuntu desktop'
 description: 'Install, start, and firewall the OpenSSH server so you can remote into an Ubuntu desktop — plus the hardening I apply before exposing it beyond a trusted LAN.'
 pubDate: 'Jun 09 2026'
 heroImage: '../../assets/ubuntu-ssh-hero.jpg'
+tags: ['Ubuntu', 'Linux', 'SSH', 'OpenSSH', 'Desktop', 'UFW', 'Security']
 ---
 
 Ubuntu desktop ships with the SSH *client* but not the *server*, so a fresh
