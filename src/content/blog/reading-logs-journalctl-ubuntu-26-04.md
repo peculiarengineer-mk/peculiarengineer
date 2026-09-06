@@ -8,9 +8,9 @@ tags: ['Ubuntu', 'Ubuntu2604', 'systemd', 'journalctl', 'Logging', 'Linux', 'Sys
 
 I have now told you to "check the journal" in at least eight posts on this site. The [timers post](/blog/systemd-units-timers-ubuntu-26-04/) does it a dozen times. The [swap post](/blog/swap-and-zram-ubuntu-26-04/) hands you `journalctl -k` and moves on. Not once have I explained what the journal is or how to ask it a question. This is that post.
 
-It is written for someone who knows logs used to be text files in `/var/log` and has been typing `journalctl -xe` because an error message told them to, without knowing what the `x` or the `e` does. I put a fresh Ubuntu 26.04 server up, filled it with real events, broke a service on purpose, flooded it, filled the disk, rebooted it, and wrote down what every command actually printed. Some of what I found contradicts the folklore, including the folklore in my own head.
+It is written for someone who knows logs used to be text files in `/var/log` and has been typing `journalctl -xe` because an error message told them to, without knowing what the `x` or the `e` does. I put a fresh Ubuntu 26.04 server up, filled it with real events, broke a service on purpose, flooded it, grew the journal to a third of a gigabyte, rebooted it, and wrote down what every command actually printed. Some of what I found contradicts the folklore, including the folklore in my own head.
 
-> **TL;DR.** On 26.04 the journal is persistent by default under `/var/log/journal`, and the text files in `/var/log` are copies made by rsyslog. The filters you use daily: `-u unit`, `-t tag`, `-p err`, `--since "1 hour ago"`, `-b` for this boot and `-b -1` for the last one. `-f` follows, `-o short-iso` gives real timestamps, `-o verbose` shows every field a line carries so you can filter on any of them. On the systemd 259 that 26.04 ships, `journalctl -I -u unit` shows only the current run of a service and `--invocation=-1` the run before it. A normal user sees nothing until you add them to `systemd-journal`. A service that logs faster than 10000 lines in 30 seconds gets lines dropped with no notice you will find. `SystemMaxUse=` plus a journald restart trims the disk immediately, and `--vacuum-*` deletes archived files, which is where your old boots live, so vacuuming aggressively erases `-b -1`.
+> **TL;DR.** On 26.04 the journal is persistent by default under `/var/log/journal`, and the text files in `/var/log` are copies made by rsyslog. The filters you use daily: `-u unit`, `-t tag`, `-p err`, `--since "1 hour ago"`, `-b` for this boot and `-b -1` for the last one. `-f` follows, `-o short-iso` gives real timestamps, `-o verbose` shows every field a line carries so you can filter on any of them. On the systemd 259 that 26.04 ships, `journalctl -I -u unit` shows only the current run of a service and `--invocation=-1` the run before it. A normal user sees nothing until you add them to `systemd-journal` or `adm`. A service that floods the journal gets lines dropped with no notice you will find, 22500 of 50000 survived in my test. `SystemMaxUse=` plus a journald restart trims the disk immediately, and `--vacuum-*` deletes archived files, which is where your old boots live, so vacuuming aggressively erases `-b -1`.
 
 ## Contents
 
@@ -36,11 +36,12 @@ systemd-journald collects everything: kernel messages, service output, anything 
 ```bash
 $ ls /var/log/journal/
 67cef2194b1e405698519fb09609500f
+9ba8daa0e9094672976673925c5af5a0
 $ journalctl --disk-usage
 Archived and active journals take up 8M in the file system.
 ```
 
-The directory is named after the machine ID, and its presence is what makes the journal persistent. `Storage=` in `/etc/systemd/journald.conf` is left at `auto`, which means "persistent if `/var/log/journal` exists, otherwise in memory under `/run` and gone at reboot". Ubuntu ships the directory, so you get persistence without doing anything. The image I tested on also had a second machine ID directory left over from when the image was built, which is harmless and a small reminder that the directory name is the machine, not the hostname.
+The directories are named after machine IDs, the first is this box, and their presence is what makes the journal persistent. `Storage=` in `/etc/systemd/journald.conf` is left at `auto`, which means "persistent if `/var/log/journal` exists, otherwise in memory under `/run` and gone at reboot". Ubuntu ships the directory, so you get persistence without doing anything. The image I tested on also had a second machine ID directory left over from when the image was built, which is harmless and a small reminder that the directory name is the machine, not the hostname.
 
 Then there are the text files you remember, and on this box they were still there:
 
@@ -71,7 +72,7 @@ Globs work, `-u 'systemd-*'`, and repeating `-u` is an OR: `-u ssh -u cron` show
 
 **By time.** `--since` and `--until` take a lot of shapes, and they all worked: `--since "10 min ago"`, `--since today`, `--since -5m --until -1m`, and full timestamps like `--since "2026-09-06 00:00" --until "2026-09-06 00:30"`. The short forms `-S` and `-U` are the same thing.
 
-**By tag.** `-t sudo` matches the syslog identifier, the name in square brackets in the classic format. It is how you find a script's messages, which comes up later.
+**By tag.** `-t sudo` matches the syslog identifier, the name just before the square brackets in the classic format, `sudo[1640]`. The number inside the brackets is the PID. The tag is how you find a script's messages, which comes up later.
 
 Two more that earn their place: `-k` is kernel messages only and is `dmesg` with persistence, on my box both printed exactly 861 lines. And `-f` follows, like `tail -f`. Put them together and `journalctl -fu ssh` is the thing you leave running in a second terminal while you poke at a service.
 
@@ -100,9 +101,9 @@ Sun 2026-09-06 00:30:00.158627 UTC [s=8ec485e0...;i=5d5;b=e7b6820f...]
     _PID=1462
 ```
 
-I trimmed it, the real entry has about two dozen fields. The ones with a leading underscore were stamped on by journald itself from the kernel's view of the sending process, so the program does not get to choose them: `_PID`, `_UID`, `_COMM`, `_EXE`, `_SYSTEMD_UNIT`. `PRIORITY` and `MESSAGE` came from the program. `_TRANSPORT` says how the line arrived, and on this box the values in use were `syslog`, `journal`, `stdout`, `driver`, and `kernel`.
+I trimmed it. The real entry has about two dozen fields. The ones with a leading underscore were stamped on by journald itself from the kernel's view of the sending process, so the program does not get to choose them: `_PID`, `_UID`, `_COMM`, `_EXE`, `_SYSTEMD_UNIT`. `PRIORITY` and `MESSAGE` came from the program. `_TRANSPORT` says how the line arrived, and on this box the values in use were `syslog`, `journal`, `stdout`, `driver`, and `kernel`.
 
-Every one of those fields is a filter. `-u ssh` is really shorthand for `_SYSTEMD_UNIT=ssh.service`, and you can write any field directly:
+Every one of those fields is a filter. `-u ssh` is close to `_SYSTEMD_UNIT=ssh.service` plus systemd's own messages about that unit, and you can write any field directly:
 
 ```bash
 journalctl _COMM=sudo                  # by program name
@@ -112,7 +113,7 @@ journalctl _PID=1314                   # one process
 journalctl /usr/lib/cargo/bin/sudo     # a path means _EXE
 ```
 
-The AND case is the useful one. `_COMM=sudo _UID=1000` gave me only alice's sudo calls; swapping in `_UID=0` returned nothing, because root on this box never called sudo. That is a question the text files cannot answer without a regex and a prayer.
+The AND case is the useful one. `_COMM=sudo _UID=1000` gave me only alice's sudo calls; swapping in `_UID=0` returned nothing, no sudo calls by root were on record. That is a question the text files cannot answer without a regex and a prayer.
 
 `journalctl -N` lists every field name in the journal, and `journalctl -F _TRANSPORT` lists the values one field has taken. When you are not sure what to filter on, `-o verbose -n 1` on a line you care about shows you exactly what is there.
 
@@ -129,18 +130,18 @@ The others, each verified on the same line:
 | Format | What you get |
 | --- | --- |
 | `short-precise` | Classic, with microseconds |
-| `short-monotonic` | `[64.009564]` seconds since boot, matches `dmesg` |
+| `short-monotonic` | `[64.009564]` seconds since boot, the `dmesg` style |
 | `short-unix` | `1788654600.158627` epoch seconds |
 | `cat` | The message only, no prefix at all |
 | `verbose` | Every field, one per line |
 | `json` | One JSON object per entry, every field |
 | `json-pretty` | The same, indented |
 
-`-o cat` is the one for scripts and for reading a service's output as the program wrote it. `-o json` piped into `jq` is how you do anything analytical. `--output-fields=MESSAGE,PRIORITY,_PID` trims the JSON to what you asked for, though journald still includes its own cursor and timestamp fields. `--utc` forces UTC in the timestamps, which on a box already set to UTC changed nothing, and on your laptop will.
+`-o cat` is the one for scripts and for reading a service's output as the program wrote it. `-o json` piped into `jq` is how you do anything analytical. `--output-fields=MESSAGE,PRIORITY,_PID` trims the JSON to what you asked for, though journald still includes its own cursor, timestamp, boot ID, and sequence number fields. `--utc` forces UTC in the timestamps, which on a box already set to UTC changed nothing, and on your laptop will.
 
 ## Only the current run of a service
 
-Here is the problem `-u` does not solve. You restart a service, it misbehaves, and `journalctl -u thing` shows you every line from every run since the machine booted. You want just this run. The journal has known the answer for years, it is that `_SYSTEMD_INVOCATION_ID` field from the verbose dump, a new ID every time a unit starts:
+Here is the problem `-u` does not solve. You restart a service, it misbehaves, and `journalctl -u thing -b` shows you every line from every run since the machine booted, and without the `-b`, every run from every boot. You want just this run. The journal has known the answer for years. It is that `_SYSTEMD_INVOCATION_ID` field from the verbose dump, a new ID every time a unit starts:
 
 ```bash
 $ systemctl show -p InvocationID --value ssh
@@ -148,7 +149,7 @@ df72d24f6ac04a18a0cf6ccc8d6d5ef4
 $ journalctl _SYSTEMD_INVOCATION_ID=df72d24f6ac04a18a0cf6ccc8d6d5ef4
 ```
 
-After I restarted ssh, `-u ssh -b` had 16 lines and the current invocation had 2. That is the difference between reading a log and reading the right log.
+After I restarted ssh, `-u ssh -b` had 16 lines and the `_SYSTEMD_INVOCATION_ID=` match for the current run had 2. That is the difference between reading a log and reading the right log.
 
 systemd 259, which is what 26.04 ships, gives this a front door. Three flags, all present and all working on the box:
 
@@ -158,7 +159,7 @@ journalctl -I -u ssh                    # the latest run only
 journalctl --invocation=-1 -u ssh       # the run before that
 ```
 
-`--list-invocations` prints a table exactly like `--list-boots`, index `0` for the current run and negative numbers back through history. `-I` is going to replace `-u` in most of my debugging, because "what did it say since I restarted it" is nearly always the question. If your release's `journalctl --help` does not list these flags, the `_SYSTEMD_INVOCATION_ID=` form above works on anything with a journal.
+`--list-invocations` prints a table exactly like `--list-boots`, index `0` for the current run and negative numbers back through history. `-I` sits alongside `-u`, and `-I -u ssh` showed three lines where the raw field match showed two, because `-u` also picks up systemd's own `Starting` message about the unit. Adding `-I` is going to be my default for most debugging, because "what did it say since I restarted it" is nearly always the question. If your release's `journalctl --help` does not list these flags, the `_SYSTEMD_INVOCATION_ID=` form above works on anything with a journal.
 
 ## Watching a service restart
 
@@ -251,7 +252,7 @@ oops
 say-hi.service: Deactivated successfully.
 ```
 
-That is why "just print to stdout" is the right logging advice for anything you run as a unit. One limit to know: a single stdout line is capped at `LineMax=48K`. I sent a 100000 character line and the journal stored 49152 characters of it. Long JSON blobs on one line get cut.
+That is why "just print to stdout" is the right logging advice for anything you run as a unit. One limit to know: a single stdout line is capped at `LineMax=48K`. I sent a 100000 character line and the entry the journal stored held 49152 characters. Keep long JSON blobs off a single line.
 
 ## Reading the journal as a normal user
 
@@ -274,14 +275,14 @@ Then a fresh login, because group changes do not reach a running session, and th
 
 ## The lines that get thrown away
 
-Here is one that surprised me. journald rate limits each service: the defaults, `RateLimitIntervalSec=30s` and `RateLimitBurst=10000`, mean a service that logs more than ten thousand lines in thirty seconds starts losing them. I made a unit print 50000 numbered lines as fast as it could:
+Here is one that surprised me. journald rate limits each service. The defaults are `RateLimitIntervalSec=30s` and `RateLimitBurst=10000`, and a service that floods past them starts losing lines. I made a unit print 50000 numbered lines as fast as it could:
 
 ```bash
 $ journalctl -u flood2 -o cat | grep -cE '^[0-9]+$'
 22500
 ```
 
-27500 lines gone. More than the nominal 10000 survived, so the limit is not a hard count, but a little over half the output was dropped. And I could not find a "suppressed N messages" notice anywhere in the journal afterwards, so do not count on being told. If a chatty service has gaps in its log that make no sense, this is the first thing to suspect.
+27500 lines gone. More than the nominal 10000 survived, so the effective limit is higher than the configured number and I did not pin down why, but a little over half the output was dropped. And I could not find a "suppressed N messages" notice anywhere in the journal afterwards, so do not count on being told. If a chatty service has gaps in its log that make no sense, this is the first thing to suspect.
 
 The fix is per unit, and it is a normal unit setting:
 
@@ -291,11 +292,11 @@ LogRateLimitBurst=100000
 LogRateLimitIntervalSec=30s
 ```
 
-With that on the unit the same 50000 line burst kept all 50000. Raise it for the one service that genuinely logs that much, leave the default for everything else.
+With that on the unit the same 50000 line burst kept all 50000. Raise it for the one service that genuinely logs that much. Leave the default for everything else.
 
 ## Disk: how big it gets and how to shrink it
 
-A fresh box used 8M. To see what the limits actually were I fed it nine thousand 40 KB messages, about 350 MB of incompressible text, and watched:
+A fresh box used 8M. To see what the limits actually were I fed it nine thousand 40 KB messages of base64 random bytes, about 350 MB, and watched:
 
 ```
 after 1500 messages  (58 MB sent):  81.2M
@@ -309,7 +310,7 @@ It grew roughly in step with what I sent and never hit a ceiling, because the ce
 System Journal (/var/log/journal/67cef...) is 41.2M, max 4G, 3.9G free.
 ```
 
-On a 75 GB disk the default ceiling is 4 GB, so a normal server never gets near it. Now the part where the folklore is wrong. Everyone says that lowering `SystemMaxUse=` does nothing until you vacuum by hand. I set a drop-in and restarted journald with 312 MB on disk:
+On this 75 GB disk journald reported a 4 GB ceiling, so a normal server never gets near it. Now the part where the usual advice is wrong. The advice is that lowering `SystemMaxUse=` does nothing until you vacuum by hand. I set a drop-in and restarted journald with 312 MB on disk:
 
 ```bash
 $ sudo mkdir -p /etc/systemd/journald.conf.d
@@ -319,7 +320,7 @@ $ journalctl --disk-usage
 Archived and active journals take up 24M in the file system.
 ```
 
-312 MB to 24 MB from the restart alone. journald enforces the new cap when it starts by deleting archived files until it fits. You do not need to vacuum after changing the setting, you need to restart the daemon.
+312 MB to 24 MB from the restart alone. journald enforces the new cap when it starts and trims the store down to fit. After changing the setting, restart the daemon. You do not need to vacuum.
 
 The manual tools still matter for one off cleanup, and they have one rule between them: they only ever delete *archived* files, the `system@...journal` ones, never the active `system.journal`:
 
@@ -332,17 +333,17 @@ journalctl --rotate              # archive the active file now, so the above can
 
 `--vacuum-size=1M` on my box deleted the one 16.9 MB archive and left the 8 MB active file alone, because the active file is not eligible. If you want to free everything, `--rotate` first so the current data becomes an archive, then vacuum.
 
-And the thing nobody says out loud: archived files are where your boot history lives. After my vacuum tests, `--list-boots` on that box showed exactly one boot. The previous boot I had just examined was gone, along with every `myscript` line from before the reboot. Vacuuming is not "free up some space", it is "delete the oldest history", and `-b -1` is the first casualty. Size the journal with `SystemMaxUse=` and `MaxRetentionSec=` and let journald manage it, and reach for `--vacuum-*` only when you mean it.
+The catch: those archived files are also where your old boots end up. After my vacuum tests, `--list-boots` on that box showed exactly one boot. The previous boot I had just examined was gone, along with every `myscript` line from before the reboot. Vacuuming is not "free up some space", it is "delete the oldest history", and `-b -1` is the first casualty. Size the journal with `SystemMaxUse=` and `MaxRetentionSec=` and let journald manage it, and reach for `--vacuum-*` only when you mean it.
 
 `journalctl --verify` checks the files for corruption and printed `PASS` for the one file left on disk, worth running if a box was powered off hard.
 
 ## Gotchas worth knowing
 
-- **`-u` shows every run since boot.** For just the current one use `-I` on 26.04, or `_SYSTEMD_INVOCATION_ID=` anywhere.
-- **`--grep` is case insensitive only if your pattern is all lowercase.** `-g 'Started.*ssh'` matched; `-g 'started.*SSH'` matched nothing, because the capital letters made it case sensitive.
-- **A normal user sees nothing.** Add them to `systemd-journal`, then log in again.
-- **Fast loggers lose lines silently.** Over 10000 in 30 seconds and journald drops some, and I found no notice about it. `LogRateLimitBurst=` on the unit.
-- **Long lines are cut at 48K.** One stdout line, 49152 characters kept.
+- **`-u` alone shows every run, and without `-b`, every boot.** For just the current run add `-I` on 26.04, or match `_SYSTEMD_INVOCATION_ID=` on any version with a journal.
+- **`--grep` turns case sensitive when your pattern has a capital letter.** `-g 'Started.*ssh'` matched; `-g 'started.*SSH'` matched nothing.
+- **A normal user sees nothing.** Add them to `systemd-journal` or `adm`, then log in again.
+- **Fast loggers lose lines silently.** Flood past the 10000 per 30 second default and journald drops some, and I found no notice about it. `LogRateLimitBurst=` on the unit.
+- **Long lines are capped at 48K.** One 100000 character stdout line, 49152 characters in the stored entry.
 - **Lowering `SystemMaxUse=` takes effect on restart, not on vacuum.** 312M to 24M the moment journald came back.
 - **Vacuum deletes boot history.** The archives hold the old boots. `--list-boots` went from two to one after my cleanup.
 
@@ -367,6 +368,6 @@ Two smaller ones. `-x` explains systemd's own lines and adds nothing to yours, b
 | Cap it for good | `SystemMaxUse=500M` in `/etc/systemd/journald.conf.d/size.conf`, then restart journald |
 | One off cleanup | `journalctl --rotate && journalctl --vacuum-time=2weeks` |
 
-The journal is a database that happens to print like a log file. Once you stop treating it as text to grep and start asking it for a unit, a run, a priority, and a time range, the answer is usually three lines long and already on your screen. The eight posts that told you to check it can now assume you know how.
+The journal is a database that happens to print like a log file. Ask it for a unit, a run, a priority, and a time range, and the answer is usually three lines long and already on your screen.
 
-`[ -I, not -u ]`
+`[ add -I ]`
