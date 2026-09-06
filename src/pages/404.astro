@@ -19,10 +19,24 @@ import { SITE_TITLE } from '../consts';
 				flex-direction: column;
 				gap: 2em;
 			}
+			/* Everything inside .screen shakes when the path fails to resolve. */
+			.screen {
+				position: relative;
+				z-index: 0;
+				display: flex;
+				flex-direction: column;
+				gap: 2em;
+			}
 			.bios {
 				color: var(--sys-dim);
 				font-size: 0.8em;
 				line-height: 1.5;
+				min-height: 9.5em;
+			}
+			/* Lines start visible so the page still reads if the script never runs.
+			   The script hides them and types them back in. */
+			.bios .line.off {
+				visibility: hidden;
 			}
 			.bios .hi {
 				color: var(--sys-fg);
@@ -30,6 +44,18 @@ import { SITE_TITLE } from '../consts';
 			}
 			.bios .err {
 				color: #f2837a;
+			}
+			.nf {
+				visibility: visible;
+				transition:
+					opacity 0.25s ease,
+					transform 0.25s ease;
+			}
+			.nf.hidden {
+				visibility: hidden;
+				opacity: 0;
+				transform: translateY(6px);
+				transition: none;
 			}
 			.nf h1 {
 				font-size: 2.4em;
@@ -60,59 +86,187 @@ import { SITE_TITLE } from '../consts';
 				border: 1px solid var(--sys-fg);
 				color: var(--sys-fg);
 			}
-			.btn:hover {
-				background: var(--sys-fg);
-				color: var(--sys-bg);
-			}
 			.btn-dim {
 				border-color: var(--sys-dim);
 				color: var(--sys-dim);
 				font-weight: 400;
 			}
+			.btn:hover,
 			.btn-dim:hover {
 				border-color: var(--sys-fg);
 				background: var(--sys-fg);
 				color: var(--sys-bg);
 			}
+			.btn:focus-visible {
+				outline: 2px solid var(--sys-fg);
+				outline-offset: 3px;
+			}
+
+			/* --- the impact: a decaying jolt with a hair of rotation --- */
+			@keyframes shake {
+				0% { transform: translate(0, 0) rotate(0); }
+				10% { transform: translate(-9px, 3px) rotate(-0.45deg); }
+				20% { transform: translate(8px, -4px) rotate(0.35deg); }
+				30% { transform: translate(-7px, 2px) rotate(-0.3deg); }
+				40% { transform: translate(6px, -2px) rotate(0.25deg); }
+				50% { transform: translate(-4px, 3px) rotate(-0.15deg); }
+				60% { transform: translate(3px, -1px) rotate(0.1deg); }
+				70% { transform: translate(-2px, 1px) rotate(0); }
+				80% { transform: translate(1px, 0) rotate(0); }
+				100% { transform: translate(0, 0) rotate(0); }
+			}
+			.screen.shake {
+				animation: shake 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+			}
+			/* red tint over the viewport, fading out; sits above the screen */
+			.flash {
+				position: fixed;
+				inset: 0;
+				z-index: 1;
+				pointer-events: none;
+				background: rgba(242, 131, 122, 0.18);
+				opacity: 0;
+			}
+			.flash.on {
+				animation: flash 0.35s ease-out both;
+			}
+			@keyframes flash {
+				0% { opacity: 1; }
+				100% { opacity: 0; }
+			}
+			/* a scanline band tears sideways during the shake, the BIOS block jitters,
+			   and the title splits its color once the panel is visible */
+			.tear {
+				position: absolute;
+				left: 0;
+				right: 0;
+				height: 18%;
+				top: 38%;
+				pointer-events: none;
+				opacity: 0;
+				background: rgba(var(--sys-fg-rgb), 0.06);
+			}
+			.screen.glitch .tear {
+				animation: tear 0.3s steps(4, end) both;
+			}
+			@keyframes tear {
+				0% { opacity: 1; transform: translateX(-14px) scaleY(1); top: 38%; }
+				50% { opacity: 1; transform: translateX(12px) scaleY(1.2); top: 52%; }
+				100% { opacity: 0; transform: translateX(0); top: 38%; }
+			}
+			.screen.glitch .bios {
+				animation: jitter 0.3s steps(6, end) both;
+			}
+			@keyframes jitter {
+				0%, 100% { transform: translateX(0); }
+				25% { transform: translateX(-3px); }
+				50% { transform: translateX(4px); }
+				75% { transform: translateX(-2px); }
+			}
+			.nf.glitch h1 {
+				animation: split 0.32s steps(3, end) both;
+			}
+			@keyframes split {
+				0% { text-shadow: -3px 0 rgba(242, 131, 122, 0.9), 3px 0 rgba(0, 200, 255, 0.8); transform: translateX(2px); }
+				50% { text-shadow: 3px 0 rgba(242, 131, 122, 0.9), -3px 0 rgba(0, 200, 255, 0.8); transform: translateX(-2px); }
+				100% { text-shadow: none; transform: none; }
+			}
+			@media (prefers-reduced-motion: reduce) {
+				.screen.shake,
+				.screen.glitch .tear,
+				.screen.glitch .bios,
+				.nf.glitch h1,
+				.flash.on {
+					animation: none;
+				}
+				.nf {
+					transition: none;
+				}
+			}
+			@media (max-width: 720px) {
+				.nf h1 {
+					font-size: 1.8em;
+				}
+			}
 		</style>
 	</head>
 	<body>
 		<Header />
+		<div class="flash" id="flash" aria-hidden="true"></div>
 		<main>
-			<div class="bios">
-				PECOS BIOS v4.2.1-RELEASE<br />
-				Mounting Filesystem (/dev/hda1)... OK<br />
-				Resolving requested path... <span class="err">FAIL</span><br />
-				<br />
-				<span class="err">ERROR 404:</span> <span class="hi">NO SUCH FILE OR DIRECTORY</span><br />
-				<br />
-				System Ready.<span class="cursor-blink"></span>
-			</div>
-
-			<section class="term-panel nf">
-				<span class="term-label">:: ls: cannot access ::</span>
-				<h1>&gt; Not found_</h1>
-				<p>
-					<span class="path" id="path">This page</span> is not on this box. Either the link
-					is stale, the post moved, or the slug never existed. Nothing here is lost, it is
-					just not where you were pointed.
-				</p>
-				<p>
-					The whole archive is one directory over, and the search prompt on it reads every
-					post in full.
-				</p>
-				<div class="actions">
-					<a class="btn btn-primary" href="/blog">[ RUN: ls /blog ]</a>
-					<a class="btn btn-dim" href="/">[ CD: ~ ]</a>
+			<div class="screen" id="screen">
+				<div class="bios" id="bios" aria-hidden="true">
+					<div class="line">PECOS BIOS v4.2.1-RELEASE</div>
+					<div class="line">Mounting Filesystem (/dev/hda1)... OK</div>
+					<div class="line">Resolving requested path... <span class="err">FAIL</span></div>
+					<div class="line">&nbsp;</div>
+					<div class="line"><span class="err">ERROR 404:</span> <span class="hi">NO SUCH FILE OR DIRECTORY</span></div>
+					<div class="line">&nbsp;</div>
+					<div class="line">System Ready.<span class="cursor-blink"></span></div>
 				</div>
-			</section>
+
+				<div class="tear" aria-hidden="true"></div>
+
+				<section class="term-panel nf" id="panel">
+					<span class="term-label">:: ls: cannot access ::</span>
+					<h1>&gt; Not found_</h1>
+					<p>
+						<span class="path" id="path">This page</span> is not on this box. Either the link
+						is stale, the post moved, or the slug never existed. Nothing here is lost, it is
+						just not where you were pointed.
+					</p>
+					<p>
+						The whole archive is one directory over, and the search prompt on it reads every
+						post in full.
+					</p>
+					<div class="actions">
+						<a class="btn btn-primary" href="/blog">[ RUN: ls /blog ]</a>
+						<a class="btn btn-dim" href="/">[ CD: ~ ]</a>
+					</div>
+				</section>
+			</div>
 		</main>
 		<Footer />
 		<script>
 			// Show the path that failed, the way a shell would name it.
-			const el = document.getElementById('path');
-			if (el && location.pathname && location.pathname !== '/') {
-				el.textContent = location.pathname;
+			const pathEl = document.getElementById('path');
+			if (pathEl && location.pathname && location.pathname !== '/') {
+				pathEl.textContent = location.pathname;
+			}
+
+			// Boot sequence: the lines type in, FAIL lands, and the impact shakes the
+			// screen. Anyone with Reduce Motion on gets the whole thing at rest.
+			const screenEl = document.getElementById('screen');
+			const flash = document.getElementById('flash');
+			const panel = document.getElementById('panel');
+			const lines = Array.from(document.querySelectorAll('#bios .line'));
+			const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+			if (screenEl && flash && panel && lines.length === 7 && !reduced) {
+				const step = 260;
+				const impact = 100 + step * 2 + 380;
+				const afterImpact = impact + 520;
+				lines.forEach((l) => l.classList.add('off'));
+				panel.classList.add('hidden');
+				setTimeout(() => lines[0].classList.remove('off'), 100);
+				setTimeout(() => lines[1].classList.remove('off'), 100 + step);
+				setTimeout(() => {
+					lines[2].classList.remove('off');
+					flash.classList.add('on');
+					screenEl.classList.add('shake', 'glitch');
+				}, impact);
+				setTimeout(() => {
+					lines[3].classList.remove('off');
+					lines[4].classList.remove('off');
+				}, afterImpact);
+				setTimeout(() => {
+					lines[5].classList.remove('off');
+					lines[6].classList.remove('off');
+				}, afterImpact + step);
+				setTimeout(() => {
+					panel.classList.remove('hidden');
+					setTimeout(() => panel.classList.add('glitch'), 250);
+				}, afterImpact + step + 150);
 			}
 		</script>
 	</body>
