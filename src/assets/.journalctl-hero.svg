@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs>
+    <radialGradient id="glow" cx="30%" cy="32%" r="82%">
+      <stop offset="0%" stop-color="#171310"/>
+      <stop offset="100%" stop-color="#0a0807"/>
+    </radialGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#251e18" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1360" height="680" fill="url(#glow)"/>
+  <rect width="1360" height="680" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- ghost magnifier bottom right -->
+  <g opacity="0.5" stroke="#3a2f24" stroke-width="6" fill="none" stroke-linecap="round">
+    <circle cx="1188" cy="574" r="30"/>
+    <path d="M1210 596 L1240 626"/>
+  </g>
+
+  <!-- badge -->
+  <g>
+    <rect x="936" y="48" width="376" height="46" rx="8" fill="none" stroke="#9a8a76" stroke-width="1.5"/>
+    <text x="960" y="77" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" letter-spacing="2" fill="#e8a33d">&#9670; UBUNTU 26.04 &#183; JOURNALCTL</text>
+  </g>
+
+  <!-- terminal -->
+  <g>
+    <rect x="72" y="120" width="672" height="462" rx="11" fill="#0e0b09" stroke="#9a8a76" stroke-width="1.5"/>
+    <line x1="72" y1="178" x2="744" y2="178" stroke="#251e18" stroke-width="1.5"/>
+    <circle cx="104" cy="149" r="7" fill="#9a8a76"/>
+    <circle cx="128" cy="149" r="7" fill="#9a8a76"/>
+    <circle cx="152" cy="149" r="7" fill="#9a8a76"/>
+    <text x="200" y="156" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#9a8a76">reading logs, from scratch</text>
+
+    <text x="104" y="216" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#e8a33d"><tspan fill="#f5c56b">$</tspan> journalctl -I -u ssh -o short-iso</text>
+    <text x="104" y="240" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="13" fill="#9a8a76">2026-09-06T00:31:22+00:00 Starting ssh.service...</text>
+    <text x="104" y="260" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="13" fill="#4fbf87">2026-09-06T00:31:22+00:00 Server listening on :: port 22.</text>
+
+    <text x="104" y="308" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#e8a33d"><tspan fill="#f5c56b">$</tspan> journalctl -b -1 -n 2 -o cat</text>
+    <text x="104" y="332" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="13" fill="#9a8a76">Received SIGTERM from PID 1 (systemd-shutdow).</text>
+    <text x="104" y="352" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="13" fill="#9a8a76">Journal stopped</text>
+
+    <text x="104" y="400" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#e8a33d"><tspan fill="#f5c56b">$</tspan> journalctl -u flood2 -o cat | wc -l</text>
+    <text x="104" y="424" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="13" fill="#f2837a">22500      # of 50000. no notice.</text>
+
+    <text x="104" y="472" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#e8a33d"><tspan fill="#f5c56b">$</tspan> journalctl --list-boots</text>
+    <text x="104" y="496" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="13" fill="#f2837a">  0 ab1a338a...   # -1 vanished after vacuum</text>
+
+    <text x="104" y="540" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="16" fill="#9a8a76">a database that prints like a log.<tspan fill="#e8a33d">&#9608;</tspan></text>
+  </g>
+
+  <!-- right column -->
+  <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace">
+    <text x="852" y="196" font-size="20" letter-spacing="2" fill="#9a8a76">THE FIVE FILTERS</text>
+    <rect x="852" y="216" width="456" height="86" rx="8" fill="none" stroke="#9a8a76" stroke-width="2" stroke-dasharray="7 5"/>
+    <text x="876" y="248" font-size="14" fill="#f5c56b">-u unit  -t tag  -p err</text>
+    <text x="876" y="274" font-size="14" fill="#f5c56b">--since "1 hour ago"  -b / -b -1</text>
+
+    <text x="852" y="346" font-size="20" letter-spacing="2" fill="#9a8a76">SYSTEMD 259 ON 26.04</text>
+    <rect x="852" y="366" width="456" height="86" rx="8" fill="none" stroke="#4fbf87" stroke-width="2"/>
+    <text x="876" y="398" font-size="14" fill="#4fbf87">-I  &#183;  --invocation=-1  &#183;  --list-invocations</text>
+    <text x="876" y="424" font-size="14" fill="#9a8a76">only the current run of a service</text>
+
+    <text x="852" y="496" font-size="20" letter-spacing="2" fill="#9a8a76">FOLKLORE, TESTED</text>
+    <rect x="852" y="516" width="456" height="70" rx="8" fill="none" stroke="#f2837a" stroke-width="2"/>
+    <text x="876" y="548" font-size="13" fill="#f5c56b">SystemMaxUse= + restart: 312M &#8594; 24M</text>
+    <text x="876" y="570" font-size="13" fill="#9a8a76">no vacuum needed. vacuum deletes boots.</text>
+  </g>
+</svg>
