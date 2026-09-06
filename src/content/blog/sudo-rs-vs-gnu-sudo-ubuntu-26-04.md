@@ -16,10 +16,10 @@ This is the post for the day it stops being the whole story. You go to write an 
 
 - [Both sudos are on the box](#both-sudos-are-on-the-box)
 - [The cosmetic differences, so you stop worrying about them](#the-cosmetic-differences-so-you-stop-worrying-about-them)
-- [sudo -l stopped telling you about Defaults](#sudo-l-stopped-telling-you-about-defaults)
+- [sudo -l stopped telling you about Defaults](#sudo--l-stopped-telling-you-about-defaults)
 - [The sudoers settings it silently drops](#the-sudoers-settings-it-silently-drops)
 - [The scopes that do work, contrary to what you have read](#the-scopes-that-do-work-contrary-to-what-you-have-read)
-- [-E is the flag that will surprise you](#e-is-the-flag-that-will-surprise-you)
+- [-E is the flag that will surprise you](#-e-is-the-flag-that-will-surprise-you)
 - [The flags it does not have at all](#the-flags-it-does-not-have-at-all)
 - [visudo is stricter now, and that is a feature](#visudo-is-stricter-now-and-that-is-a-feature)
 - [What a broken sudoers actually costs you](#what-a-broken-sudoers-actually-costs-you)

@@ -66,7 +66,7 @@ const jsonLd =
 			},
 				mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalURL.href },
 				url: canonicalURL.href,
-				...(tags?.length && { keywords: tags.join(', ') }),
+				...(tags && tags.length > 0 && { keywords: tags.join(', ') }),
 			};
 ---
 
@@ -149,7 +149,7 @@ const jsonLd =
 							)
 						}
 						<h1>{title}</h1>
-						{tags?.length && <div class="tags">{tags.map((tag) => `#${tag}`).join(' ')}</div>}
+						{tags && tags.length > 0 && <div class="tags">{tags.map((tag) => `#${tag}`).join(' ')}</div>}
 						<hr />
 					</div>
 					<slot />

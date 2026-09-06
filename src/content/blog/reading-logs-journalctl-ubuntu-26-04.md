@@ -1,6 +1,6 @@
 ---
 title: 'Reading logs with journalctl on Ubuntu 26.04, from scratch'
-description: 'Every post on this site says "check the journal" and none of them explains it. One fresh 26.04 server, one afternoon: where the logs live, the five filters you actually use, the new invocation flags, what -xe adds, why a burst of log lines gets silently dropped, and how vacuuming can erase your boot history.'
+description: 'Eight posts on this site say "check the journal" and none of them explains it. One fresh 26.04 server, one afternoon: where the logs live, the five filters you actually use, the new invocation flags, what -xe adds, why a burst of log lines gets silently dropped, and how vacuuming can erase your boot history.'
 pubDate: 'Sep 6 2026'
 heroImage: '../../assets/journalctl-hero.png'
 tags: ['Ubuntu', 'Ubuntu2604', 'systemd', 'journalctl', 'Logging', 'Linux', 'SysAdmin', 'Troubleshooting']
@@ -20,7 +20,7 @@ It is written for someone who knows logs used to be text files in `/var/log` and
 - [Output formats, and the one to make your default](#output-formats-and-the-one-to-make-your-default)
 - [Only the current run of a service](#only-the-current-run-of-a-service)
 - [Watching a service restart](#watching-a-service-restart)
-- [What -xe actually adds](#what-xe-actually-adds)
+- [What -xe actually adds](#what--xe-actually-adds)
 - [Boot history](#boot-history)
 - [Logging from your own scripts](#logging-from-your-own-scripts)
 - [Reading the journal as a normal user](#reading-the-journal-as-a-normal-user)

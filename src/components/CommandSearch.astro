@@ -115,15 +115,25 @@
 	let active = -1;
 	let loaded: Promise<void> | null = null;
 
+	let loadFailed = false;
+
 	function load() {
 		if (!loaded) {
 			loaded = fetch('/search.json')
-				.then((r) => r.json())
+				.then((r) => {
+					if (!r.ok) throw new Error(`HTTP ${r.status}`);
+					return r.json();
+				})
 				.then((d: Entry[]) => {
 					index = d;
+					loadFailed = false;
 				})
 				.catch(() => {
+					// Forget the failed attempt so the next keystroke retries instead of
+					// reporting "no matches" against an empty index until reload.
 					index = [];
+					loadFailed = true;
+					loaded = null;
 				});
 		}
 		return loaded;
@@ -180,6 +190,7 @@
 		results = [];
 
 		if (!raw) return render([], HINT);
+		if (loadFailed) return render([], 'search index failed to load. keep typing to retry.');
 		if (cmd === 'clear') {
 			input.value = '';
 			return render([], HINT);

@@ -12,11 +12,11 @@ export async function GET() {
 			slug: post.id,
 			date: post.data.pubDate.toISOString(),
 			// Strip Markdown punctuation so keyword matching hits the prose, not the syntax.
+			// The whole body is indexed; the index is fetched once, on first use.
 			body: (post.body ?? '')
 				.replace(/[#>*`_~\-\[\]()!|]/g, ' ')
 				.replace(/\s+/g, ' ')
-				.trim()
-				.slice(0, 500),
+				.trim(),
 		}));
 
 	return new Response(JSON.stringify(index), {

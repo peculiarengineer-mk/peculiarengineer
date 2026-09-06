@@ -1,0 +1,119 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_TITLE } from '../consts';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead
+			title={`Not found — ${SITE_TITLE}`}
+			description="That page is not on this box. Try the blog index or the search prompt."
+		/>
+		<meta name="robots" content="noindex" />
+		<style>
+			main {
+				display: flex;
+				flex-direction: column;
+				gap: 2em;
+			}
+			.bios {
+				color: var(--sys-dim);
+				font-size: 0.8em;
+				line-height: 1.5;
+			}
+			.bios .hi {
+				color: var(--sys-fg);
+				font-weight: 700;
+			}
+			.bios .err {
+				color: #f2837a;
+			}
+			.nf h1 {
+				font-size: 2.4em;
+				margin: 0.2em 0 0.4em;
+			}
+			.nf p {
+				max-width: 60ch;
+				color: var(--sys-text);
+			}
+			.path {
+				font-family: var(--font-mono);
+				color: var(--sys-fg);
+				word-break: break-all;
+			}
+			.actions {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 1em;
+				margin-top: 1.5em;
+			}
+			.btn {
+				display: inline-flex;
+				align-items: center;
+				padding: 0.5em 1em;
+				text-transform: uppercase;
+				font-weight: 700;
+				text-decoration: none;
+				border: 1px solid var(--sys-fg);
+				color: var(--sys-fg);
+			}
+			.btn:hover {
+				background: var(--sys-fg);
+				color: var(--sys-bg);
+			}
+			.btn-dim {
+				border-color: var(--sys-dim);
+				color: var(--sys-dim);
+				font-weight: 400;
+			}
+			.btn-dim:hover {
+				border-color: var(--sys-fg);
+				background: var(--sys-fg);
+				color: var(--sys-bg);
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="bios">
+				PECOS BIOS v4.2.1-RELEASE<br />
+				Mounting Filesystem (/dev/hda1)... OK<br />
+				Resolving requested path... <span class="err">FAIL</span><br />
+				<br />
+				<span class="err">ERROR 404:</span> <span class="hi">NO SUCH FILE OR DIRECTORY</span><br />
+				<br />
+				System Ready.<span class="cursor-blink"></span>
+			</div>
+
+			<section class="term-panel nf">
+				<span class="term-label">:: ls: cannot access ::</span>
+				<h1>&gt; Not found_</h1>
+				<p>
+					<span class="path" id="path">This page</span> is not on this box. Either the link
+					is stale, the post moved, or the slug never existed. Nothing here is lost, it is
+					just not where you were pointed.
+				</p>
+				<p>
+					The whole archive is one directory over, and the search prompt on it reads every
+					post in full.
+				</p>
+				<div class="actions">
+					<a class="btn btn-primary" href="/blog">[ RUN: ls /blog ]</a>
+					<a class="btn btn-dim" href="/">[ CD: ~ ]</a>
+				</div>
+			</section>
+		</main>
+		<Footer />
+		<script>
+			// Show the path that failed, the way a shell would name it.
+			const el = document.getElementById('path');
+			if (el && location.pathname && location.pathname !== '/') {
+				el.textContent = location.pathname;
+			}
+		</script>
+	</body>
+</html>
