@@ -1,12 +1,15 @@
 ---
-title: 'Undoing an apt install on Ubuntu 26.04'
-description: 'Ubuntu 26.04 ships apt 3.2 with a real transaction history: history-list, history-info, history-undo and history-rollback. Here is what each one does on a real box, and the four places undo falls short, including the one case you will most want it for.'
+title: 'apt history on Ubuntu 26.04: undo and rollback limits'
+description: 'apt history on Ubuntu 26.04: I walk through undo and rollback, including the config files that stay behind and the upgrades it usually cannot reverse.'
 pubDate: 'Aug 22 2026'
+updatedDate: 'Sep 7 2026'
 heroImage: '../../assets/apt-history-hero.png'
 tags: ['Ubuntu', 'Ubuntu2604', 'apt', 'Linux', 'Server', 'SysAdmin', 'PackageManagement', 'DevOps']
 ---
 
 You install something at eleven at night, a service stops working, and the only record of what you touched is your shell history and a vague sense of regret. On Ubuntu 24.04 the answer was to read `/var/log/apt/history.log`, work out what changed, and reverse it by hand.
+
+> **TL;DR.** `apt history-list` numbers every transaction from 0. `apt history-info <id>` shows exactly which packages and versions changed. `apt history-undo <id>` reverses one, `apt history-rollback <id>` reverses everything after it. Undo works on installs and removals. It does **not** restore or remove your config files, it usually cannot reverse an upgrade because the old version is no longer in the archive, and it will refuse a large meta-package transaction outright. Undos are themselves recorded as new transactions, so nothing ever leaves the history.
 
 Ubuntu 26.04 ships apt 3.2, and apt now keeps its own transaction log with commands to walk it and reverse it. Five subcommands appeared with no fanfare:
 
@@ -22,9 +25,7 @@ apt --help | grep -A4 history-list
   history-rollback - rollback transactions
 ```
 
-That is a genuinely useful thing to have. It is also narrower than the word "undo" suggests, and the gap between the two is worth knowing before you rely on it at eleven at night. I went through it on a fresh 26.04 server, deliberately breaking things to find the edges.
-
-> **TL;DR.** `apt history-list` numbers every transaction from 0. `apt history-info <id>` shows exactly which packages and versions changed. `apt history-undo <id>` reverses one, `apt history-rollback <id>` reverses everything after it. Undo works on installs and removals. It does **not** restore or remove your config files, it usually cannot reverse an upgrade because the old version is no longer in the archive, and it will refuse a large meta-package transaction outright. Undos are themselves recorded as new transactions, so nothing ever leaves the history.
+That is a genuinely useful thing to have. It is also narrower than the word "undo" suggests, and the gap between the two is worth knowing before you rely on it at eleven at night. I went through it on a fresh 26.04 server, deliberately breaking things to find the edges. Every command below ran as root on that box. On a normal machine, put `sudo` in front of anything that changes packages, which means `history-undo`, `history-redo`, and `history-rollback`.
 
 ## Contents
 

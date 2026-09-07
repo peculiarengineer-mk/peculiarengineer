@@ -1,7 +1,8 @@
 ---
-title: 'Installing uv on macOS, with a command cheat sheet'
-description: 'How I install uv on macOS, why it replaced pip and venv and pipx for me, and the handful of commands I actually use day to day, written down so I stop looking them up.'
+title: 'How to install uv on macOS, plus the uv commands I use daily'
+description: 'Install uv on macOS with Homebrew or curl: I cover setup, the PATH refresh, updating with the right tool, and the commands I actually use day to day.'
 pubDate: 'Jun 15 2026'
+updatedDate: 'Sep 7 2026'
 heroImage: '../../assets/uv-macos-hero.png'
 tags: ['uv', 'Python', 'macOS', 'pip', 'PackageManager', 'DevTools', 'Astral']
 ---
@@ -13,9 +14,11 @@ for, you get why people switched. This is how I install it on a Mac, plus the
 commands I actually type. Mostly I'm writing it down so I stop re-deriving the
 `uv pip compile` invocation every few weeks.
 
-> **TL;DR** — `curl -LsSf https://astral.sh/uv/install.sh | sh`, then
+> **TL;DR.** `curl -LsSf https://astral.sh/uv/install.sh | sh`, then
 > `uv init myapp`, `uv add requests`, `uv run main.py`. Same shape as the pip and
 > venv dance, minus the waiting and with a real lockfile.
+
+Already have it installed? Jump straight to the [cheat sheet](#cheat-sheet).
 
 ## Install it
 
