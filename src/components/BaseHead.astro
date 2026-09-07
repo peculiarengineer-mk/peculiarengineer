@@ -51,7 +51,7 @@ const { title, description, image = FallbackImage, ogType = 'website' } = Astro.
 <meta property="og:description" content={description} />
 <meta property="og:image" content={new URL(image.src, Astro.url)} />
 
-<!-- Twitter -->
+<!-- Twitter card format, read by Bluesky, Slack, Discord and others -->
 <meta property="twitter:card" content="summary_large_image" />
 <meta property="twitter:url" content={Astro.url} />
 <meta property="twitter:title" content={title} />
