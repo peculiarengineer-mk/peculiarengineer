@@ -1,12 +1,12 @@
 ---
-title: 'The first 30 minutes on a Debian 13 server: sudo user, nftables, SSH keys, and the fail2ban trap that locked me out'
+title: 'Hardening a Debian 13 server (Trixie): sudo user, nftables, keys only SSH, and the fail2ban trap that locked me out'
 description: 'A fresh Debian 13 cloud image hands you root and nothing else: no sudo user, no firewall enabled, passwords still allowed over SSH. This is the hardening pass I run first, the Debian way with nftables and no ufw, plus the fail2ban gotcha that banned my own admin IP with a reject rule so it looked like sshd had died, and survived a reboot. Tested on a fresh Trixie box, lockout and rescue included.'
 pubDate: 'Sep 12 2026'
-heroImage: '../../assets/first-30-minutes-debian-13-hero.png'
+heroImage: '../../assets/hardening-debian-13-hero.png'
 tags: ['Debian', 'Debian13', 'Linux', 'Server', 'Security', 'Hardening', 'SSH', 'Nftables', 'Fail2ban', 'SysAdmin']
 ---
 
-A fresh Debian 13 cloud image hands you root and nothing else. No sudo user, no firewall running, and SSH still accepting passwords. (An installer-built box lets you make a user during setup, but the cloud images most VPS providers hand you do not.) That is a reasonable Debian default, but it means the box is not ready to face the internet until you have done a few things. This is the pass I run in the first half hour, and it is the Debian version of my [Ubuntu 26.04 server hardening post](/blog/hardening-ubuntu-26-04-server/), which it deliberately does not copy, because Debian has no ufw, no Ubuntu Pro, and a couple of traps Ubuntu does not.
+A fresh Debian 13 cloud image hands you root and nothing else. No sudo user, no firewall running, and SSH still accepting passwords. (An installer-built box lets you make a user during setup, but the cloud images most VPS providers hand you do not.) That is a reasonable Debian default, but it means the box is not ready to face the internet until you have done a few things. This is the hardening pass I run before the box does anything useful, and it is the Debian version of my [Ubuntu 26.04 server hardening post](/blog/hardening-ubuntu-26-04-server/), which it deliberately does not copy, because Debian has no ufw, no Ubuntu Pro, and a couple of traps Ubuntu does not.
 
 One of those traps cost me the box. fail2ban, set up the obvious way, banned my own admin IP with a reject rule that made SSH look dead, and a reboot did not clear it. I got back in through rescue mode. I did that on a lab box on purpose so the fix is in here too.
 
@@ -306,6 +306,6 @@ sudo systemctl restart fail2ban
 sudo fail2ban-client status sshd
 ```
 
-The steps here are short. The one that bites is fail2ban, because its job is to block SSH and on Debian it does so with a reject rule and a memory that outlives a reboot. Whitelist yourself the moment it is installed, keep a second session open while you work, and the first thirty minutes end with a box you can actually leave facing the internet.
+The steps here are short. The one that bites is fail2ban, because its job is to block SSH and on Debian it does so with a reject rule and a memory that outlives a reboot. Whitelist yourself the moment it is installed, keep a second session open while you work, and half an hour later you have a box you can actually leave facing the internet.
 
 `[ your key first. your IP whitelisted. then close the door. ]`

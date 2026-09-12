@@ -26,7 +26,7 @@ Short on purpose. The steps are the official ones. The two places worth slowing 
 ## Prerequisites
 
 - Debian 13 (Trixie) on `amd64` or `arm64`.
-- A user with sudo. The Debian cloud images I have used start with `root` and no regular user, so make one first. (An installer-built box lets you create one during setup.) The [first 30 minutes post](/blog/first-30-minutes-debian-13-server/) covers making that user and locking root out of SSH, and it is worth doing before this.
+- A user with sudo. The Debian cloud images I have used start with `root` and no regular user, so make one first. (An installer-built box lets you create one during setup.) The [Debian 13 hardening post](/blog/hardening-debian-13-server/) covers making that user and locking root out of SSH, and it is worth doing before this.
 - Outbound HTTPS to `download.docker.com`.
 
 ## 1. Remove the archive's Docker packages first

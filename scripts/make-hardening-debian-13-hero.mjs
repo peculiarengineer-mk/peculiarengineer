@@ -7,7 +7,7 @@ const bg0 = '#171310', bg1 = '#0a0807', grid = '#251e18', ghost = '#3a2f24';
 const dim = '#9a8a76', bright = '#e8a33d', accent = '#f5c56b';
 const good = '#4fbf87', bad = '#f2837a';
 
-const badge = 'DEBIAN 13 · FIRST 30 MIN';
+const badge = 'DEBIAN 13 · HARDENING';
 const termTitle = 'you get root and nothing else';
 const termLines = [
   {t:'getent group sudo',p:1,c:'bright',size:15},{t:'sudo:x:27:            # empty',c:'bad'},
@@ -23,7 +23,7 @@ const rightRows = [
   {k:'ssh',v:'root by key, passwords still allowed',c:'bad'}
 ];
 const footer = 'no rsyslog, no auth.log. fail2ban needs backend = systemd.';
-const closer = 'thirty minutes, then work.';
+const closer = 'close the door, then work.';
 
 const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const color = c => ({ dim, bright, accent, good, bad })[c] || dim;
@@ -64,7 +64,7 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" 
   </g>
 </svg>`;
 
-writeFileSync(new URL('../src/assets/.first-30-minutes-debian-13-hero.svg', import.meta.url), svg);
+writeFileSync(new URL('../src/assets/.hardening-debian-13-hero.svg', import.meta.url), svg);
 await sharp(Buffer.from(svg), { density: 144 }).resize(W * 2, H * 2).png()
-  .toFile(new URL('../src/assets/first-30-minutes-debian-13-hero.png', import.meta.url).pathname);
-console.log('wrote src/assets/first-30-minutes-debian-13-hero.png');
+  .toFile(new URL('../src/assets/hardening-debian-13-hero.png', import.meta.url).pathname);
+console.log('wrote src/assets/hardening-debian-13-hero.png');
