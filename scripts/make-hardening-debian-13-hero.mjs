@@ -12,17 +12,17 @@ const termTitle = 'you get root and nothing else';
 const termLines = [
   {t:'getent group sudo',p:1,c:'bright',size:15},{t:'sudo:x:27:            # empty',c:'bad'},
   {t:'systemctl is-enabled nftables',p:1,c:'bright',size:15},{t:'disabled              # no rules, no ufw',c:'bad'},
-  {t:'',c:'dim'},{t:'1. adduser keith && usermod -aG sudo keith',c:'bright'},{t:'2. nftables.conf: drop by default, allow 22',c:'bright'},{t:'3. sshd_config.d: PermitRootLogin no, keys only',c:'bright'},{t:'4. unattended-upgrades is already on. add a reboot window',c:'bright'},{t:'5. fail2ban with backend = systemd (no auth.log here)',c:'bright'},
+  {t:'',c:'dim'},{t:'1. adduser keith && usermod -aG sudo keith',c:'bright'},{t:'2. nftables.conf: drop by default, allow 22',c:'bright'},{t:'3. sshd_config.d: PermitRootLogin no, keys only',c:'bright'},{t:'4. unattended-upgrades is already on. add a reboot window',c:'bright'},{t:'5. fail2ban: put your own IP in ignoreip the moment it installs',c:'bright'},
   {t:'',c:'dim'},{t:'firewall first, then touch sshd. never the other way.',c:'accent'}
 ];
 const rightTitle = 'WHAT A FRESH BOX HAS';
 const rightRows = [
   {k:'sudo',v:'installed, group empty, root has NOPASSWD',c:'dim'},
   {k:'firewall',v:'nftables installed, disabled, no ufw',c:'bad'},
-  {k:'updates',v:'unattended-upgrades on, security only',c:'good'},
+  {k:'updates',v:'unattended-upgrades on, add a reboot window',c:'good'},
   {k:'ssh',v:'root by key, passwords still allowed',c:'bad'}
 ];
-const footer = 'no rsyslog, no auth.log. fail2ban needs backend = systemd.';
+const footer = 'fail2ban REJECTS, and its bans survive a reboot. whitelist yourself first.';
 const closer = 'close the door, then work.';
 
 const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
