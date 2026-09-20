@@ -61,6 +61,10 @@ Here is the line from the same box's first boot, before I restarted anything:
 
 182 MB, not 3.7 GB. journald flushed to disk and computed its limits at 13:42:33. First boot grew the root filesystem from its 1.9 GB image size to 38 GB at 13:42:40, seven seconds later. journald never looked again. I spun up a second fresh box to make sure it was not a fluke and got the identical pair of lines, same 182.2M, same seven second gap.
 
+![Terminal: the first boot startup line reports max 182.2M, the kernel resizes the filesystem six seconds later, and after a journald restart the line reports max 3.7G](../../assets/journald-shot-01-ceiling.png)
+
+That is the final clean run on a third fresh box: the same pair of lines, six seconds apart that time, and the same 3.7G after a restart. The screenshots in the rest of this post come from that box too, so their timestamps and IDs differ from the transcripts in the text, which are from the first one.
+
 I wanted to know whether journald ever catches up on its own, so I built a test where I controlled the disk: a 300 MB loop filesystem mounted on `/var/log/journal`, journald restarted so it computed a ceiling against it:
 
 ```text
@@ -108,6 +112,8 @@ $ ls /var/log/journal/
 
 `du` says 313 MB, `--disk-usage` said 304 MB, and the difference is the second directory. It is a journal from a different machine ID, left there when the cloud image was built, and it holds 303 lines ending with the image builder's shutdown on 26 August. `journalctl --disk-usage` only counts this machine's directory, and `SystemMaxUse=` only governs this machine's directory, so that 8 MB ghost is invisible to every limit in this post. `journalctl -m --disk-usage` counts everything, `journalctl -D /var/log/journal/9ba8...` reads it, and `sudo rm -r` on the directory is the only way it goes away. Eight megabytes is nothing, but if you ever inherit a box where `du` and `--disk-usage` disagree by a lot, this is why.
 
+![Terminal: disk-usage reports 304M, the directory holds a 48 MB active file and two 128 MB archives, du says 313M, and a second machine id directory sits next to this one](../../assets/journald-shot-02-files.png)
+
 ## Who is filling it
 
 Before you cap anything, find out what is writing. There is no per unit disk usage command, but the journal's fields make it a one liner. Entries per unit:
@@ -129,6 +135,8 @@ $ journalctl -b -t spam -o cat | wc -c
 ```
 
 That counts the rendered messages plus newlines, not what they occupy on disk after compression, but it ranks the culprits. There was no `jq` on this fresh server, which is why these use `grep` and `sort` instead. The `-a` on grep is because journal export output contains binary field separators and grep otherwise decides the whole thing is a binary file.
+
+![Terminal: ranking by SYSLOG_IDENTIFIER puts spam at 10,000 entries, far above kernel and systemd, and the byte count for that tag is 400010000](../../assets/journald-shot-03-talkers.png)
 
 ## Capping it with SystemMaxUse
 
@@ -158,6 +166,8 @@ IDX BOOT ID                          FIRST ENTRY                 LAST ENTRY
 
 Held at exactly 100 MB, as eight files of 12.5 MB, one eighth of the cap each. The previous boot is gone, and of the original 10,000 messages, none survive. This is the trade in one screen: a small `SystemMaxUse=` is a small window into the past, and the granularity of that window is the file size. When journald needs space it deletes the oldest whole file, 12.5 MB at a time here, 128 MB at a time at the default.
 
+![Terminal: two boots listed, the cap set and journald restarted, usage drops to 48M then holds at 100M after more logs, the listing shows eight 13107200 byte files, list-boots shows only the current boot, and a quiet count of the old tag returns 0](../../assets/journald-shot-04-cap.png)
+
 ## Retention by time, and why it deletes more than you asked
 
 `MaxRetentionSec=` is the setting everyone reaches for when they want "keep a month of logs," and it does not do what the name suggests. To test it in minutes rather than months I rotated the journal, logged a marker, waited three minutes, logged another marker and rotated again. That left a stack of archives, and the two that matter are the one closed three minutes earlier and the one closed a second earlier, which held the second marker. Then I set a two minute retention and restarted:
@@ -178,6 +188,8 @@ $ journalctl -t marker
 ```
 
 Every archive was deleted, including the one I had closed one second earlier, and the marker I logged a second before that rotation went with it. The reason is in the file name. That last archive is stamped `00065bea61891a06`, which decodes to 13:47:57, the time of its *first* entry, because it was opened at the previous rotation. Its newest entries were seconds old. journald judges an archive by the timestamp of its oldest entry, and if that is older than `MaxRetentionSec=`, the whole file goes, new entries included.
+
+![Terminal: a listing of eight archives with times, the two minute retention written and journald restarted, then a listing with only the active file, and the marker query returning No entries](../../assets/journald-shot-05-retention.png)
 
 So the real granularity of time based retention is how often files rotate, which is `MaxFileSec=` (a month by default) or hitting the size cap, whichever comes first. And the error is in the direction you do not want. With `MaxRetentionSec=1month` and the default monthly rotation, a file opened on day one is deleted the moment its first entry turns 30 days old, taking entries only a few days old with it, so you keep somewhere between nothing and a month. With `MaxFileSec=1week` the most you lose early is a week, so "a month" means three to four weeks of history at any given moment, as long as the size cap has not taken more first. Time retention only ever shortens what the size limits leave. The man page hints at this in the passive voice: "to ensure that not too much data is lost at once when old journal files are deleted, it might make sense to change this value from the default of one month." I did not run the month long version, but the two minute one leaves no doubt about the mechanism.
 
@@ -208,6 +220,8 @@ ForwardToSyslog=yes
 
 Last one wins, so that `no` did nothing, and the test message still landed in `/var/log/syslog`. Two names work: `/etc/systemd/journald.conf.d/syslog.conf`, which replaces the shipped file outright because same named files in `/etc` mask `/usr/lib`, or anything that sorts after it, which is why the file in this post is called `zz-retention.conf`. With either, the test message reached the journal and not the text file. `systemd-analyze cat-config` prints every assignment in the order they apply, so you can see which one lands last before you trust it.
 
+![Terminal: a control message reaches syslog, ForwardToSyslog=no in 50-test.conf still forwards and cat-config shows the shipped syslog.conf applying after it, then the same setting renamed to zz-test.conf stops forwarding while the journal still has the entry](../../assets/journald-shot-06-forwarding.png)
+
 The other way is to stop or remove rsyslog, `sudo systemctl disable --now rsyslog` or `sudo apt remove rsyslog`, which stops the text files being written. Before you do either, check what on the box reads `/var/log/auth.log` or `/var/log/syslog`. On 26.04 the obvious candidate does not: fail2ban 1.1.0 ships `backend = systemd` for its sshd jail and matches on the journal, not on `auth.log`, which I checked by installing it and reading its jail defaults. Anything you grep out of habit, and any log shipper pointed at a file, is your list.
 
 ## Volatile storage, for SD cards
@@ -222,6 +236,10 @@ $ journalctl -b -u systemd-journald -o short-iso | tail -1
 ```
 
 The `Runtime` limits are 10% of `/run`, which is a tmpfs sized to a fraction of RAM, so 76 MB on this 4 GB box. You lose boot history, and the files already in `/var/log/journal` stay there untouched but unwritten. Going back is the surprise: I removed the setting and restarted journald, and it kept writing to `/run`. journald only moves from the runtime journal to disk when it is told to flush, which happens once at boot, and a restart does not repeat it. `sudo journalctl --flush` does, and the daemon then logged a `System Journal` line with the 3.7 GB ceiling and carried on writing to disk.
+
+![Terminal: after Storage=volatile the startup line says Runtime Journal under /run, removing the setting and restarting still says Runtime Journal, and journalctl --flush switches it to System Journal](../../assets/journald-shot-07-volatile.png)
+
+On the final run a 100 MB cap was already in `zz-retention.conf` on that box, so the flush came back with `max 100M`, which is the point of reading the line back: it tells you what is in force right now.
 
 ## What I would actually set
 
