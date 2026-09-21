@@ -12,7 +12,7 @@ Most node exporter guides download a tarball from GitHub, make a user, and write
 
 The one thing to get straight: Prometheus scrapes. The exporter never sends anything anywhere. It sits there answering `GET /metrics`, and whoever can reach port 9100 can read every mount point, every network interface, the memory and load figures and, with the collectors package, the list of pending updates on the box. So the exporter's listen address and the firewall rule in front of it are part of the install, not an afterthought.
 
-> **TL;DR.** On the server: `sudo apt install --no-install-recommends prometheus-node-exporter`, set `ARGS="--web.listen-address=10.20.1.10:9100"` in `/etc/default/prometheus-node-exporter` to bind it to the private interface, `sudo ufw allow from <prometheus ip> to any port 9100 proto tcp`. On the Prometheus box: `sudo apt install prometheus`, add a `job_name` with the server's private address to `/etc/prometheus/prometheus.yml`, `promtool check config`, `sudo systemctl reload prometheus`, and confirm with `up` in the query API. Drop the recommends if you do not want ipmitool, smartmontools and nvme-cli on a cloud VM; keep them on real hardware, because the `apt_upgrades_pending` and `node_reboot_required` metrics come from that package.
+> **TL;DR.** On the server: `sudo apt update && sudo apt install prometheus-node-exporter` (add `--no-install-recommends` on a cloud VM where you do not want the hardware collectors, and lose the apt and reboot metrics with them), set `ARGS="--web.listen-address=10.20.1.10:9100"` in `/etc/default/prometheus-node-exporter` to bind it to the private interface, `sudo ufw allow from <prometheus ip> to any port 9100 proto tcp`. On the Prometheus box: `sudo apt install prometheus`, add a `job_name` with the server's private address to `/etc/prometheus/prometheus.yml`, `promtool check config`, `sudo systemctl reload prometheus`, and confirm with `up` in the query API. Keep the recommends on real hardware; the `apt_upgrades_pending` and `node_reboot_required` metrics come from that package.
 
 ## Contents
 
@@ -36,7 +36,10 @@ The one thing to get straight: Prometheus scrapes. The exporter never sends anyt
 
 ## 1. Install the exporter from the archive
 
+One decision before the command. The package recommends a collectors package that brings twenty one more packages and the apt and reboot metrics with them; section 2 shows both sides. I installed the default first, because the rest of this post uses those metrics, and section 2 tells you how to go the small route instead.
+
 ```bash
+sudo apt update
 sudo apt install prometheus-node-exporter
 prometheus-node-exporter --version
 ```
@@ -130,10 +133,10 @@ ARGS="--web.listen-address=10.20.1.10:9100"
 
 ```bash
 sudo systemctl restart prometheus-node-exporter
-ss -tlnp | grep 9100
+sleep 1; ss -tlnp | grep 9100
 ```
 
-The socket line now shows `10.20.1.10:9100` instead of `*:9100`.
+The socket line now shows `10.20.1.10:9100` instead of `*:9100`. The `sleep` is there because the exporter takes a moment to bind after the restart; without it the `grep` can come back empty and send you looking for a problem that does not exist.
 
 `curl http://127.0.0.1:9100/metrics` now fails with `connection refused`. That is correct; the exporter is no longer on loopback. Use the private address for local checks from here on.
 
@@ -175,6 +178,7 @@ Write to a temporary name and `mv` into place. The exporter can read the directo
 On the second machine:
 
 ```bash
+sudo apt update
 sudo apt install prometheus
 prometheus --version
 ```
@@ -184,7 +188,7 @@ That is Prometheus `2.53.5` from `universe`. Upstream is on 3.x, and 2.53 was up
 Before touching the config, confirm the network path works from this side:
 
 ```bash
-curl -s -o /dev/null -w '%{http_code}\n' http://10.20.1.10:9100/metrics
+curl -s --max-time 5 -o /dev/null -w '%{http_code}\n' http://10.20.1.10:9100/metrics
 ```
 
 A `200` here means the bind address is right and the firewall lets this box through. Anything else, fix that first; Prometheus will only tell you the same thing more slowly. Then add the job to the end of `/etc/prometheus/prometheus.yml`:
@@ -210,7 +214,15 @@ The package's unit has an `ExecReload` that sends `HUP`, so `reload` re reads th
 curl -s 'http://127.0.0.1:9090/api/v1/query?query=up'
 ```
 
-Prometheus has a web UI on port 9090 that is easier to read, but the API is what works from a headless box over SSH, and the shape is simple: `data.result[].metric` is the label set and `data.result[].value[1]` is the number. `up` is `1` for every target Prometheus could scrape on its last attempt and `0` for every one it could not. Mine showed three targets at `1`: Prometheus itself, its local exporter, and `nodex`. From there, the numbers you came for:
+Prometheus has a web UI on port 9090 that is easier to read, but the API is what works from a headless box over SSH, and the shape is simple: `data.result[].metric` is the label set and `data.result[].value[1]` is the number. `up` is `1` for every target Prometheus could scrape on its last attempt and `0` for every one it could not. Mine showed three targets at `1`: Prometheus itself, its local exporter, and `nodex`. For anything longer than `up`, a small shell function saves quoting the URL by hand:
+
+```bash
+q() { curl -s http://127.0.0.1:9090/api/v1/query --data-urlencode "query=$1" \
+  | python3 -c "import sys,json; [print(r['metric'].get('instance'), r['value'][1]) for r in json.load(sys.stdin)['data']['result']]"; }
+q 'node_load1'
+```
+
+That prints one line per series, instance then value. From there, the numbers you came for, as expression and value:
 
 ```text
 node_load1{instance="nodex"}                                   0.23
@@ -252,7 +264,7 @@ groups:
         annotations: { summary: "{{ $labels.instance }} has security updates pending" }
 ```
 
-Point the config at the directory, check both files, reload:
+Point the config at the directory by replacing the empty `rule_files:` line near the top of `prometheus.yml`, then check both files and reload:
 
 ```yaml
 rule_files:
@@ -266,7 +278,7 @@ sudo systemctl reload prometheus
 curl -s http://127.0.0.1:9090/api/v1/rules
 ```
 
-`promtool check rules` reported `SUCCESS: 3 rules found`, and the rules API listed all three as `health: ok`. Within a minute `PendingSecurityUpdates` was `pending` for both of my boxes, which is what images with eighty two security updates waiting should produce, and it will fire after the `for: 1d` if nobody runs `apt upgrade`. `RebootRequired` and `PendingSecurityUpdates` both come from the apt collector, so they need section 2's collectors package (or `apt_info.py`) on each target. `RootDiskLow` uses the built in filesystem collector and works everywhere.
+`promtool check rules` reported `SUCCESS: 3 rules found`, and within fifteen seconds of the reload, once the first evaluation had run, the rules API listed all three as `health: ok` (before that they show `unknown`). Within a minute `PendingSecurityUpdates` was `pending` for both of my boxes, which is what images with eighty two security updates waiting should produce, and it will fire after the `for: 1d` if nobody runs `apt upgrade`. `RebootRequired` and `PendingSecurityUpdates` both come from the apt collector, so they need section 2's collectors package (or `apt_info.py`) on each target. `RootDiskLow` uses the built in filesystem collector and works everywhere.
 
 Where the alerts go (email, a chat webhook, a pager) is Alertmanager's job, which is `prometheus-alertmanager` in the same archive and a post of its own. Until then the `/api/v1/alerts` endpoint and the Alerts page on 9090 show what is pending and firing.
 
@@ -274,7 +286,7 @@ Where the alerts go (email, a chat webhook, a pager) is Alertmanager's job, whic
 
 ## 7. The upstream binary, when the package is too old
 
-The archive's 1.10.2 is from late 2025; upstream was at 1.12.1 when I wrote this. If you need a collector or a fix from a newer release, the upstream binary is a single file and the unit is the same shape as the packaged one:
+Back on the target for this section. The archive's 1.10.2 is from late 2025; upstream was at 1.12.1 when I wrote this. If you need a collector or a fix from a newer release, the upstream binary is a single file and the unit is the same shape as the packaged one:
 
 ```bash
 V=1.12.1
@@ -304,21 +316,21 @@ WantedBy=multi-user.target
 sudo systemctl disable --now prometheus-node-exporter
 sudo systemctl daemon-reload
 sudo systemctl enable --now node_exporter
-curl -s http://10.20.1.10:9100/metrics | grep ^node_exporter_build_info
+sleep 1; curl -s http://10.20.1.10:9100/metrics | grep ^node_exporter_build_info
 ```
 
 Both want port 9100, so the packaged one has to be stopped and disabled first, and `--collector.textfile.directory` has to be passed explicitly; the upstream binary has no default for it. On my box `node_exporter_build_info` switched from `version="1.10.2"` to `version="1.12.1"` and Prometheus did not notice anything but the label. The cost is that apt no longer upgrades it; that is now a `curl` you run yourself.
 
 ## 8. Reading a down target
 
-The targets endpoint says why a scrape failed, and the two messages you will see most often look similar and are not:
+The targets endpoint on the Prometheus box says why a scrape failed, and the two messages you will see most often look similar and are not. I broke the target on purpose both ways, from the target's own shell, and read the result from the Prometheus box:
 
 ```bash
 curl -s http://127.0.0.1:9090/api/v1/targets | python3 -c \
   "import sys,json; [print(t['labels']['job'], t['health'], t['lastError']) for t in json.load(sys.stdin)['data']['activeTargets']]"
 ```
 
-I stopped the exporter on the server. Within twenty seconds Prometheus reported:
+First, `sudo systemctl stop prometheus-node-exporter` on the target (or `node_exporter` if you switched in section 7). Within twenty seconds Prometheus reported:
 
 ```text
 nodex down Get "http://10.20.1.10:9100/metrics": dial tcp 10.20.1.10:9100: connect: connection refused
@@ -326,13 +338,13 @@ nodex down Get "http://10.20.1.10:9100/metrics": dial tcp 10.20.1.10:9100: conne
 
 **`connection refused`** almost always means the packet arrived and nothing was listening: the exporter is stopped, crashed, or bound to a different address than the one in the job. (A firewall that rejects rather than drops produces it too.) Check the exporter's unit status and `ss -tlnp | grep 9100` on the target.
 
-Then I started it again and deleted the ufw rule instead. One thing to know before you try this: Prometheus keeps the HTTP connection to a target open between scrapes, and ufw does not cut an established connection, so `up` can stay at `1` for a while after the rule is gone. Restarting the exporter forces a new connection, and the next scrape reported:
+Then I started it again and deleted the ufw rule instead: `sudo ufw delete allow from 10.20.1.20 to any port 9100 proto tcp` on the target. One thing to know before you try this: Prometheus keeps the HTTP connection to a target open between scrapes, and ufw does not cut an established connection, so `up` can stay at `1` for a while after the rule is gone. Restarting the exporter forces a new connection, and the next scrape reported:
 
 ```text
 nodex down Get "http://10.20.1.10:9100/metrics": context deadline exceeded
 ```
 
-**`context deadline exceeded`** means the scrape hit its timeout, ten seconds by default, without an answer: a firewall dropping packets, a wrong IP, a route that does not exist, or an exporter that is stalled. The exporter can be perfectly healthy. Check the ufw rule on the target and `curl` the address from the Prometheus box. Put the rule back and the target was `up` on the next scrape.
+**`context deadline exceeded`** means the scrape hit its timeout, ten seconds by default, without an answer: a firewall dropping packets, a wrong IP, a route that does not exist, or an exporter that is stalled. The exporter can be perfectly healthy. Check the ufw rule on the target and `curl --max-time 5` the address from the Prometheus box (without the limit, a dropped packet leaves `curl` sitting there for a couple of minutes). Put the rule back with the same `ufw allow` from section 3 and the target was `up` on the next scrape.
 
 `up` going to `0` is the same for both, which is why it is worth having the `lastError` text to hand before deciding which machine to log into.
 
@@ -352,20 +364,22 @@ nodex down Get "http://10.20.1.10:9100/metrics": context deadline exceeded
 
 ```bash
 # target
-sudo apt install --no-install-recommends prometheus-node-exporter   # drop the flag to get apt/reboot metrics
+sudo apt update
+sudo apt install prometheus-node-exporter          # add --no-install-recommends to skip the collectors package and everything it pulls in
 sudo nano /etc/default/prometheus-node-exporter    # ARGS="--web.listen-address=10.20.1.10:9100"
-sudo systemctl restart prometheus-node-exporter
+sudo systemctl restart prometheus-node-exporter    # node_exporter instead, if you moved to the upstream unit in section 7
 sudo ufw allow from 10.20.1.20 to any port 9100 proto tcp
 curl -s http://10.20.1.10:9100/metrics | grep -E '^node_load1 |^node_reboot_required'
 
 # prometheus box
-sudo apt install prometheus
+sudo apt update && sudo apt install prometheus
 sudo nano /etc/prometheus/prometheus.yml           # add the job under scrape_configs, rule_files: - /etc/prometheus/rules/*.yml
 promtool check config /etc/prometheus/prometheus.yml
 promtool check rules /etc/prometheus/rules/node.yml
 sudo systemctl reload prometheus
 curl -s 'http://127.0.0.1:9090/api/v1/query?query=up'
 curl -s http://127.0.0.1:9090/api/v1/targets      # lastError says which machine to look at
+curl -s --max-time 5 http://10.20.1.10:9100/metrics | head -n 3   # from here, is the path open
 curl -s http://127.0.0.1:9090/api/v1/alerts
 ```
 

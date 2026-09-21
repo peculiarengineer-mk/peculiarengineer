@@ -59,7 +59,7 @@ The screenshots in this post are from a second fresh 26.04 box, so the hostname 
 
 ## 2. The site file
 
-Nginx on Ubuntu reads `/etc/nginx/nginx.conf`, which includes every file in `/etc/nginx/sites-enabled/`. The convention is one file per site in `sites-available` and a symlink in `sites-enabled` to turn it on. Create the site:
+Nginx on Ubuntu reads `/etc/nginx/nginx.conf`, which includes every file in `/etc/nginx/sites-enabled/`. The convention is one file per site in `sites-available` and a symlink in `sites-enabled` to turn it on. Create the site with `sudo nano /etc/nginx/sites-available/app.conf`:
 
 ```nginx
 # /etc/nginx/sites-available/app.conf
@@ -88,7 +88,7 @@ sudo systemctl reload nginx
 
 `nginx -t` parses everything nginx would load and refuses if any file is broken, which is why it goes before every reload. A broken config with a plain `restart` leaves you with no web server at all. With a `reload`, nginx keeps serving the old config until the new one parses, so the worst case is the change not taking.
 
-Now `curl http://app.example.com/`. If you got your app, skip the next section. I got the welcome page.
+Now `curl http://app.example.com/`. Mine came back with the welcome page on the first try and the app on the second, and the next section is about why. Read it even if you got the app first time, because it ends with removing the default site, and every edit from here on gets the same `sudo nginx -t && sudo systemctl reload nginx` before you test it.
 
 ## 3. Why the default site keeps winning
 
@@ -117,7 +117,7 @@ If you would rather unknown names get nothing, keep a catch all block with `retu
 
 ## 4. The headers your app actually needs
 
-Take the four `proxy_set_header` lines out and look at what the app receives. Mine prints them:
+Take the four `proxy_set_header` lines out, test and reload, and look at what the app receives. Mine prints them:
 
 ```text
 Host: 127.0.0.1:8080
@@ -141,7 +141,7 @@ X-Real-IP: 203.0.113.7
 
 ## 5. Websockets
 
-Anything that opens a websocket (a web terminal, a chat, most dashboards that update without a refresh) fails through the config above. My test client got `server rejected WebSocket connection: HTTP 502` and nginx logged `upstream prematurely closed connection while reading response header from upstream`. The app was fine. Nginx had spoken HTTP/1.0 to it and dropped the `Upgrade` header, so the app closed a handshake it never saw.
+Anything that opens a websocket (a web terminal, a chat, most dashboards that update without a refresh) needs three more lines, and the failure without them is worth seeing once. My websocket app is a small echo server on `127.0.0.1:8081` (Python's `websockets` package, `python3-websockets` in the archive, and a client from the same package). I gave it a `location /ws/` with `proxy_pass http://127.0.0.1:8081/;` and the `Host` header and nothing else. The client got `server rejected WebSocket connection: HTTP 502` and nginx logged `upstream prematurely closed connection while reading response header from upstream`. The app was fine. Nginx had spoken HTTP/1.0 to it and dropped the `Upgrade` header, so the app closed a handshake it never saw. (If your websocket lives on the same port as the rest of the app, a bare `location /` sends the request to the app as an ordinary HTTP request and you get whatever the app answers with, a 200 or a 400, and the same fix applies.)
 
 Two things fix it. A `map` outside the `server` block that turns the `Connection` header into `upgrade` only when the client asked for one, and a `location` for the websocket path that speaks HTTP/1.1 and passes both headers through:
 
@@ -174,7 +174,7 @@ server {
 }
 ```
 
-The `map` has to sit at the `http` level, which in a `sites-available` file means above `server`, not inside it. My echo server answered `echo: ping` through the proxy as soon as this was in. If the app serves the websocket on the same port and path as everything else, put the three extra lines in `location /` instead of a second location; they do no harm to ordinary requests.
+The `map` has to sit at the `http` level, which in a `sites-available` file means above `server`, not inside it. Test, reload, and my echo server answered `echo: ping` through the proxy. If the app serves the websocket on the same port and path as everything else, put the three extra lines in `location /` instead of a second location; they do no harm to ordinary requests.
 
 The trailing slash on `proxy_pass http://127.0.0.1:8081/` matters. With it, nginx strips the `/ws/` prefix and the app sees `/`. Without it, the app would receive `/ws/` and would need a route for that path. Either way, be deliberate.
 
@@ -191,7 +191,32 @@ sudo certbot --nginx -d app.example.com
 
 Certbot answers the HTTP challenge through the running nginx on port 80, gets the certificate, and rewrites `app.conf`: it turns your existing `server` block into the HTTPS one, with `listen 443 ssl` and the `ssl_certificate` lines pointing into `/etc/letsencrypt/live/app.example.com/`, and adds a separate port 80 block that redirects to it. Renewal is a systemd timer the package installs, `certbot.timer`, which runs at midnight and noon with a random delay of up to twelve hours; `systemctl list-timers certbot.timer` shows the next run, and `sudo certbot renew --dry-run` proves it can renew without waiting sixty days to find out.
 
-*I could not run this step on the box used for this post, because its provider firewall only opens SSH and Let's Encrypt has to reach port 80. The commands above are certbot's documented flow, and the package versions are what 26.04 installs. Everything below in this section I did run, with a self signed certificate standing in for the real one.*
+*I could not run this step on the box used for this post, because its provider firewall only opens SSH and Let's Encrypt has to reach port 80. The commands above are certbot's documented flow, and the package versions are what 26.04 installs. Everything below in this section I did run with a self signed certificate standing in for the real one, which you can do too if your 80 is closed for now:*
+
+```bash
+sudo openssl req -x509 -newkey rsa:2048 -nodes -days 30 -subj /CN=app.example.com \
+  -keyout /etc/ssl/private/app.key -out /etc/ssl/certs/app.crt
+```
+
+```nginx
+# a second server block in app.conf, the shape certbot produces
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name app.example.com;
+    ssl_certificate /etc/ssl/certs/app.crt;
+    ssl_certificate_key /etc/ssl/private/app.key;
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+*Test with `curl -k`, since the certificate is self signed, and swap the two `ssl_` lines for certbot's when the port opens.*
 
 ![certbot 4.0.0 from universe, certbot.timer listed with its next run, OnCalendar at midnight and noon with a 43200 second randomized delay](../../assets/nginx-proxy-shot-07-certbot.png)
 
@@ -208,13 +233,13 @@ Do not write `listen 443 ssl http2;`. Older configs and most guides still have t
 [warn] the "listen ... http2" directive is deprecated, use the "http2" directive instead
 ```
 
-With `http2 on;` in place, `curl --http2 -I https://app.example.com/` comes back as `HTTP/2 200`. Also add `X-Forwarded-Proto $scheme` to the 443 block if certbot's rewrite did not carry it over. In that block `$scheme` is `https`, which is what tells your app to issue secure cookies.
+With `http2 on;` in place, `curl --http2 -I https://app.example.com/` comes back as `HTTP/2 200` (add `-k` for the self signed stand in). Also add `X-Forwarded-Proto $scheme` to the 443 block if certbot's rewrite did not carry it over. In that block `$scheme` is `https`, which is what tells your app to issue secure cookies.
 
 ![nginx -t warning that listen ... http2 is deprecated, the two line replacement, and curl reporting HTTP version 2 with a 200](../../assets/nginx-proxy-shot-05-http2.png)
 
 ## 7. Reading the errors: 502, 413, and a reload that has not landed yet
 
-**`502 Bad Gateway`** means nginx accepted the request and could not get an answer from the app. I stopped the app and got exactly this, with the cause in the log:
+**`502 Bad Gateway`** means nginx accepted the request and could not get an answer from the app. I stopped the app (`sudo systemctl stop app`, mine is a unit called `app`, then `curl -i http://app.example.com/`) and got exactly this, with the cause in the log:
 
 ```text
 connect() failed (111: Connection refused) while connecting to upstream
@@ -222,7 +247,7 @@ connect() failed (111: Connection refused) while connecting to upstream
 
 The line to read is the most recent one in `/var/log/nginx/error.log` that matches your request. `Connection refused` is the app not listening (crashed, wrong port, bound to a different address). `upstream prematurely closed connection` is the app closing mid request, which is the websocket case from section 5, or an app that crashed on that specific request. A `504` after sixty seconds with `upstream timed out` in the log is `proxy_read_timeout`, whose default is `60s`. It is the wait between two reads from the app, not a total budget, so a slow first byte is what trips it. Raise it in the `location` if the app legitimately takes longer.
 
-**`413 Request Entity Too Large`** is nginx refusing an upload before the app ever sees it. The default `client_max_body_size` is `1m`. A 2 MB `POST` to my proxy got the 413 page from nginx with nothing in the app's log. Set `client_max_body_size 100m;` (or whatever fits) in the `server` or `location` block.
+**`413 Request Entity Too Large`** is nginx refusing an upload before the app ever sees it. The default `client_max_body_size` is `1m`. A 2 MB `POST` to my proxy (`head -c 2000000 /dev/zero > 2mb.bin; curl -i -X POST --data-binary @2mb.bin http://app.example.com/`) got the 413 page from nginx with nothing in the app's log. Set `client_max_body_size 100m;` (or whatever fits) in the `server` or `location` block.
 
 **The reload that has not landed** is section 3: a request in the same second as `systemctl reload nginx` can still hit an old worker. Wait a second and try again before debugging a config that is actually fine.
 
@@ -241,6 +266,7 @@ The line to read is the most recent one in `/var/log/nginx/error.log` that match
 ## Quick reference
 
 ```bash
+# on a fresh box, in this order
 # install and firewall
 sudo apt install nginx
 sudo ufw allow 'Nginx Full'
@@ -262,7 +288,7 @@ curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/   # is the app e
 ```
 
 ```nginx
-# the map goes above the server block, in the same file
+# app.conf: the map goes above the server block, and this location replaces the one in section 2
 map $http_upgrade $connection_upgrade {
     default upgrade;
     ''      close;
@@ -278,8 +304,8 @@ location / {
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    client_max_body_size 100m;
-    proxy_read_timeout 300s;
+    client_max_body_size 100m;    # uploads; default is 1m
+    proxy_read_timeout 300s;      # only if the app has slow responses; default is 60s
 }
 ```
 
