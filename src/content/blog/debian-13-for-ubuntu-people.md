@@ -174,17 +174,18 @@ For a box where I want this year's kernel, a vendor's PPA, hardware enablement, 
 | Ubuntu habit | On this Debian 13 image |
 | --- | --- |
 | `sudo netplan apply` | `sudo ifdown eth0 && sudo ifup eth0` from the console, config in `/etc/network/interfaces.d/` |
-| `resolvectl status` | `cat /etc/resolv.conf` (resolvconf), or install `systemd-resolved` |
+| `resolvectl status` | `cat /etc/resolv.conf`, which resolvconf manages. Do not just `apt install systemd-resolved` to get `resolvectl`: on this image that removed resolvconf and broke DNS until resolved was configured. It is a migration, covered in the static IP post. |
 | `sudo ufw allow 22` | `sudo apt install ufw` first, or write `/etc/nftables.conf` |
 | `grep sshd /var/log/auth.log` | `journalctl -u ssh` or `journalctl _COMM=sshd-session` |
 | `chronyc tracking` | `timedatectl timesync-status` |
 | `sudo add-apt-repository ppa:x/y` | No equivalent. Project repo, backports, or a `.deb`. |
-| `apt history-undo 3` | Not available. Read `/var/log/apt/history.log` and reverse by hand. |
-| `sudo do-release-upgrade` | Edit the suite in every `.sources` file, `apt update`, `apt full-upgrade`, per the release notes |
-| `snap install x` | Not installed. `apt install x`, or `apt install snapd` if you must. |
+| `sudo apt history-undo <ID>` (an ID from `apt history-list`) | Not available. Read `/var/log/apt/history.log` and reverse the package changes by hand; that restores packages, not their data or config. |
+| `sudo do-release-upgrade` | No equivalent command. Follow the target release's upgrade notes: they prepare sources and backports and stage the upgrade. This image's suites live in `/etc/apt/sources.list.d/*.sources`. |
+| `snap install x` | Prefer the Debian package, the name may differ. Otherwise `sudo apt install snapd`, then `sudo snap install x`, and `snap run x` or log in again for `/snap/bin`. Snap confinement on this image is partial, not strict. |
 | `sudo partprobe /dev/sdb` | `sudo partx -u /dev/sdb`, or `apt install parted` |
 | `sudo apt install -t resolute-backports x` | `sudo apt install -t trixie-backports x` |
 | `systemctl restart ssh` after a port change | Works on Debian. On Ubuntu add `daemon-reload` and `restart ssh.socket`. |
-| `aa-status` | AppArmor not on the cloud image; `apt install apparmor` |
+| `aa-status` | AppArmor not on the cloud image. `apt install apparmor` loads its profiles straight away, no reboot. |
+| `sudo needrestart -r l` after upgrades | Not installed. `sudo apt install needrestart` first; it also adds the apt hook. |
 
 `[ same apt, same journal, different plumbing ]`
