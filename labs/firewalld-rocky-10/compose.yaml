@@ -1,0 +1,51 @@
+# The lab behind "firewalld for ufw people on Rocky Linux 10":
+# https://peculiarengineer.com/blog/firewalld-for-ufw-people-rocky-linux-10/
+#
+# server is the firewall box and comes up without firewalld, the way the
+# Rocky 10 cloud image does. client20 and client21 are the two addresses the
+# post tested from, one container each.
+
+services:
+  server:
+    build:
+      context: .
+      target: server
+    hostname: fw-server
+    # Privileged so systemd can run as PID 1 and manage its own cgroup, and so
+    # firewalld can load nftables rules. This is root on the Docker host (or on
+    # Docker Desktop's VM); see the README before running it anywhere you care
+    # about.
+    privileged: true
+    tmpfs:
+      - /run
+      - /run/lock
+    networks:
+      labnet:
+        ipv4_address: 10.20.1.10
+
+  client20:
+    build:
+      context: .
+      target: client
+    depends_on:
+      - server
+    networks:
+      labnet:
+        ipv4_address: 10.20.1.20
+
+  client21:
+    build:
+      context: .
+      target: client
+    depends_on:
+      - server
+    networks:
+      labnet:
+        ipv4_address: 10.20.1.21
+
+networks:
+  labnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.20.1.0/24
