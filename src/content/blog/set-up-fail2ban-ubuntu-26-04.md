@@ -1,7 +1,8 @@
 ---
 title: 'Set Up Fail2ban on Ubuntu 26.04 Server'
-description: 'Install and verify Fail2ban 1.1 on Ubuntu 26.04, protect SSH through the systemd journal, use a small upgrade-safe jail override, test bans without locking yourself out, and understand what Python 3.14 changes.'
+description: 'Install and verify Fail2ban 1.1 on Ubuntu 26.04, protect SSH through the systemd journal, use a small jail override that survives package upgrades, keep your own address out with ignoreip, show banned IPs and unban them, and understand what Python 3.14 changes.'
 pubDate: 'Jul 11 2026'
+updatedDate: 'Sep 25 2026'
 heroImage: '../../assets/fail2ban-2604-hero.png'
 tags: ['Ubuntu', 'Ubuntu2604', 'Linux', 'Server', 'Security', 'Hardening', 'SSH', 'fail2ban', 'systemd', 'SysAdmin']
 ---
@@ -101,18 +102,49 @@ port = 2222
 
 That setting must match both `sshd` and UFW. Changing it only in Fail2ban makes the ban action guard the wrong port; changing it only in `sshd` without opening UFW locks you out for a much less interesting reason.
 
-## 4. Decide whether to exempt a trusted address
+## 4. Use ignoreip so you do not ban yourself
 
-Fail2ban prevents banning the host itself by default. You can also exempt a static management address or VPN subnet with `ignoreip`:
+Fail2ban already refuses to ban the host's own addresses (`ignoreself = true` is the default). Everything else is fair game, including the laptop you manage the server from. Five failed logins from your own address inside ten minutes, say a script retrying with the wrong username, and your next connection is refused for an hour.
+
+`ignoreip` is the exemption list. Put it under `[DEFAULT]` in the same `sshd.local` so it applies to every jail (per fail2ban's docs; my lab only had the `sshd` jail):
 
 ```ini
 [DEFAULT]
-ignoreip = 127.0.0.1/8 ::1 10.20.0.0/24
+ignoreip = 127.0.0.1/8 ::1 203.0.113.41 10.20.0.0/24
+
+[sshd]
+enabled = true
+backend = systemd
+port = ssh
+maxretry = 5
+findtime = 10m
+bantime = 1h
 ```
 
-Add this only if the address or subnet is genuinely trusted and stable. Do not paste your current coffee-shop IP into the file and forget it; eventually somebody else gets that address, and you have handed them a permanent exemption.
+Entries are separated by spaces and can be single addresses or CIDR ranges. Replace `203.0.113.41` with your own static address and `10.20.0.0/24` with a VPN or management subnet, or drop whichever you do not have. The `127.0.0.1/8 ::1` at the front is the commented example from Ubuntu's `jail.conf`. Keep it; loopback never needs banning.
 
-For a server reached through Tailscale or another private management network, exempting that private subnet can be sensible. For an ordinary public server, keeping a second session open during testing is often enough.
+Only list addresses that are genuinely yours and stable. Do not paste your current coffee shop IP into the file and forget it; eventually somebody else gets that address, and you have handed them a permanent exemption. For a server reached through Tailscale or another private management network, exempting that private subnet is the sensible version of this. For an ordinary public server with no stable address, keeping a second session open while you test is often enough.
+
+After the restart in the next step, ask Fail2ban what it actually loaded:
+
+```bash
+sudo fail2ban-client get sshd ignoreip
+```
+
+![Terminal: sshd.local with ignoreip = 127.0.0.1/8 ::1 10.99.0.3, fail2ban-client -t prints OK: configuration test is successful, and get sshd ignoreip lists 127.0.0.0/8, ::1 and 10.99.0.3](../../assets/fail2ban-2604-shot-01-ignoreip.png)
+
+The screenshots in this post come from a fresh box after the rest was written. On that box `10.99.0.3` stands in for the management address: it lives in a network namespace on the same machine, and `10.99.0.2` in the same namespace plays the stranger. That way a ban can be shown without a second server, and no real address ends up in an image.
+
+
+I put my own public address in `ignoreip` on a test box, then failed seven SSH logins from that address as a user that does not exist. `Total failed` stayed at `0` and `/var/log/fail2ban.log` recorded `Ignore <address> by ip` once per attempt. The failures never even reach the counter.
+
+![Terminal: seven ssh attempts from 10.99.0.3 each end in Permission denied, status sshd shows Currently failed 0, Total failed 0, Currently banned 0, and the log holds 7 Ignore 10.99.0.3 by ip lines](../../assets/fail2ban-2604-shot-02-ignored.png)
+
+
+Two things to know before you lean on it:
+
+- **`ignoreip` does not lift a ban that already exists.** I banned an address, added it to the ignore list, and the next connection from it was still refused. If you are already locked out, unban first (section 8), then fix `ignoreip`.
+- **`fail2ban-client set sshd addignoreip ADDRESS` is temporary.** It works immediately, but a `systemctl reload fail2ban` threw it away on my box. The file is the only place the exemption survives.
 
 ## 5. Test the configuration before restarting
 
@@ -177,10 +209,10 @@ sudo fail2ban-client set sshd unbanip 192.0.2.1
 
 `192.0.2.1` comes from a range reserved for examples, so it should not belong to a real client. This proves the jail can add and remove a ban. It does not prove the SSH filter matches your server's journal messages.
 
-For the full test, connect from a different public address, deliberately fail authentication five times, and watch both sides:
+For the full test, connect from a different public address, deliberately fail authentication five times, and watch both sides. Fail2ban on Ubuntu 26.04 logs to `/var/log/fail2ban.log`, not the journal, so `journalctl -u fail2ban` shows the service starting and stopping but never a ban. Follow the file instead:
 
 ```bash
-sudo journalctl -u fail2ban -f
+sudo tail -f /var/log/fail2ban.log
 ```
 
 In another terminal:
@@ -189,15 +221,80 @@ In another terminal:
 sudo fail2ban-client status sshd
 ```
 
-Do not run the full test from your only management path. Fail2ban is supposed to lock that address out, and a successful test should not become an emergency console exercise.
+Each matched failure appears as `[sshd] Found ADDRESS`, and the fifth is followed by `[sshd] Ban ADDRESS`. From the banned side, the next attempt fails immediately (on my test box the server was `10.99.0.1` and the client was `10.99.0.2`, a network namespace on the same machine):
 
-To remove a real accidental ban:
+```text
+ssh: connect to host 10.99.0.1 port 22: Connection refused
+```
+
+![Terminal: five failed logins from 10.99.0.2, the log shows five Found 10.99.0.2 lines and then Ban 10.99.0.2, and the next ssh from 10.99.0.2 gets Connection refused](../../assets/fail2ban-2604-shot-03-ban.png)
+
+At the end of the run, after the reboot test in section 8, the journal still had nothing to say about the address, while the log file named it twelve times:
+
+![Terminal: journalctl for the fail2ban unit counts 10.99.0.2 zero times, and grep on /var/log/fail2ban.log counts it 12 times](../../assets/fail2ban-2604-shot-03b-log-not-journal.png)
+
+
+That is Fail2ban, not a stopped `sshd`. The packaged nftables action rejects banned sources with `icmp port-unreachable`, and the SSH client reports that as a refused connection. If port 22 suddenly refuses one machine while another logs in fine, check the ban list before you debug `sshd`.
+
+Run the full test from an address that is not in `ignoreip`, and never from your only management path. An ignored address never reaches the failure counter, so it proves nothing, and any other address is exactly what Fail2ban is supposed to lock out. A successful test should not become an emergency console exercise.
+
+## 8. Show banned IPs and unban an address
+
+`fail2ban-client status` lists the jails. `fail2ban-client status sshd` shows one jail's counters and its `Banned IP list`. That is fine with one jail. Once you have several, ask for every ban at once:
+
+```bash
+sudo fail2ban-client banned
+```
+
+Fail2ban 1.1 prints a Python style list, one entry per jail (my lab had only `sshd`):
+
+```text
+[{'sshd': ['10.99.0.2']}]
+```
+
+An empty jail prints as `[{'sshd': []}]`. To see when each ban expires:
+
+```bash
+sudo fail2ban-client get sshd banip --with-time
+```
+
+```text
+10.99.0.2 	2026-09-26 02:42:25 + 3600 = 2026-09-26 03:42:25
+```
+
+The `+ 3600` is the one hour `bantime` in seconds. To find out which jail banned a particular address, pass it to `banned`:
+
+```bash
+sudo fail2ban-client banned 10.99.0.2
+```
+
+![Terminal: fail2ban-client banned prints [{'sshd': ['10.99.0.2']}], get sshd banip --with-time shows 10.99.0.2 banned at 03:02:50 plus 3600 until 04:02:50, and banned 10.99.0.2 prints [['sshd']]](../../assets/fail2ban-2604-shot-04-show-banned.png)
+
+
+`fail2ban-client status --all` prints the full status block for every jail in one go, if you want the counters too.
+
+To unban an address from one jail:
 
 ```bash
 sudo fail2ban-client set sshd unbanip 203.0.113.41
 ```
 
-Replace the example address with the one shown under `Banned IP list`.
+It prints the number of addresses it removed. `1` means the ban is gone. `0` means that address was not banned in that jail, and it is easy to miss because nothing else is printed. Add `--report-absent` before the address if you want that case to print `not banned` instead.
+
+To unban an address from every jail (with only `sshd` in my lab, "every" was one), or clear every ban on the box:
+
+```bash
+sudo fail2ban-client unban 203.0.113.41
+sudo fail2ban-client unban --all
+```
+
+![Terminal: set sshd unbanip 10.99.0.2 prints 1, the same command again prints 0, with --report-absent it prints not banned, banip of two example addresses prints 2, unban 192.0.2.1 prints 1, unban --all prints 1, and banned ends at [{'sshd': []}]](../../assets/fail2ban-2604-shot-06-unban.png)
+
+
+Restarting the service does not clear bans, and neither does a reboot. Fail2ban keeps them in `/var/lib/fail2ban/fail2ban.sqlite3`. On my test box `systemctl restart fail2ban` logged `Unban` as the old daemon stopped and `Restore Ban` for the same address a second later, and after a full reboot `fail2ban-client banned` still listed it. If you are locked out and waiting it out, you are waiting for the `bantime` to expire, not for the next restart. Unbanning is the quick way out, and the unban also removes the row from that database.
+
+![Terminal: after systemctl restart fail2ban the log shows Unban 10.99.0.2 then Restore Ban 10.99.0.2 a second later, banned still lists it, and after a reboot at 03:03:01 banned still prints [{'sshd': ['10.99.0.2']}]](../../assets/fail2ban-2604-shot-05-restart-reboot.png)
+
 
 ## Fail2ban and UFW are not duplicates
 
@@ -236,10 +333,16 @@ The first ban remains one hour. Repeated bans grow, capped at one week. I would 
 | Check service | `sudo systemctl status fail2ban --no-pager` |
 | List jails | `sudo fail2ban-client status` |
 | Inspect SSH jail | `sudo fail2ban-client status sshd` |
-| Follow Fail2ban log | `sudo journalctl -u fail2ban -f` |
+| Follow Fail2ban log | `sudo tail -f /var/log/fail2ban.log` |
 | Inspect SSH journal | `sudo journalctl -u ssh --since today` |
 | Ban one address | `sudo fail2ban-client set sshd banip ADDRESS` |
-| Unban one address | `sudo fail2ban-client set sshd unbanip ADDRESS` |
+| Show banned IPs in every jail | `sudo fail2ban-client banned` |
+| Show bans with expiry times | `sudo fail2ban-client get sshd banip --with-time` |
+| Which jail banned an address | `sudo fail2ban-client banned ADDRESS` |
+| Unban one address from SSH | `sudo fail2ban-client set sshd unbanip ADDRESS` |
+| Unban from every jail | `sudo fail2ban-client unban ADDRESS` |
+| Unban everything | `sudo fail2ban-client unban --all` |
+| Show the ignoreip list | `sudo fail2ban-client get sshd ignoreip` |
 | Reload after an edit | `sudo systemctl restart fail2ban` |
 
-Install the maintained package, keep the override small, read the journal, and verify the jail instead of trusting the service's green `active` label. Once those four pieces agree, the bots can keep knocking. They just do it from farther away.
+Install the maintained package, keep the override small, read `/var/log/fail2ban.log`, and verify the jail instead of trusting the service's green `active` label. Once those four pieces agree, the bots can keep knocking. They just do it from farther away.

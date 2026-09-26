@@ -196,10 +196,10 @@ Here is where it went wrong. The `/etc/fail2ban` directory does not exist until 
 ```bash
 $ sudo fail2ban-client status sshd
 ...
-   `- Banned IP list:	10.0.1.20 104.3.77.33
+   `- Banned IP list:	10.0.1.20 203.0.113.41
 ```
 
-Two IPs banned. One was a machine I had been failing logins from on purpose. The other, `104.3.77.33`, was my own workstation, banned because of all the root logins I had been refused while testing the sshd lockdown above. fail2ban counts your own failed root attempts, and I had made plenty.
+Two IPs banned. One was a machine I had been failing logins from on purpose. The other, `203.0.113.41`, was my own workstation, banned because of all the root logins I had been refused while testing the sshd lockdown above. fail2ban counts your own failed root attempts, and I had made plenty.
 
 Now the dangerous part, in two halves. First, fail2ban's nftables action does not drop banned traffic, it rejects it:
 

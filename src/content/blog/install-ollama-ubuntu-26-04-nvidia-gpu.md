@@ -1,7 +1,8 @@
 ---
 title: 'Install Ollama on Ubuntu 26.04 with an NVIDIA GPU'
-description: 'Run a private LLM on your own NVIDIA card. Install the driver and native CUDA on Ubuntu 26.04 straight from apt, add Ollama, and confirm the GPU is actually doing the work. The 26.04 install path is shorter than every 24.04 guide.'
+description: 'Run a private LLM on your own NVIDIA card. Install the driver and native CUDA on Ubuntu 26.04 straight from apt, add Ollama, and confirm the GPU is actually doing the work. The 26.04 install path is shorter than every 24.04 guide. Plus how to update Ollama in place and remove models to get the disk back.'
 pubDate: 'Jul 12 2026'
+updatedDate: 'Sep 25 2026'
 heroImage: '../../assets/ollama-nvidia-2604-hero.png'
 tags: ['Ollama', 'Ubuntu', 'Ubuntu2604', 'NVIDIA', 'CUDA', 'GPU', 'LLM', 'AI', 'SelfHosted', 'SysAdmin']
 ---
@@ -114,6 +115,105 @@ ssh -L 11434:127.0.0.1:11434 user@your-gpu-box
 
 Now `localhost:11434` on your laptop talks to the model on the GPU box, encrypted, nothing exposed. For the fuller picture, a Caddy reverse proxy with real auth and a ChatGPT-style Open WebUI, the [cloud Ollama post](/blog/self-host-ollama-oracle-free-vast-gpu/#securing-the-api) covers both and every word applies here too.
 
+## Update Ollama and remove models
+
+Updating Ollama on Linux means running the same install script again; I did not find a separate update command. None of this touches the GPU, so I tested this section on a CPU only Ubuntu 26.04 box: I installed an older release, pulled two small models, updated, then removed them.
+
+Check what you have first:
+
+```bash
+ollama -v
+```
+
+```text
+ollama version is 0.33.3
+```
+
+Compare that with the newest release on the [Ollama releases page](https://github.com/ollama/ollama/releases), or ask GitHub from the terminal:
+
+```bash
+curl -s https://api.github.com/repos/ollama/ollama/releases/latest | grep tag_name
+```
+
+![Terminal: ollama -v prints ollama version is 0.33.3 and the GitHub releases query prints tag_name v0.34.4](../../assets/ollama-2604-shot-01-version.png)
+
+The screenshots in this section come from a second fresh CPU only box, run after the text was written, so times differ from the numbers in the prose.
+
+
+To update, rerun the installer:
+
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+It announces `Cleaning up old version at /usr/local/lib/ollama`, downloads the current build in its place, rewrites the systemd unit, and restarts the service. Then check again:
+
+```bash
+ollama -v
+```
+
+On my box that went from `0.33.3` to `0.34.4`, the service came back `active`, and `ollama list` still showed both models. Models live in a separate directory, so an update does not download them again.
+
+![Terminal: rerunning the install script prints Cleaning up old version at /usr/local/lib/ollama through Install complete plus the CPU only warning, ollama -v then prints 0.34.4, the service is active, and ollama list still shows qwen3:0.6b at 522 MB and smollm2:135m at 270 MB](../../assets/ollama-2604-shot-02-update.png)
+
+
+The script also takes a version, which is how you pin a release (I used it for a fresh install of 0.33.3; rolling an existing install back should work the same way, but I did not test it):
+
+```bash
+curl -fsSL https://ollama.com/install.sh | OLLAMA_VERSION=0.33.3 sh
+```
+
+**The update overwrites `/etc/systemd/system/ollama.service`.** If you added a line such as `Environment="OLLAMA_CONTEXT_LENGTH=8192"` straight into that file, it is gone after the update and Ollama quietly goes back to its defaults. I added a line to the unit on my test box and the update removed it. Put your settings in a drop-in instead:
+
+```bash
+sudo systemctl edit ollama
+```
+
+That writes `/etc/systemd/system/ollama.service.d/override.conf`. The same update left my drop-in alone and `systemctl show ollama -p Environment` still listed its setting afterward.
+
+![Terminal, before the update: grep over the unit file and the drop-in finds three Environment lines, OLLAMA_CONTEXT_LENGTH=8192, PATH and OLLAMA_KEEP_ALIVE=10m](../../assets/ollama-2604-shot-03-unit-before.png)
+
+![Terminal, after the update: the same grep finds only PATH and OLLAMA_KEEP_ALIVE=10m, OLLAMA_CONTEXT_LENGTH is gone, and systemctl show lists PATH and OLLAMA_KEEP_ALIVE=10m](../../assets/ollama-2604-shot-04-unit-after.png)
+
+
+Now the disk. See what you have:
+
+```bash
+ollama list
+```
+
+```text
+NAME            ID              SIZE      MODIFIED
+qwen3:0.6b      7df6b6e09427    522 MB    Less than a second ago
+smollm2:135m    9077fe9d2ae1    270 MB    7 seconds ago
+```
+
+Remove one by the name in the first column:
+
+```bash
+ollama rm smollm2:135m
+```
+
+```text
+deleted 'smollm2:135m'
+```
+
+With the systemd service the install script sets up, models are stored under `/usr/share/ollama/.ollama/models`, split into `blobs` (the weights) and `manifests` (the names). Check the size there before and after:
+
+```bash
+sudo du -sh /usr/share/ollama/.ollama/models
+```
+
+Removing `smollm2:135m` freed 270,901,309 bytes on my box, which is the 270 MB `ollama list` reported. `df` agreed to within 33 KB. A model that is loaded in memory gets unloaded too: `ollama ps` showed it running before the `rm` and empty after.
+
+![Terminal: the models directory is 757M, ollama rm smollm2:135m prints deleted, the directory drops to 499M, and ollama list shows only qwen3:0.6b](../../assets/ollama-2604-shot-05-rm.png)
+
+
+The catch is that `SIZE` in `ollama list` is not always what `rm` gives back. Two names can point at the same blobs. After `ollama cp qwen3:0.6b qwen3-copy`, `ollama list` showed two 522 MB entries with the same ID, and the directory had grown by 858 bytes. Removing the first name freed those 858 bytes and nothing else. The 522 MB only came back when I removed the last name pointing at it. If `rm` did not free what you expected, look for a matching ID further down `ollama list`.
+
+![Terminal: after ollama cp both names show ID 7df6b6e09427 at 522 MB, du -sb reads 522661053, removing qwen3:0.6b leaves 522660195, and removing qwen3-copy leaves 0 files](../../assets/ollama-2604-shot-06-shared-blobs.png)
+
+
 ## Gotchas I hit
 
 - **`nvidia-smi` not working is the root of most problems.** If it fails, the driver did not load. Nothing downstream works until it does.
@@ -122,6 +222,8 @@ Now `localhost:11434` on your laptop talks to the model on the GPU box, encrypte
 - **Do not mix CUDA repos.** Ubuntu's archive or NVIDIA's external repo, one or the other. Mixing breaks library paths.
 - **Model bigger than VRAM.** It still runs, but it spills into system RAM and crawls. Pick a model that fits your card.
 - **Port 11434 has no auth.** Never expose it. Tunnel over SSH or put a real proxy in front.
+- **Updating rewrites the unit file.** Rerunning the install script replaces `/etc/systemd/system/ollama.service`, so settings added there vanish. Use `sudo systemctl edit ollama` (in the lab I wrote the same `override.conf` file directly, since `edit` opens an editor).
+- **`ollama rm` keeps weights another name still uses.** Removing one of two names with the same ID in `ollama list` freed 858 bytes, not 522 MB.
 
 ## Quick reference
 
@@ -137,6 +239,13 @@ Now `localhost:11434` on your laptop talks to the model on the GPU box, encrypte
 | Run a model | `ollama run llama3.1:8b` |
 | Confirm GPU offload | `ollama ps` |
 | Tunnel the API | `ssh -L 11434:127.0.0.1:11434 user@box` |
+| Check the version | `ollama -v` |
+| Update Ollama | `curl -fsSL https://ollama.com/install.sh \| sh` |
+| Install a specific version | `curl -fsSL https://ollama.com/install.sh \| OLLAMA_VERSION=0.33.3 sh` |
+| Change service settings | `sudo systemctl edit ollama` |
+| List models | `ollama list` |
+| Remove a model | `ollama rm MODEL` |
+| Model disk use | `sudo du -sh /usr/share/ollama/.ollama/models` |
 
 Install the driver, take the native CUDA toolkit from `apt` because on 26.04 you finally can, drop Ollama on top, and confirm `ollama ps` says `100% GPU`. The card you already own becomes a private LLM that answers as fast as it can draw power and never phones home.
 
