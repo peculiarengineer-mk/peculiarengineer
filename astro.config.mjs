@@ -2,13 +2,51 @@
 
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
+import { readFileSync } from 'node:fs';
 import { defineConfig, fontProviders } from 'astro/config';
 import rehypeTableWrap from './src/plugins/rehype-table-wrap.mjs';
+
+// lastmod is read back from each built post's own JSON-LD (dateModified, else datePublished),
+// so the sitemap always says exactly what the page says. The sitemap is written after the pages.
+let outDir = new URL('./dist/', import.meta.url);
+
+function lastmodFromBuiltPage(url) {
+	const { pathname } = new URL(url);
+	if (!/^\/blog\/.+/.test(pathname)) return undefined;
+	const bare = pathname.replace(/\/$/, '');
+	for (const file of [`.${bare}/index.html`, `.${bare}.html`]) {
+		let html;
+		try {
+			html = readFileSync(new URL(file, outDir), 'utf8');
+		} catch {
+			continue;
+		}
+		for (const [, json] of html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/gs)) {
+			try {
+				const data = JSON.parse(json);
+				const date = data.dateModified ?? data.datePublished;
+				if (date) return date;
+			} catch {}
+		}
+		return undefined;
+	}
+	return undefined;
+}
 
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://peculiarengineer.com',
-	integrations: [mdx(), sitemap()],
+	integrations: [
+		{ name: 'sitemap-outdir', hooks: { 'astro:config:done': ({ config }) => { outDir = config.outDir; } } },
+		mdx(),
+		sitemap({
+			serialize(item) {
+				const lastmod = lastmodFromBuiltPage(item.url);
+				if (lastmod) item.lastmod = lastmod;
+				return item;
+			},
+		}),
+	],
 	markdown: {
 		rehypePlugins: [rehypeTableWrap],
 	},
