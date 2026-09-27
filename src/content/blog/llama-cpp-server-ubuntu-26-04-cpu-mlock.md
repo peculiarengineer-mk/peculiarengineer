@@ -18,7 +18,7 @@ The rest of this post is the setup I wanted in the first place: llama.cpp's own 
 
 The one thing to get straight: llama.cpp moves fast, and the version you install decides which flags exist and which models load. The copy in Ubuntu's archive is build 8681 and still takes `--mlock`. It also refused the current Qwen3.5 file I tried. The release builds on GitHub are current and error on `--mlock`. Pick the source first, then write flags for that version.
 
-> **TL;DR.** `sudo apt install libgomp1`, extract the release tarball into a versioned directory with `tar --no-same-owner`, point a symlink `/opt/llama.cpp` at it, create a `llama` system user **with a home directory**, download the model as that user with `llama download -hf <repo>:<quant>`, and run `llama-server` from systemd with `--host 127.0.0.1`, `--api-key-file` and `--offline`. If an old unit dies with `error: invalid argument: --mlock`, replace it with `--load-mode mmap+mlock` and add `LimitMEMLOCK=infinity` to the unit, or drop the lock entirely. `LLAMA_ARG_MLOCK=1` no longer errors; it is silently ignored, so set `LLAMA_ARG_LOAD_MODE=mmap+mlock` instead.
+> **TL;DR.** `sudo apt update && sudo apt install libgomp1`, extract the release tarball into a versioned directory with `tar --no-same-owner`, point a symlink `/opt/llama.cpp` at it, create a `llama` system user **with a home directory**, download the model as that user with `llama download -hf <repo>:<quant>`, and run `llama-server` from systemd with `--host 127.0.0.1`, `--api-key-file` and `--offline`. If an old unit dies with `error: invalid argument: --mlock`, replace it with `--load-mode mmap+mlock` and add `LimitMEMLOCK=infinity` to the unit, or drop the lock entirely. `LLAMA_ARG_MLOCK=1` no longer errors; it is silently ignored, so set `LLAMA_ARG_LOAD_MODE=mmap+mlock` instead.
 
 ## Contents
 
@@ -58,14 +58,15 @@ The builds are on the [releases page](https://github.com/ggml-org/llama.cpp/rele
 The release build needs one library that a fresh 26.04 server does not have, the GNU OpenMP runtime:
 
 ```bash
+sudo apt update
 sudo apt install libgomp1
 ```
 
-Skip it and the first `--version` stops with `error while loading shared libraries: libgomp.so.1: cannot open shared object file`. (I only found this on a second, truly fresh box. On my first box I had installed the apt `llama.cpp` package earlier, which pulls `libgomp1` in, so the release build just worked there.)
+Skip it and the first `--version` stops with `error while loading shared libraries: libgomp.so.1: cannot open shared object file`. (I only found this on a second, truly fresh box. On my first box I had installed the apt `llama.cpp` package earlier, which pulls `libgomp1` in, so the release build just worked there. And on a brand new cloud box, `apt install` on its own says `Unable to locate package libgomp1` until `apt update` has filled the package lists.)
 
 ![on a fresh box, llama-server --version fails with libgomp.so.1: cannot open shared object file; after apt install libgomp1 it prints version 0.5.0-dev (build 11222, commit a97cce86a)](../../assets/llama-cpp-2604-shot-01-libgomp.png)
 
-The screenshots in this post come from a final clean run on a fresh box, after the rest was written and reviewed, so PIDs, times and IDs differ from the text blocks. Two of them start the server with `systemd-run` as a quick transient unit instead of editing the real one.
+The screenshots in this post come from a final clean run on a fresh box, after the rest was written and reviewed, so PIDs, times and IDs differ from the text blocks. Two of them start the server with `systemd-run` as a quick transient unit instead of editing the real one. That run did its `apt update` before the first shot.
 
 Then the build itself:
 
@@ -189,7 +190,7 @@ Why each piece is there:
 - `--host 127.0.0.1` keeps it on the box. Without an API key the server says so in its log: `security: no API key is set and CORS allows all origins`. If other machines need it, put it behind a reverse proxy with TLS (my [nginx reverse proxy post](/blog/nginx-reverse-proxy-ubuntu-26-04/) covers that) rather than binding it to `0.0.0.0`.
 - `--api-key-file` reads the key from the file, so it never shows up in `ps` or `systemctl status` the way `--api-key <key>` would.
 - `--ctx-size 8192` caps the context. The default of 0 means "whatever the model says", and Qwen3.5 says 262,144 tokens. The KV cache for the context comes out of RAM, so pick a number that fits.
-- `MemoryMax=6G` stops a runaway model from taking the whole box. Size it to the model plus the context.
+- `MemoryMax=6G` stops a runaway model from taking the whole box. The model file's pages count against it once the service reads them, so size it to the model file plus what the process allocates for the context. With the page cache dropped (the state after a reboot), this Gemma setup reached 6.75 GiB: 2.4 GiB of its own memory and 4.3 GiB of model file pages. (The status screenshot above shows 2.4G because the download had just cached the file outside the service.) At `6G` it still answered at about 5.3 tokens a second with no OOM kill, but it sat at the cap and the kernel kept dropping and rereading model pages. At `7G` (systemd reads `G` as GiB) it all fit, with no rereads.
 - `ProtectSystem=strict` makes the filesystem read only for the service, `ReadWritePaths=/var/lib/llama` opens up its home again, and `PrivateTmp=yes` gives it a private, writable `/tmp`. `ProtectHome=yes` is safe here only because the home is in `/var/lib`.
 
 If units are new to you, my [systemd units and timers post](/blog/systemd-units-timers-ubuntu-26-04/) walks through the pieces.
@@ -269,7 +270,7 @@ W DEPRECATED: --mlock is deprecated. use --load-mode mlock instead
 
 and it does what it says: on 0.4.0 the old flag tried to lock an 800,882,688 byte buffer, the same size of buffer `--load-mode mlock` locks on the new build. So a unit written for 0.4.0 already had `mlock` behaviour, and a unit written before 0.4 had `mmap+mlock` behaviour.
 
-The difference is real. `mlock` on its own means no mmap: the whole model is read into the process's own memory. I ran both in the unit with the same 834 MB model. With `mmap+mlock`, systemd counted about 280 MB against the service. With `mlock`, it counted 1 GB. `VmLck` was the same 782,116 kB either way. With a `MemoryMax=` in the unit, that is the number that matters, so I use `mmap+mlock`.
+The difference is how the model sits in memory. `mlock` on its own means no mmap: the whole model is copied into the process's own memory. `mmap+mlock` maps the file and locks those pages where they are, in the page cache, shared with anything else reading the same file. `VmLck` was the same 782,116 kB either way for the 834 MB Qwen file. I had first read the memory numbers as a reason to prefer `mmap+mlock` (systemd showed 280 MiB against the service, against about 1 GiB for `mlock`), but that was only because the download had already cached the file outside the service. From a cold cache, `mmap+mlock` was charged about 1.07 GiB too. So for `MemoryMax=` they come out about the same. I use `mmap+mlock` because it is what the old `--mlock` did.
 
 **The Docker trap: `LLAMA_ARG_MLOCK` is silently ignored.** Most flags have an environment variable form (`--help` lists it under each flag), and Compose files use them a lot. On build 11222, `LLAMA_ARG_MLOCK=1` started the server with no warning and `VmLck: 0 kB`. The flag errors; the variable does not, so the container keeps running and the lock is just gone. Replace it with `LLAMA_ARG_LOAD_MODE=mmap+mlock`, and look for `LLAMA_ARG_MMAP` and `LLAMA_ARG_NO_MMAP` in your Compose files while you are there.
 
@@ -361,7 +362,7 @@ If the new build breaks something anyway (the `--mlock` removal was exactly this
 
 - `error: invalid argument: --mlock` from 0.4.1 onwards, and the same for `--mmap`, `--no-mmap` and `--direct-io`. Use `--load-mode`.
 - `LLAMA_ARG_MLOCK=1` does not error. It is ignored, and the server starts without the lock.
-- Before 0.4, `--mlock` meant `--load-mode mmap+mlock`. The 0.4.0 shim mapped it to `--load-mode mlock` instead, which counts the whole model against `MemoryMax=`.
+- Before 0.4, `--mlock` meant `--load-mode mmap+mlock`. The 0.4.0 shim mapped it to `--load-mode mlock` instead, which copies the whole model into the process's own memory.
 - `mmap+mlock` under systemd did nothing until `LimitMEMLOCK=infinity`, and it only said so in a warning.
 - Extracting the release tarball as root without `--no-same-owner` gave uid 1001 ownership of the server's files.
 - `llama-server` copied alone into `/usr/local/bin` cannot find `libllama-server-impl.so`. Symlink it.
@@ -375,7 +376,7 @@ If the new build breaks something anyway (the `--mlock` removal was exactly this
 | Job or symptom | Command or fix |
 | --- | --- |
 | Which build am I on | `llama-server --version` |
-| `libgomp.so.1: cannot open shared object file` | `sudo apt install libgomp1` |
+| `libgomp.so.1: cannot open shared object file` | `sudo apt update && sudo apt install libgomp1` |
 | Install a release build | `tar xzf llama-<b>-bin-ubuntu-x64.tar.gz -C /opt/llama.cpp-<b> --strip-components=1 --no-same-owner`, then `ln -sfn` |
 | Download a model | `sudo -u llama llama download -hf <repo>:<quant> --no-mmproj` |
 | List cached models | `sudo -u llama llama-server --cache-list` |
