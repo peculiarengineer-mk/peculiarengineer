@@ -33,7 +33,7 @@ The one thing to get straight: Nginx Proxy Manager runs inside a container, so e
 
 - Docker Engine and the Compose plugin from Docker's own apt repository. My [Install Docker on Ubuntu 26.04](/blog/install-docker-ubuntu-26-04/) post covers it.
 - A DNS name pointing at the server. Your own domain works, and so does a free DuckDNS name, which I used in the [NetBird post](/blog/self-host-netbird-reverse-proxy-duckdns-ubuntu-26-04/). For this post I used an `sslip.io` name (`whoami.<the-ip-with-dashes>.sslip.io` resolves to that IP), which needs no account. Let's Encrypt limits certificates per registered domain, and `duckdns.org` is on the Public Suffix List, so your DuckDNS name gets its own quota. `sslip.io` is not on the list when I checked, so everyone using it shares one quota. It worked for me, but for anything you keep, use a domain or DuckDNS.
-- Ports 80 and 443 reachable from the internet. Port 80 is not optional even if you only want HTTPS: Let's Encrypt checks it ([section 7](#7-https-and-the-internal-error-behind-a-failed-certificate)).
+- Ports 80 and 443 reachable from the internet. Port 80 matters even if you only want HTTPS: the normal certificate request uses Let's Encrypt's HTTP challenge, which connects to port 80 ([section 7](#7-https-and-the-internal-error-behind-a-failed-certificate)). The DNS challenge avoids that, but needs your DNS provider's API credentials, and this post does not cover it.
 
 ## 2. The compose file
 
@@ -78,11 +78,11 @@ curl -s localhost:81/api/
 {"status":"OK","setup":false,"version":{"major":2,"minor":16,"revision":0}}
 ```
 
-The first start, image pull included, took about 14 seconds. Three lines differ from the official example in ways that matter, and each one is on purpose:
+The first start, image pull included, took about 14 seconds. Three lines are there on purpose:
 
-- `2.16.0` instead of `latest`, so an upgrade happens when you decide ([section 8](#8-backups-and-upgrades)).
-- `127.0.0.1:81:81` instead of `81:81`. Port 81 is the admin UI. Bound to `127.0.0.1` it answers only on the server itself, and [sections 3 and 4](#3-the-first-login-there-is-no-changeme) are why.
-- The external `proxy` network, so apps from other Compose projects can join it ([section 5](#5-put-an-app-behind-it)).
+- A fixed tag, `2.16.0`, never `latest`, so an upgrade happens when you decide ([section 8](#8-backups-and-upgrades)). The official example pins it too.
+- `127.0.0.1:81:81` where the official example has `81:81`. Port 81 is the admin UI. Bound to `127.0.0.1` it answers only on the server itself, and [sections 3 and 4](#3-the-first-login-there-is-no-changeme) are why.
+- The external `proxy` network, which the official example does not have, so apps from other Compose projects can join it ([section 5](#5-put-an-app-behind-it)).
 
 `"setup":false` in that API answer means no admin exists yet. Keep reading before you do anything else.
 
@@ -138,7 +138,7 @@ If your plan was "publish 81 and block it with ufw", I tried it:
 ```text
 $ sudo ufw deny 81/tcp
 $ sudo ufw status
-81/tcp                     DENY IN     Anywhere
+81/tcp                     DENY        Anywhere
 ```
 
 From another machine, `http://<server-ip>:81/` still answered `200`. Docker publishes ports with its own firewall rules, and traffic to a published port is forwarded to the container before ufw's input rules ever see it. My [ufw basics post](/blog/ufw-firewall-basics-ubuntu/) warns about this, and here it is doing real damage: the rule shows up in `ufw status`, looks like protection, and blocks nothing.
@@ -162,7 +162,7 @@ networks:
     external: true
 ```
 
-No `ports:` at all. Nothing on the host listens for it, and the only way in is through the proxy. After `cd /opt/whoami && sudo docker compose up -d`, both containers are on the network:
+No `ports:` at all. Nothing on the host listens for it, so from outside the only way in is through the proxy. (The server itself and other containers on `proxy` can still reach it at its Docker address.) After `cd /opt/whoami && sudo docker compose up -d`, both containers are on the network:
 
 ```text
 $ sudo docker network inspect proxy -f '{{range .Containers}}{{.Name}} {{end}}'
@@ -203,7 +203,7 @@ connect() failed (111: Connection refused) while connecting to upstream, ... ups
 whoami could not be resolved (2: Server failure)
 ```
 
-Docker's DNS only answers names on networks the container is attached to. Add the app to the shared network.
+Docker's DNS only answers names on networks the container is attached to. Add the app to the shared network. The same message also appears when the app container is stopped, so check `docker ps` too.
 
 **The host port instead of the container port.** With both on `proxy`, forwarding to `whoami` port `8080` (the old published port) gave:
 
@@ -211,13 +211,13 @@ Docker's DNS only answers names on networks the container is attached to. Add th
 connect() failed (111: Connection refused) while connecting to upstream, ... upstream: "http://172.20.0.3:8080/"
 ```
 
-The name resolved, so the network is right, but inside the network you talk to the container's own port, 80 here. The `8080` in `8080:80` only exists on the host.
+The name resolved, so the network is right, but inside the network you talk to the container's own port, 80 here. (A container that is up but whose app is not listening, for example because the app process inside it died, gives the same refused line on the correct port.) The `8080` in `8080:80` only exists on the host.
 
 | Error log says | Meaning | Fix |
 | --- | --- | --- |
 | `upstream: "http://[::1]:<port>/"` | forwarding to the proxy's own localhost | the container name, on a shared network |
-| `<name> could not be resolved` | the app is not on the proxy's network | add both to `proxy` |
-| `Connection refused` to a `172.x` address | right container, wrong port | the container's internal port |
+| `<name> could not be resolved` | the app is not on the proxy's network, or not running | add both to `proxy`; check `docker ps` |
+| `Connection refused` to a `172.x` address | wrong port, or the app is not listening | the container's internal port; the app's own logs |
 
 ## 7. HTTPS, and the Internal Error behind a failed certificate
 
@@ -276,7 +276,7 @@ To upgrade, back up, change the tag in `compose.yaml`, and run `sudo docker comp
 - `localhost` as the forward host points at the proxy container, not the server.
 - Forward to the container's own port, not the published host port.
 - A certificate request with an `example.com` admin email fails, and the UI shows only `Internal Error`.
-- No port 80, no certificate, even for an HTTPS only site.
+- No port 80, no certificate with the default HTTP challenge, even for an HTTPS only site.
 
 ## Quick reference
 
