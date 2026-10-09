@@ -1,11 +1,16 @@
-<div id="consent-banner" role="region" aria-label="Cookie consent" hidden>
-	<p>
-		<span class="prompt">~/$</span> This site uses Google Analytics cookies to count visits.
-		No analytics cookies are set unless you accept.
-	</p>
+<div id="consent-banner" class="term-panel" role="region" aria-label="Cookie consent" hidden>
+	<span class="term-label">:: consent.sh ::</span>
+	<div class="log">
+		<div class="dim">PECOS COOKIE DAEMON v1.0</div>
+		<div>Analytics cookies (Google Analytics)... <span id="consent-state" class="err">OFF</span></div>
+		<div>
+			<span class="hi">$ allow analytics?</span> Counts visits. Cookies are set only if you accept.
+		</div>
+	</div>
 	<div class="actions">
-		<button type="button" id="consent-accept">Accept</button>
-		<button type="button" id="consent-decline">Decline</button>
+		<button type="button" class="btn" id="consent-accept" aria-label="Accept">[ ACCEPT ]</button>
+		<button type="button" class="btn btn-dim" id="consent-decline" aria-label="Decline">[ DECLINE ]</button>
+		<span class="cursor-blink" aria-hidden="true"></span>
 	</div>
 </div>
 
@@ -36,11 +41,18 @@
 			}
 			banner.hidden = true;
 		}
-		if (!read()) banner.hidden = false;
+		var state = document.getElementById('consent-state');
+		function show() {
+			var on = read() === 'granted';
+			state.textContent = on ? 'ON' : 'OFF';
+			state.className = on ? 'hi' : 'err';
+			banner.hidden = false;
+		}
+		if (!read()) show();
 		document.getElementById('consent-accept').addEventListener('click', function () { set('granted'); });
 		document.getElementById('consent-decline').addEventListener('click', function () { set('denied'); });
 		document.addEventListener('click', function (e) {
-			if (e.target && e.target.closest && e.target.closest('[data-consent-reopen]')) banner.hidden = false;
+			if (e.target && e.target.closest && e.target.closest('[data-consent-reopen]')) show();
 		});
 	})();
 </script>
@@ -54,44 +66,69 @@
 		max-width: 640px;
 		margin: 0 auto;
 		z-index: 1000;
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.75em 1.5em;
-		padding: 1em 1.25em;
+		padding: 1.25em 1.25em 1em;
 		background: var(--sys-bg);
 		color: var(--sys-text);
-		border: 1px solid var(--sys-fg);
 		box-shadow: 0 0 18px rgba(var(--sys-fg-rgb), 0.25);
-		font-size: 0.9em;
+		font-size: 0.85em;
+		line-height: 1.5;
 	}
 	#consent-banner[hidden] {
 		display: none;
 	}
-	p {
-		margin: 0;
-		flex: 1 1 18em;
+	@media (prefers-reduced-motion: no-preference) {
+		#consent-banner:not([hidden]) {
+			animation: boot 0.3s steps(4, end) both;
+		}
 	}
-	.prompt {
+	@keyframes boot {
+		0% { opacity: 0; transform: translateY(8px); }
+		100% { opacity: 1; transform: none; }
+	}
+	.log {
+		color: var(--sys-dim);
+	}
+	.dim {
+		color: var(--sys-dim);
+	}
+	.hi {
 		color: var(--sys-fg);
 		font-weight: 700;
 	}
+	.err {
+		color: #f2837a;
+	}
 	.actions {
 		display: flex;
-		gap: 0.5em;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75em;
+		margin-top: 1em;
 	}
-	button {
+	.btn {
 		font: inherit;
 		cursor: pointer;
-		padding: 0.4em 1em;
+		padding: 0.4em 0.9em;
+		text-transform: uppercase;
+		font-weight: 700;
 		background: transparent;
-		color: var(--sys-fg);
 		border: 1px solid var(--sys-fg);
+		color: var(--sys-fg);
 	}
-	button:hover,
-	button:focus-visible {
+	.btn-dim {
+		border-color: var(--sys-dim);
+		color: var(--sys-dim);
+		font-weight: 400;
+	}
+	.btn:hover,
+	.btn-dim:hover,
+	.btn:focus-visible {
+		border-color: var(--sys-fg);
 		background: var(--sys-fg);
 		color: var(--sys-bg);
+	}
+	.btn:focus-visible {
+		outline: 2px solid var(--sys-fg);
+		outline-offset: 3px;
 	}
 </style>
