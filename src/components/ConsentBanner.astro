@@ -1,0 +1,97 @@
+<div id="consent-banner" role="region" aria-label="Cookie consent" hidden>
+	<p>
+		<span class="prompt">~/$</span> This site uses Google Analytics cookies to count visits.
+		No analytics cookies are set unless you accept.
+	</p>
+	<div class="actions">
+		<button type="button" id="consent-accept">Accept</button>
+		<button type="button" id="consent-decline">Decline</button>
+	</div>
+</div>
+
+<script is:inline>
+	(function () {
+		var banner = document.getElementById('consent-banner');
+		var KEY = 'pe-consent';
+		function read() {
+			try { return localStorage.getItem(KEY); } catch (e) { return null; }
+		}
+		function save(v) {
+			try { localStorage.setItem(KEY, v); } catch (e) {}
+		}
+		function set(v) {
+			save(v);
+			if (v === 'granted') {
+				if (window.peLoadAnalytics) window.peLoadAnalytics();
+			} else if (window.peAnalyticsLoaded) {
+				// gtag.js is already running on this page: drop its cookies and start clean
+				document.cookie.split(';').forEach(function (c) {
+					var n = c.split('=')[0].trim();
+					if (n === '_ga' || n.indexOf('_ga_') === 0) {
+						document.cookie = n + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+					}
+				});
+				location.reload();
+				return;
+			}
+			banner.hidden = true;
+		}
+		if (!read()) banner.hidden = false;
+		document.getElementById('consent-accept').addEventListener('click', function () { set('granted'); });
+		document.getElementById('consent-decline').addEventListener('click', function () { set('denied'); });
+		document.addEventListener('click', function (e) {
+			if (e.target && e.target.closest && e.target.closest('[data-consent-reopen]')) banner.hidden = false;
+		});
+	})();
+</script>
+
+<style>
+	#consent-banner {
+		position: fixed;
+		left: 1em;
+		right: 1em;
+		bottom: 1em;
+		max-width: 640px;
+		margin: 0 auto;
+		z-index: 1000;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75em 1.5em;
+		padding: 1em 1.25em;
+		background: var(--sys-bg);
+		color: var(--sys-text);
+		border: 1px solid var(--sys-fg);
+		box-shadow: 0 0 18px rgba(var(--sys-fg-rgb), 0.25);
+		font-size: 0.9em;
+	}
+	#consent-banner[hidden] {
+		display: none;
+	}
+	p {
+		margin: 0;
+		flex: 1 1 18em;
+	}
+	.prompt {
+		color: var(--sys-fg);
+		font-weight: 700;
+	}
+	.actions {
+		display: flex;
+		gap: 0.5em;
+	}
+	button {
+		font: inherit;
+		cursor: pointer;
+		padding: 0.4em 1em;
+		background: transparent;
+		color: var(--sys-fg);
+		border: 1px solid var(--sys-fg);
+	}
+	button:hover,
+	button:focus-visible {
+		background: var(--sys-fg);
+		color: var(--sys-bg);
+	}
+</style>

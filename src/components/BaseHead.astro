@@ -58,12 +58,28 @@ const { title, description, image = FallbackImage, ogType = 'website' } = Astro.
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={new URL(image.src, Astro.url)} />
 
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-VKCK49R0X1"></script>
+<!-- Google tag (gtag.js): loaded only after the visitor accepts (see ConsentBanner) -->
 <script is:inline>
 	window.dataLayer = window.dataLayer || [];
 	function gtag(){dataLayer.push(arguments);}
-	gtag('js', new Date());
-
-	gtag('config', 'G-VKCK49R0X1');
+	gtag('consent', 'default', {
+		analytics_storage: 'denied',
+		ad_storage: 'denied',
+		ad_user_data: 'denied',
+		ad_personalization: 'denied',
+	});
+	window.peLoadAnalytics = function () {
+		gtag('consent', 'update', { analytics_storage: 'granted' });
+		if (window.peAnalyticsLoaded) return;
+		window.peAnalyticsLoaded = true;
+		gtag('js', new Date());
+		gtag('config', 'G-VKCK49R0X1');
+		var s = document.createElement('script');
+		s.async = true;
+		s.src = 'https://www.googletagmanager.com/gtag/js?id=G-VKCK49R0X1';
+		document.head.appendChild(s);
+	};
+	try {
+		if (localStorage.getItem('pe-consent') === 'granted') window.peLoadAnalytics();
+	} catch (e) {}
 </script>

@@ -1,5 +1,6 @@
 ---
 import SocialLinks from './SocialLinks.astro';
+import ConsentBanner from './ConsentBanner.astro';
 
 const today = new Date();
 ---
@@ -10,7 +11,9 @@ const today = new Date();
 		<span class="copy">&copy; {today.getFullYear()} Peculiar Engineer. Built for rigor.</span>
 	</div>
 	<SocialLinks />
+	<button type="button" class="cookie-link" data-consent-reopen>Cookie settings</button>
 </footer>
+<ConsentBanner />
 <style>
 	footer {
 		margin-top: 3em;
@@ -42,5 +45,18 @@ const today = new Date();
 	.footer-id .copy {
 		color: var(--sys-dim);
 		font-size: 0.85em;
+	}
+	.cookie-link {
+		font: inherit;
+		font-size: 0.85em;
+		background: none;
+		border: 0;
+		padding: 0.6em 0.25em;
+		color: var(--sys-dim);
+		text-decoration: underline;
+		cursor: pointer;
+	}
+	.cookie-link:hover {
+		color: var(--sys-fg);
 	}
 </style>
