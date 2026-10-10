@@ -1,5 +1,5 @@
 ---
-title: 'Claude Code as the boss, a local Qwen 27B as the worker: orchestration against one big prompt'
+title: 'Claude Code with a local LLM as the worker: cheaper coding, and the bug only the review caught'
 description: 'I had Claude split a five module Python project into small tasks for Qwen3.8 27B on a rented 24 GB GPU, review every result against the spec and send it back with a reproduction. Measured against handing Qwen the whole spec in one prompt: 78 and 77 out of 78 tests (58 of them hidden) orchestrated, 76, 74 and 71 one shot, the bug every one shot run shipped, and what the review missed.'
 pubDate: 'Oct 10 2026'
 heroImage: '../../assets/claude-code-local-qwen-worker-hero.png'
