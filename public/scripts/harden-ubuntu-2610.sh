@@ -17,36 +17,67 @@ if [ -z "$user" ] || ! id "$user" >/dev/null 2>&1; then
   exit 1
 fi
 
-if [ ! -s "/home/$user/.ssh/authorized_keys" ]; then
-  echo "no ssh key for $user, add one to /home/$user/.ssh/authorized_keys first"
+if [ "${SUDO_USER:-}" != "$user" ]; then
+  echo "run this with sudo from your own ssh login as $user"
   exit 1
 fi
 
-if ! id -nG "$user" | grep -qw sudo; then
+home="$(getent passwd "$user" | cut -d: -f6)"
+
+if [ ! -s "$home/.ssh/authorized_keys" ]; then
+  echo "no ssh key for $user, add one to $home/.ssh/authorized_keys first"
+  exit 1
+fi
+
+if ! id -nG "$user" | tr ' ' '\n' | grep -qx sudo; then
   echo "$user is not in the sudo group, run: usermod -aG sudo $user"
   exit 1
 fi
 
 # bring the box up to date first
 apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get -y full-upgrade
+DEBIAN_FRONTEND=noninteractive apt-get -y full-upgrade -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold
 
-# firewall, ssh stays open
+# firewall, ssh stays open on the port sshd uses. minimal images lack ufw
+DEBIAN_FRONTEND=noninteractive apt-get -y install ufw
+port="$(sshd -T | awk 'tolower($1) == "port" { print $2; exit }')"
+if [ -z "$port" ]; then
+  echo "no ssh port found in sshd -T, no firewall rules were set"
+  exit 1
+fi
 ufw default deny incoming
 ufw default allow outgoing
-ufw allow OpenSSH
+if [ "$port" = 22 ]; then
+  ufw allow OpenSSH
+else
+  ufw allow "$port"/tcp
+fi
 ufw --force enable
 
-# ssh hardening as a drop-in, the main config stays untouched
-cat > /etc/ssh/sshd_config.d/99-hardening.conf <<'EOF'
+# ssh hardening as a drop-in, the main config stays untouched. named 00 because
+# sshd keeps the first value it reads and provider drop-ins sort later
+cat > /etc/ssh/sshd_config.d/00-hardening.conf <<'EOF'
 PermitRootLogin no
 PasswordAuthentication no
 KbdInteractiveAuthentication no
 PubkeyAuthentication yes
 X11Forwarding no
 EOF
-sshd -t
-systemctl reload ssh
+if ! sshd -t; then
+  rm -f /etc/ssh/sshd_config.d/00-hardening.conf
+  echo "sshd rejects the new config, the drop-in is removed, nothing is reloaded"
+  exit 1
+fi
+systemctl try-reload-or-restart ssh
+
+# check the live values, an earlier drop-in can still win
+live="$(sshd -T | tr '[:upper:]' '[:lower:]')"
+for kv in "permitrootlogin no" "passwordauthentication no" "kbdinteractiveauthentication no"; do
+  if ! grep -qx "$kv" <<<"$live"; then
+    echo "ssh is not hardened, $kv does not stick, check the drop-ins in /etc/ssh/sshd_config.d"
+    exit 1
+  fi
+done
 
 # let unattended upgrades reboot the box at 02:30
 cat > /etc/apt/apt.conf.d/52unattended-reboot <<'EOF'
@@ -55,7 +86,7 @@ Unattended-Upgrade::Automatic-Reboot-Time "02:30";
 EOF
 
 # fail2ban bans brute force ssh
-DEBIAN_FRONTEND=noninteractive apt-get -y install fail2ban
+DEBIAN_FRONTEND=noninteractive apt-get -y install fail2ban -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold
 systemctl enable --now fail2ban
 
 # what is listening now
