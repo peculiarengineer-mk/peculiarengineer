@@ -40,7 +40,7 @@ DEBIAN_FRONTEND=noninteractive apt-get -y full-upgrade -o Dpkg::Options::=--forc
 
 # firewall, ssh stays open on the port sshd uses. minimal images lack ufw
 DEBIAN_FRONTEND=noninteractive apt-get -y install ufw
-port="$(sshd -T | awk 'tolower($1) == "port" { print $2; exit }')"
+port="$(sshd -T | awk 'tolower($1) == "port" && !found { print $2; found = 1 }')"
 if [ -z "$port" ]; then
   echo "no ssh port found in sshd -T, no firewall rules were set"
   exit 1
