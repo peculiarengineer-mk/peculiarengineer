@@ -2,9 +2,9 @@
 	<span class="term-label">:: consent.sh ::</span>
 	<div class="log">
 		<div class="dim">PECOS COOKIE DAEMON v1.0</div>
-		<div>Analytics cookies (Google Analytics)... <span id="consent-state" class="err">OFF</span></div>
+		<div>Analytics cookies (Google Analytics)... <span id="consent-state" class="hi">ON</span></div>
 		<div>
-			<span class="hi">$ allow analytics?</span> Counts visits. Cookies are set only if you accept.
+			<span class="hi">$ allow analytics?</span> Counts visits. Analytics cookies are on unless you decline.
 		</div>
 	</div>
 	<div class="actions">
@@ -29,11 +29,19 @@
 			if (v === 'granted') {
 				if (window.peLoadAnalytics) window.peLoadAnalytics();
 			} else if (window.peAnalyticsLoaded) {
-				// gtag.js is already running on this page: drop its cookies and start clean
+				// gtag.js is already running on this page: turn its storage off first or it writes
+				// the cookies again while the page unloads
+				if (typeof gtag === 'function') gtag('consent', 'update', { analytics_storage: 'denied' });
+				// ga sets the cookies on the site domain, so expire each one bare, on the hostname
+				// and on the hostname without a leading www. to catch every domain it may use
+				var host = location.hostname;
+				var root = host.replace(/^www\./, '');
 				document.cookie.split(';').forEach(function (c) {
 					var n = c.split('=')[0].trim();
 					if (n === '_ga' || n.indexOf('_ga_') === 0) {
 						document.cookie = n + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+						document.cookie = n + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=' + host;
+						document.cookie = n + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.' + root;
 					}
 				});
 				location.reload();
@@ -43,9 +51,9 @@
 		}
 		var state = document.getElementById('consent-state');
 		function show() {
-			var on = read() === 'granted';
-			state.textContent = on ? 'ON' : 'OFF';
-			state.className = on ? 'hi' : 'err';
+			var denied = read() === 'denied';
+			state.textContent = denied ? 'OFF' : 'ON';
+			state.className = denied ? 'err' : 'hi';
 			banner.hidden = false;
 		}
 		if (!read()) show();
