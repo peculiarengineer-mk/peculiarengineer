@@ -6,6 +6,8 @@ heroImage: '../../assets/upgrade-2610-beta-hero.png'
 tags: ['Ubuntu', 'Ubuntu2610', 'Ubuntu2604', 'Linux', 'Server', 'Upgrade', 'Beta', 'SysAdmin']
 ---
 
+> **Update, 16 October 2026.** 26.10 is out. For the released version, including why plain `do-release-upgrade` still says "No new release found" in release week, see [Upgrade Ubuntu 26.04 to 26.10](/blog/upgrade-ubuntu-26-04-to-26-10/).
+
 I couldn't wait. I wanted to see what changed, how it would affect my workflow, and what new tech I could use right now.
 
 Ubuntu 26.10, "Stonking Stingray", is in beta, and the final release is due on 15 October 2026. This is how to get a 26.04 LTS server onto the beta: what has to be in place first, the two places the upgrader stops you, and how to check you made it.
