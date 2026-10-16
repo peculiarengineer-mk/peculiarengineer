@@ -58,7 +58,7 @@ const { title, description, image = FallbackImage, ogType = 'website' } = Astro.
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={new URL(image.src, Astro.url)} />
 
-<!-- Google tag (gtag.js): loaded only after the visitor accepts (see ConsentBanner) -->
+<!-- Google tag (gtag.js): loads by default and stops after the visitor declines (see ConsentBanner) -->
 <script is:inline>
 	window.dataLayer = window.dataLayer || [];
 	function gtag(){dataLayer.push(arguments);}
@@ -80,6 +80,8 @@ const { title, description, image = FallbackImage, ogType = 'website' } = Astro.
 		document.head.appendChild(s);
 	};
 	try {
-		if (localStorage.getItem('pe-consent') === 'granted') window.peLoadAnalytics();
-	} catch (e) {}
+		if (localStorage.getItem('pe-consent') !== 'denied') window.peLoadAnalytics();
+	} catch (e) {
+		window.peLoadAnalytics();
+	}
 </script>

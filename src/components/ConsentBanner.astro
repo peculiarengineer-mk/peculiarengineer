@@ -2,9 +2,9 @@
 	<span class="term-label">:: consent.sh ::</span>
 	<div class="log">
 		<div class="dim">PECOS COOKIE DAEMON v1.0</div>
-		<div>Analytics cookies (Google Analytics)... <span id="consent-state" class="err">OFF</span></div>
+		<div>Analytics cookies (Google Analytics)... <span id="consent-state" class="hi">ON</span></div>
 		<div>
-			<span class="hi">$ allow analytics?</span> Counts visits. Cookies are set only if you accept.
+			<span class="hi">$ allow analytics?</span> Counts visits. Analytics cookies are on unless you decline.
 		</div>
 	</div>
 	<div class="actions">
@@ -43,9 +43,9 @@
 		}
 		var state = document.getElementById('consent-state');
 		function show() {
-			var on = read() === 'granted';
-			state.textContent = on ? 'ON' : 'OFF';
-			state.className = on ? 'hi' : 'err';
+			var denied = read() === 'denied';
+			state.textContent = denied ? 'OFF' : 'ON';
+			state.className = denied ? 'err' : 'hi';
 			banner.hidden = false;
 		}
 		if (!read()) show();
