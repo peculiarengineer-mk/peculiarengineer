@@ -29,11 +29,19 @@
 			if (v === 'granted') {
 				if (window.peLoadAnalytics) window.peLoadAnalytics();
 			} else if (window.peAnalyticsLoaded) {
-				// gtag.js is already running on this page: drop its cookies and start clean
+				// gtag.js is already running on this page: turn its storage off first or it writes
+				// the cookies again while the page unloads
+				if (typeof gtag === 'function') gtag('consent', 'update', { analytics_storage: 'denied' });
+				// ga sets the cookies on the site domain, so expire each one bare, on the hostname
+				// and on the hostname without a leading www. to catch every domain it may use
+				var host = location.hostname;
+				var root = host.replace(/^www\./, '');
 				document.cookie.split(';').forEach(function (c) {
 					var n = c.split('=')[0].trim();
 					if (n === '_ga' || n.indexOf('_ga_') === 0) {
 						document.cookie = n + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+						document.cookie = n + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=' + host;
+						document.cookie = n + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.' + root;
 					}
 				});
 				location.reload();
