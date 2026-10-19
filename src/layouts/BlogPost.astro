@@ -36,6 +36,7 @@ const {
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const person = {
 	'@type': 'Person',
+	'@id': `${AUTHOR.url}#person`,
 	name: AUTHOR.name,
 	url: AUTHOR.url,
 	sameAs: AUTHOR.sameAs,
@@ -162,7 +163,7 @@ const jsonLd =
 							showDate && pubDate && (
 								<div class="date">
 									<FormattedDate date={pubDate} />
-									{kind === 'article' && <> By <a href="/about/" rel="author">{AUTHOR.name}</a></>}
+									{kind === 'article' && <> · By <a href="/about/" rel="author">{AUTHOR.name}</a></>}
 									{updatedDate && (
 										<div class="last-updated-on">
 											Last updated on <FormattedDate date={updatedDate} />
