@@ -49,17 +49,19 @@ function nowDateParts() {
 }
 
 // CDATA is literal text, so it comes back as is. Everything else gets the
-// named entities the feed uses plus any numeric ones decoded. &amp; goes last
+// named entities the feed uses plus any numeric ones decoded, all in one pass
 // so &amp;lt; comes out as the text &lt; and not as a tag bracket.
 function decode(raw) {
 	const text = raw.trim();
 	const cdata = text.match(/^<!\[CDATA\[([\s\S]*?)\]\]>$/);
 	if (cdata) return cdata[1].trim();
-	return text
-		.replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
-		.replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(Number(dec)))
-		.replace(/&(lt|gt|quot|apos|nbsp);/g, (_, name) => ({ lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' })[name])
-		.replace(/&amp;/g, '&');
+	const named = { lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', amp: '&' };
+	return text.replace(/&(#x[0-9a-f]+|#\d+|lt|gt|quot|apos|nbsp|amp);/gi, (whole, ref) => {
+		if (ref[0] !== '#') return named[ref.toLowerCase()] ?? whole;
+		const code = ref[1] === 'x' || ref[1] === 'X' ? parseInt(ref.slice(2), 16) : Number(ref.slice(1));
+		// a code point past Unicode would throw, so a bad entity stays as written
+		return code <= 0x10ffff ? String.fromCodePoint(code) : whole;
+	});
 }
 
 // the draft is Markdown that Buttondown renders, so a < or > in a title would
@@ -68,7 +70,7 @@ function mdText(text) {
 	return text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 function mdLinkText(text) {
-	return mdText(text).replace(/([[\]])/g, '\\$1');
+	return mdText(text).replace(/([\\[\]])/g, '\\$1');
 }
 
 function field(block, name) {
@@ -110,9 +112,12 @@ function summarize(description) {
 
 // network calls give up after 30 seconds so a hung server can't stall the
 // weekly run
+// returns the response with its body already read, since the timeout covers
+// the body download too
 async function fetchOrExit(url, options, what) {
 	try {
-		return await fetch(url, { ...options, signal: AbortSignal.timeout(30_000) });
+		const res = await fetch(url, { ...options, signal: AbortSignal.timeout(30_000) });
+		return { ok: res.ok, status: res.status, text: await res.text() };
 	} catch (err) {
 		console.error(`${what} failed: ${err.name}: ${err.message}`);
 		process.exit(1);
@@ -126,7 +131,7 @@ if (values.feed.startsWith('http')) {
 		console.error(`feed fetch failed: ${res.status}`);
 		process.exit(1);
 	}
-	xml = await res.text();
+	xml = res.text;
 } else {
 	xml = readFileSync(path.resolve(values.feed), 'utf8');
 }
@@ -194,7 +199,7 @@ if (values.push) {
 		},
 		'Buttondown draft',
 	);
-	const text = await res.text();
+	const text = res.text;
 	if (!res.ok) {
 		// the status and the response text only: the key never gets printed
 		console.error(`Buttondown draft failed: ${res.status} ${text}`);
