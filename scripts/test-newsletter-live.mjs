@@ -1,8 +1,9 @@
 // check the built dist/ for the live Buttondown newsletter forms: the embed
 // form action and method on the home, blog index, about and post pages, the
 // about form's email id and hidden tag input, the privacy line under every
-// form, and no leftover setup notice or old em-dash blurb. dependency-free
-// (node:fs only), run after `npm run build`.
+// form, the terminal prompt and Sunday blurb copy, the reduced-motion rule and
+// no leftover setup notice or old em-dash blurb. dependency-free (node:fs
+// only), run after `npm run build`.
 // usage: node scripts/test-newsletter-live.mjs
 import { readFileSync, readdirSync } from 'node:fs';
 
@@ -10,6 +11,10 @@ const formAction = 'https://buttondown.com/api/emails/embed-subscribe/peculiaren
 const privacyLine = 'Email only, stored by Buttondown. Unsubscribe any time.';
 const setupNotice = 'Not wired up yet';
 const oldBlurb = 'New posts by email —';
+const promptLine = 'subscribe --weekly';
+const cursorTag = 'class="cursor"';
+const sundayCopy = 'every Sunday';
+const reducedMotionRule = '@media (prefers-reduced-motion';
 
 const pages = [
 	'dist/index.html',
@@ -69,6 +74,33 @@ function liveForm(path) {
 	return tags(page(path), 'form').some((a) => a.action === formAction && a.method === 'post');
 }
 
+// the visible text of every newsletter blurb paragraph on a page, with any
+// markup inside it stripped
+function blurbTexts(html) {
+	const out = [];
+	for (const m of (html || '').matchAll(/<p[^>]*class="[^"]*\bblurb\b[^"]*"[^>]*>([\s\S]*?)<\/p>/g)) {
+		out.push(m[1].replace(/<[^>]*>/g, ''));
+	}
+	return out;
+}
+
+// a page's own HTML plus the text of every local stylesheet it links, so a
+// rule counts wherever the build decided to put it
+function pageAndSheets(path) {
+	const html = page(path);
+	if (!html) return null;
+	const out = [html];
+	for (const a of tags(html, 'link')) {
+		if (a.rel !== 'stylesheet' || !a.href?.startsWith('/')) continue;
+		try {
+			out.push(readFileSync(`dist${a.href}`, 'utf8'));
+		} catch {
+			return null;
+		}
+	}
+	return out.join('\n');
+}
+
 const checks = [
 	...pages.map((path) => [
 		`${path} has a live Buttondown form`,
@@ -99,6 +131,25 @@ const checks = [
 	[
 		'none of the four pages has the old em-dash blurb',
 		() => pages.every((path) => !(page(path) || '').includes(oldBlurb)),
+	],
+	...pages.map((path) => [
+		`${path} has the terminal prompt line and cursor`,
+		() => {
+			const html = page(path) || '';
+			return html.includes(promptLine) && html.includes(cursorTag);
+		},
+	]),
+	...pages.map((path) => [
+		`${path} says every Sunday`,
+		() => (page(path) || '').includes(sundayCopy),
+	]),
+	[
+		'index page has a prefers-reduced-motion rule in its HTML or linked CSS',
+		() => (pageAndSheets('dist/index.html') || '').includes(reducedMotionRule),
+	],
+	[
+		'no newsletter blurb text contains an em dash',
+		() => pages.every((path) => blurbTexts(page(path)).every((text) => !text.includes('—'))),
 	],
 ];
 
