@@ -14,7 +14,7 @@ interface Props {
 const {
 	tag = 'blog',
 	heading = 'Subscribe',
-	blurb = "New posts by email: Linux, Kubernetes, Cloudflare, and whatever broke this week. No spam, one click to unsubscribe.",
+	blurb = "One email every Sunday with the week's new posts: Linux, Kubernetes, Cloudflare, and whatever broke. No spam, one click to unsubscribe.",
 	cta = 'Subscribe >',
 	compact = false,
 } = Astro.props;
@@ -28,6 +28,7 @@ const inputId = `bd-email-${tag}`;
 	NEWSLETTER_ENABLED && (
 		<div class:list={['term-panel', 'newsletter', { compact }]}>
 			<span class="term-label">:: {heading} ::</span>
+			<p class="prompt" aria-hidden="true"><span class="ps1">$</span> <span class="cmd">subscribe --weekly</span><span class="cursor"></span></p>
 			<p class="blurb">{blurb}</p>
 			{NEWSLETTER_READY ? (
 				<>
@@ -57,6 +58,47 @@ const inputId = `bd-email-${tag}`;
 		</div>
 	)
 }
+
+<script>
+	// Typing effect and submit receipt for the newsletter panels. Stands down
+	// entirely with Reduce Motion on: the prompt then shows in full and the form
+	// submits as a plain POST.
+	if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		// Type the prompt in the first time a panel scrolls into view, once per panel.
+		const observer = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (!entry.isIntersecting) continue;
+					entry.target.classList.add('animate');
+					observer.unobserve(entry.target);
+				}
+			},
+			{ threshold: 0.4 }
+		);
+		document.querySelectorAll('.newsletter').forEach((panel) => observer.observe(panel));
+
+		// The submit is only watched, never stopped: the POST to the popup window
+		// has to happen. Print the receipt lines under the panel, one at a time.
+		document.querySelectorAll('.newsletter form').forEach((form) => {
+			form.addEventListener('submit', () => {
+				const panel = form.closest('.newsletter');
+				if (!panel) return;
+				const existing = panel.querySelector('.status');
+				if (existing) existing.remove();
+				const status = document.createElement('pre');
+				status.className = 'status';
+				status.setAttribute('role', 'status');
+				panel.appendChild(status);
+				const lines = ['> POST buttondown.com ... [ OK ]', '> check your inbox to confirm'];
+				lines.forEach((_, i) =>
+					setTimeout(() => {
+						status.textContent = lines.slice(0, i + 1).join('\n');
+					}, i * 400)
+				);
+			});
+		});
+	}
+</script>
 
 <style>
 	.newsletter {
@@ -110,5 +152,62 @@ const inputId = `bd-email-${tag}`;
 		color: var(--sys-dim);
 		font-family: var(--font-mono);
 		font-size: 0.75em;
+	}
+	.prompt {
+		margin: 0 0 0.75em;
+		font-family: var(--font-mono);
+		font-size: 0.9em;
+	}
+	.ps1 {
+		color: var(--sys-dim);
+	}
+	.cmd {
+		color: var(--sys-fg);
+		display: inline-block;
+		vertical-align: bottom;
+		white-space: nowrap;
+		overflow: hidden;
+	}
+	.animate .cmd {
+		animation: type 1.2s steps(18);
+	}
+	@keyframes type {
+		from {
+			width: 0;
+		}
+		to {
+			width: 18ch;
+		}
+	}
+	.cursor {
+		display: inline-block;
+		width: 0.6em;
+		height: 1.1em;
+		margin-left: 0.15em;
+		vertical-align: bottom;
+		background: var(--sys-fg);
+		animation: blink 1s steps(1) infinite;
+	}
+	@keyframes blink {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0;
+		}
+	}
+	/* the status receipt is built by the script at runtime, so it has no scope
+	   attribute of its own and needs a :global to pick up these styles */
+	.newsletter :global(.status) {
+		margin: 0.75em 0 0;
+		color: var(--sys-dim);
+		font-family: var(--font-mono);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.cursor,
+		.animate .cmd {
+			animation: none;
+		}
 	}
 </style>
