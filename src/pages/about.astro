@@ -1,6 +1,7 @@
 ---
 import AboutHeroImage from '../assets/og-default.png';
 import Layout from '../layouts/BlogPost.astro';
+import Newsletter from '../components/Newsletter.astro';
 ---
 
 <Layout
@@ -33,6 +34,12 @@ import Layout from '../layouts/BlogPost.astro';
 		If a guide saved you some time, or you spot something that's gone stale, feel free
 		to reach out. Thanks for stopping by.
 	</p>
+
+	<Newsletter
+		tag="about"
+		heading="Subscribe"
+		blurb="Get new posts by email instead of checking back. No spam, one click to unsubscribe."
+	/>
 </Layout>
 
 <style>
