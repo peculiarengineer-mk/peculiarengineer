@@ -38,7 +38,9 @@
 		<item>
 			<title>Docker &amp; Debian: one host, two architectures</title>
 			<link>https://peculiarengineer.com/blog/docker-debian-multiarch/</link>
-			<description>Multi architecture builds on one box, with buildx and QEMU. Everything else is noise.</description>
+			<description>Multi architecture builds on one box, with buildx and QEMU&apos;s &#x201C;binfmt&#8221;
+				support.
+Everything else is noise.</description>
 			<pubDate>Mon, 12 Oct 2026 14:00:00 +0000</pubDate>
 		</item>
 	</channel>

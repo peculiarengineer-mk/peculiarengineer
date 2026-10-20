@@ -35,13 +35,13 @@ const mainDir = path.join(tmpRoot, 'main');
 const mainRun = run([...mainArgs, '--out', mainDir]);
 const mainFile = path.join(mainDir, '2026-10-19.md');
 const mainText = mainRun.status === 0 && existsSync(mainFile) ? readFileSync(mainFile, 'utf8') : '';
-const bullets = [...mainText.matchAll(/^- \[([^\]]+)\]\([^)]+\): (.*)$/gm)];
+const bullets = [...mainText.matchAll(/^- \[((?:\\.|[^\]\\])+)\]\([^)]+\): (.*)$/gm)];
 
 // (a) exactly the three in-window fixture posts, oldest first, and the two
 // outside the window (eight days before --now and after --now) left out
 const expectedTitles = [
 	'Docker & Debian: one host, two architectures',
-	'Zram <swap> tuning on Debian',
+	'Zram &lt;swap&gt; tuning on Debian',
 	"Nix on macOS: it's a quiet start",
 ];
 const aOk =
@@ -60,7 +60,7 @@ const cOk =
 
 // (d) the description past 200 characters with no early full stop is cut at a
 // word boundary and gets ... appended
-const zramSummary = (bullets.find((m) => m[1] === 'Zram <swap> tuning on Debian') || [])[2] || '';
+const zramSummary = (bullets.find((m) => m[1] === 'Zram &lt;swap&gt; tuning on Debian') || [])[2] || '';
 const dOk =
 	zramSummary.endsWith('...') &&
 	zramSummary.length >= 190 &&
@@ -88,6 +88,15 @@ const gOk =
 	mainText.includes('<!-- KEITH: write one or two lines about your week here, then delete this comment -->') &&
 	mainText.includes('<!-- KEITH: optional. A tool, command or link you found useful this week. Delete this section if nothing. -->');
 
+// (h) &apos; and numeric entities decode, a newline inside the description
+// collapses to a space and still ends the first sentence, and a CDATA
+// description is taken as is
+const dockerSummary = (bullets.find((m) => m[1].startsWith('Docker & Debian')) || [])[2] || '';
+const nixSummary = (bullets.find((m) => m[1].startsWith('Nix on macOS')) || [])[2] || '';
+const hOk =
+	dockerSummary === 'Multi architecture builds on one box, with buildx and QEMU\u2019s \u201Cbinfmt\u201D support.'.replace('\u2019', "'") &&
+	nixSummary === 'Nix on macOS, step by step.';
+
 const checks = [
 	['(a) keeps the three in-window posts oldest first and drops the two outside', aOk],
 	['(b) subject line is Peculiar Engineer weekly: October 19, 2026', bOk],
@@ -96,6 +105,7 @@ const checks = [
 	['(e) an empty week prints the no-posts line and writes no file', eOk],
 	['(f) --push without the Buttondown key exits 0 and says so', fOk],
 	['(g) the draft keeps both KEITH comments', gOk],
+	['(h) &apos;, numeric entities, newlines and CDATA come out clean', hOk],
 ];
 
 let failed = false;

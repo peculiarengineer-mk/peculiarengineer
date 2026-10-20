@@ -5,11 +5,13 @@
   it builds the draft from the week's posts and leaves it in Buttondown for
   Keith to add his lines and send.
 
-  __REPO__ and __NODE__ below are literal placeholders. The installer replaces
-  __REPO__ with the repo path and __NODE__ with the node binary, then loads the
-  agent. After copying this file into ~/Library/LaunchAgents/:
+  __REPO__ and __NODE__ below are literal placeholders for the repo path and
+  the node binary. Install from the repo root (launchd won't create the log
+  directory, so make it first):
 
-    sed -i '' -e 's|__REPO__|/path/to/peculiarengineer|g' -e 's|__NODE__|/usr/local/bin/node|g' ~/Library/LaunchAgents/com.peculiarengineer.newsletter-digest.plist
+    mkdir -p newsletter
+    cp scripts/launchd/com.peculiarengineer.newsletter-digest.plist ~/Library/LaunchAgents/
+    sed -i '' -e "s|__REPO__|$PWD|g" -e "s|__NODE__|$(command -v node)|g" ~/Library/LaunchAgents/com.peculiarengineer.newsletter-digest.plist
     launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.peculiarengineer.newsletter-digest.plist
 
   To stop it again: launchctl bootout gui/$(id -u)/com.peculiarengineer.newsletter-digest
@@ -35,7 +37,7 @@
 	<array>
 		<string>/bin/zsh</string>
 		<string>-lc</string>
-		<string>set -a; [ -f "$HOME/.config/peculiarengineer/buttondown.env" ] &amp;&amp; . "$HOME/.config/peculiarengineer/buttondown.env"; set +a; cd __REPO__ &amp;&amp; __NODE__ scripts/newsletter-digest.mjs --push</string>
+		<string>set -a; [ -f "$HOME/.config/peculiarengineer/buttondown.env" ] &amp;&amp; . "$HOME/.config/peculiarengineer/buttondown.env"; set +a; cd "__REPO__" &amp;&amp; "__NODE__" scripts/newsletter-digest.mjs --push</string>
 	</array>
 	<key>StandardOutPath</key>
 	<string>__REPO__/newsletter/digest.log</string>

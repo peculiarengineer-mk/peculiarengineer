@@ -27,6 +27,12 @@ if (!Number.isFinite(days) || days <= 0) {
 	console.error('--days must be a positive number');
 	process.exit(1);
 }
+// --now has to start with YYYY-MM-DD so the window and the date stamped on the
+// draft come from the same value
+if (values.now && !/^\d{4}-\d{2}-\d{2}/.test(values.now)) {
+	console.error('--now must be an ISO date');
+	process.exit(1);
+}
 const now = values.now ? new Date(values.now) : new Date();
 if (Number.isNaN(now.getTime())) {
 	console.error('--now must be an ISO date');
@@ -42,22 +48,27 @@ function nowDateParts() {
 	return { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate() };
 }
 
-// decode the five entities the feed uses and unwrap CDATA. &amp; goes last so
-// &amp;lt; comes out as the text &lt; and not as a tag bracket.
+// CDATA is literal text, so it comes back as is. Everything else gets the
+// named entities the feed uses plus any numeric ones decoded. &amp; goes last
+// so &amp;lt; comes out as the text &lt; and not as a tag bracket.
 function decode(raw) {
-	let text = raw.trim();
+	const text = raw.trim();
 	const cdata = text.match(/^<!\[CDATA\[([\s\S]*?)\]\]>$/);
-	if (cdata) text = cdata[1].trim();
-	for (const [entity, char] of [
-		['&lt;', '<'],
-		['&gt;', '>'],
-		['&quot;', '"'],
-		['&#39;', "'"],
-		['&amp;', '&'],
-	]) {
-		text = text.split(entity).join(char);
-	}
-	return text;
+	if (cdata) return cdata[1].trim();
+	return text
+		.replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+		.replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(Number(dec)))
+		.replace(/&(lt|gt|quot|apos|nbsp);/g, (_, name) => ({ lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' })[name])
+		.replace(/&amp;/g, '&');
+}
+
+// the draft is Markdown that Buttondown renders, so a < or > in a title would
+// turn into an HTML tag and a ] would end the link text early
+function mdText(text) {
+	return text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function mdLinkText(text) {
+	return mdText(text).replace(/([[\]])/g, '\\$1');
 }
 
 function field(block, name) {
@@ -87,25 +98,38 @@ function parseItems(xml) {
 // one line per post: the first sentence of the description, cut to 200
 // characters at a word boundary with ... when the sentence runs longer
 function summarize(description) {
-	const text = description.trim();
-	const dot = text.indexOf('. ');
-	const first = dot === -1 ? text : text.slice(0, dot + 1).trimEnd();
+	const text = description.replace(/\s+/g, ' ').trim();
+	const dot = text.search(/\.\s/);
+	const first = dot === -1 ? text : text.slice(0, dot + 1);
 	if (first.length <= 200) return first;
-	let cut = first.slice(0, 200);
+	let cut = first.slice(0, 201);
 	const space = cut.lastIndexOf(' ');
 	if (space > 0) cut = cut.slice(0, space);
 	return cut.trimEnd() + '...';
 }
 
-const xml = values.feed.startsWith('http')
-	? await fetch(values.feed).then(async (res) => {
-			if (!res.ok) {
-				console.error(`feed fetch failed: ${res.status}`);
-				process.exit(1);
-			}
-			return res.text();
-		})
-	: readFileSync(path.resolve(values.feed), 'utf8');
+// network calls give up after 30 seconds so a hung server can't stall the
+// weekly run
+async function fetchOrExit(url, options, what) {
+	try {
+		return await fetch(url, { ...options, signal: AbortSignal.timeout(30_000) });
+	} catch (err) {
+		console.error(`${what} failed: ${err.name}: ${err.message}`);
+		process.exit(1);
+	}
+}
+
+let xml;
+if (values.feed.startsWith('http')) {
+	const res = await fetchOrExit(values.feed, {}, 'feed fetch');
+	if (!res.ok) {
+		console.error(`feed fetch failed: ${res.status}`);
+		process.exit(1);
+	}
+	xml = await res.text();
+} else {
+	xml = readFileSync(path.resolve(values.feed), 'utf8');
+}
 
 // the window is the --days days ending at --now: the start instant counts,
 // anything published after --now does not
@@ -131,7 +155,7 @@ const body = [
 	'<!-- KEITH: write one or two lines about your week here, then delete this comment -->',
 	'',
 	'## New this week',
-	...posts.map((post) => `- [${post.title}](${post.link}): ${summarize(post.description)}`),
+	...posts.map((post) => `- [${mdLinkText(post.title)}](${post.link}): ${mdText(summarize(post.description))}`),
 	'',
 	'## One useful thing',
 	'<!-- KEITH: optional. A tool, command or link you found useful this week. Delete this section if nothing. -->',
@@ -158,14 +182,18 @@ if (values.push) {
 		console.log(noKeyLine);
 		process.exit(0);
 	}
-	const res = await fetch('https://api.buttondown.com/v1/emails', {
-		method: 'POST',
-		headers: {
-			Authorization: `Token ${token}`,
-			'Content-Type': 'application/json',
+	const res = await fetchOrExit(
+		'https://api.buttondown.com/v1/emails',
+		{
+			method: 'POST',
+			headers: {
+				Authorization: `Token ${token}`,
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ subject, body, status: 'draft' }),
 		},
-		body: JSON.stringify({ subject, body, status: 'draft' }),
-	});
+		'Buttondown draft',
+	);
 	const text = await res.text();
 	if (!res.ok) {
 		// the status and the response text only: the key never gets printed
