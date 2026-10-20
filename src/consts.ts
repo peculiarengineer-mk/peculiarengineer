@@ -23,9 +23,9 @@ export const AUTHOR = {
 // instead of a live input, so a half-configured form can't ship silently.
 export const BUTTONDOWN_USERNAME = 'peculiarengineer';
 
-// Master switch for every signup form on the site. Off while traffic is too low
-// for a newsletter to be worth running. Flip to true to bring them all back.
-export const NEWSLETTER_ENABLED = false;
+// Master switch for every signup form on the site. The forms are on; set this
+// to false to hide them all again.
+export const NEWSLETTER_ENABLED = true;
 
 export const NEWSLETTER_READY = (BUTTONDOWN_USERNAME as string) !== 'CHANGEME';
 export const NEWSLETTER_ACTION = `https://buttondown.com/api/emails/embed-subscribe/${BUTTONDOWN_USERNAME}`;
