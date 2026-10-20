@@ -14,7 +14,9 @@ const oldBlurb = 'New posts by email —';
 const promptLine = 'subscribe --weekly';
 const cursorTag = 'class="cursor"';
 const sundayCopy = 'every Sunday';
-const reducedMotionRule = '@media (prefers-reduced-motion';
+// the newsletter's own reduced-motion block: it switches off the scoped cursor
+// animation, so look for that rule rather than any reduced-motion media query
+const reducedMotionRule = /@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{[^}]*\.cursor\[data-astro-cid-/;
 
 const pages = [
 	'dist/index.html',
@@ -144,8 +146,8 @@ const checks = [
 		() => (page(path) || '').includes(sundayCopy),
 	]),
 	[
-		'index page has a prefers-reduced-motion rule in its HTML or linked CSS',
-		() => (pageAndSheets('dist/index.html') || '').includes(reducedMotionRule),
+		'index page has the newsletter reduced-motion rule in its HTML or linked CSS',
+		() => reducedMotionRule.test(pageAndSheets('dist/index.html') || ''),
 	],
 	[
 		'no newsletter blurb text contains an em dash',

@@ -48,6 +48,7 @@ const inputId = `bd-email-${tag}`;
 						<button type="submit">{cta}</button>
 					</form>
 					<p class="privacy">Email only, stored by Buttondown. Unsubscribe any time.</p>
+					<p class="status" role="status"></p>
 				</>
 			) : (
 				<p class="setup-warning">
@@ -60,44 +61,48 @@ const inputId = `bd-email-${tag}`;
 }
 
 <script>
-	// Typing effect and submit receipt for the newsletter panels. Stands down
-	// entirely with Reduce Motion on: the prompt then shows in full and the form
-	// submits as a plain POST.
-	if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-		// Type the prompt in the first time a panel scrolls into view, once per panel.
+	// Typing effect and submit receipt for the newsletter panels. With Reduce
+	// Motion on the prompt shows in full and the receipt appears all at once.
+	const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+	if (!reduce) {
+		// Hide the command until the panel scrolls into view, then type it in,
+		// once per panel. Without this script the command just shows in full.
 		const observer = new IntersectionObserver(
 			(entries) => {
 				for (const entry of entries) {
 					if (!entry.isIntersecting) continue;
-					entry.target.classList.add('animate');
+					entry.target.classList.replace('armed', 'animate');
 					observer.unobserve(entry.target);
 				}
 			},
 			{ threshold: 0.4 }
 		);
-		document.querySelectorAll('.newsletter').forEach((panel) => observer.observe(panel));
-
-		// The submit is only watched, never stopped: the POST to the popup window
-		// has to happen. Print the receipt lines under the panel, one at a time.
-		document.querySelectorAll('.newsletter form').forEach((form) => {
-			form.addEventListener('submit', () => {
-				const panel = form.closest('.newsletter');
-				if (!panel) return;
-				const existing = panel.querySelector('.status');
-				if (existing) existing.remove();
-				const status = document.createElement('pre');
-				status.className = 'status';
-				status.setAttribute('role', 'status');
-				panel.appendChild(status);
-				const lines = ['> POST buttondown.com ... [ OK ]', '> check your inbox to confirm'];
-				lines.forEach((_, i) =>
-					setTimeout(() => {
-						status.textContent = lines.slice(0, i + 1).join('\n');
-					}, i * 400)
-				);
-			});
+		document.querySelectorAll('.newsletter').forEach((panel) => {
+			panel.classList.add('armed');
+			observer.observe(panel);
 		});
 	}
+
+	// The submit is only watched, never stopped: the POST to the popup window
+	// has to happen. Print the receipt lines in the panel's status line.
+	document.querySelectorAll('.newsletter form').forEach((form) => {
+		form.addEventListener('submit', () => {
+			const status = form.closest('.newsletter')?.querySelector('.status');
+			if (!status) return;
+			const lines = ['> POST buttondown.com ... [ OK ]', '> check your inbox to confirm'];
+			if (reduce) {
+				status.textContent = lines.join('\n');
+				return;
+			}
+			status.textContent = '';
+			lines.forEach((_, i) =>
+				setTimeout(() => {
+					status.textContent = lines.slice(0, i + 1).join('\n');
+				}, i * 400)
+			);
+		});
+	});
 </script>
 
 <style>
@@ -168,6 +173,9 @@ const inputId = `bd-email-${tag}`;
 		white-space: nowrap;
 		overflow: hidden;
 	}
+	.armed .cmd {
+		width: 0;
+	}
 	.animate .cmd {
 		animation: type 1.2s steps(18);
 	}
@@ -197,12 +205,15 @@ const inputId = `bd-email-${tag}`;
 			opacity: 0;
 		}
 	}
-	/* the status receipt is built by the script at runtime, so it has no scope
-	   attribute of its own and needs a :global to pick up these styles */
-	.newsletter :global(.status) {
+	.status {
 		margin: 0.75em 0 0;
 		color: var(--sys-dim);
 		font-family: var(--font-mono);
+		font-size: 0.85em;
+		white-space: pre-line;
+	}
+	.status:empty {
+		display: none;
 	}
 	@media (prefers-reduced-motion: reduce) {
 		.cursor,
