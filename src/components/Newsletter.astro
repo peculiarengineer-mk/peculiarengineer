@@ -87,6 +87,7 @@ const inputId = `bd-email-${tag}`;
 	// The submit is only watched, never stopped: the POST to the popup window
 	// has to happen. Print the receipt lines in the panel's status line.
 	document.querySelectorAll('.newsletter form').forEach((form) => {
+		let timers = [];
 		form.addEventListener('submit', () => {
 			const status = form.closest('.newsletter')?.querySelector('.status');
 			if (!status) return;
@@ -95,8 +96,10 @@ const inputId = `bd-email-${tag}`;
 				status.textContent = lines.join('\n');
 				return;
 			}
+			// a second submit restarts the receipt instead of racing the first
+			timers.forEach(clearTimeout);
 			status.textContent = '';
-			lines.forEach((_, i) =>
+			timers = lines.map((_, i) =>
 				setTimeout(() => {
 					status.textContent = lines.slice(0, i + 1).join('\n');
 				}, i * 400)
@@ -212,8 +215,9 @@ const inputId = `bd-email-${tag}`;
 		font-size: 0.85em;
 		white-space: pre-line;
 	}
+	/* stays rendered while empty so screen readers already know the live region */
 	.status:empty {
-		display: none;
+		margin: 0;
 	}
 	@media (prefers-reduced-motion: reduce) {
 		.cursor,
