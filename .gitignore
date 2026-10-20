@@ -45,3 +45,6 @@ src/pages/_hosting.astro
 
 # Buttondown theme notes and previews (local only)
 docs/
+
+# weekly newsletter drafts and the digest log (local only)
+newsletter/
