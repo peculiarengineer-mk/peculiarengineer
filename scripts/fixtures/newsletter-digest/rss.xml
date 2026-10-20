@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- fixture for scripts/test-newsletter-digest.mjs. The items are deliberately
+     out of order and dated around --now 2026-10-19T07:00:00-07:00 with --days 7:
+     two fall outside the window (one eight days before --now, one after it),
+     three fall inside it (one exactly on the window start) and those three must
+     come out oldest first. The titles and descriptions carry the entities and
+     the CDATA the digest has to decode, and the zram description is one long
+     sentence past 200 characters so the summary has to be cut. -->
+<rss version="2.0">
+	<channel>
+		<title>Peculiar Engineer</title>
+		<link>https://peculiarengineer.com/</link>
+		<description>Guides from the homelab</description>
+		<item>
+			<title>Future post after the window</title>
+			<link>https://peculiarengineer.com/blog/future-post/</link>
+			<description>Still being written, so the link is here for later.</description>
+			<pubDate>Mon, 19 Oct 2026 15:00:00 +0000</pubDate>
+		</item>
+		<item>
+			<title>Zram &lt;swap&gt; tuning on Debian</title>
+			<link>https://peculiarengineer.com/blog/zram-swap-tuning-debian/</link>
+			<description>A long walkthrough of zram swap tuning on a Debian box covering module options device sizing filesystem tradeoffs memory pressure testing and the &quot;quiet&quot; kernel tunables that decide how aggressively the box swaps once the RAM fills up on a Sunday afternoon with plenty of notes</description>
+			<pubDate>Wed, 14 Oct 2026 09:30:00 +0000</pubDate>
+		</item>
+		<item>
+			<title>Ansible &quot;vault&quot; basics</title>
+			<link>https://peculiarengineer.com/blog/ansible-vault-basics/</link>
+			<description>Written last week. It is still useful.</description>
+			<pubDate>Sun, 11 Oct 2026 14:00:00 +0000</pubDate>
+		</item>
+		<item>
+			<title>Nix on macOS: it&#39;s a quiet start</title>
+			<link>https://peculiarengineer.com/blog/nix-macos-quiet-start/</link>
+			<description><![CDATA[Nix on macOS, step by step. The rest of the walkthrough lives here.]]></description>
+			<pubDate>Sun, 18 Oct 2026 18:00:00 +0000</pubDate>
+		</item>
+		<item>
+			<title>Docker &amp; Debian: one host, two architectures</title>
+			<link>https://peculiarengineer.com/blog/docker-debian-multiarch/</link>
+			<description>Multi architecture builds on one box, with buildx and QEMU&apos;s &#x201C;binfmt&#8221;
+				support.
+Everything else is noise.</description>
+			<pubDate>Mon, 12 Oct 2026 14:00:00 +0000</pubDate>
+		</item>
+	</channel>
+</rss>
