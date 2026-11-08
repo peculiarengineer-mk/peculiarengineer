@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs><radialGradient id="g" cx="30%" cy="32%" r="82%"><stop offset="0%" stop-color="#171310"/><stop offset="100%" stop-color="#0a0807"/></radialGradient>
+  <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse"><path d="M34 0H0V34" fill="none" stroke="#251e18" stroke-width="1"/></pattern></defs>
+  <rect width="1360" height="680" fill="url(#g)"/><rect width="1360" height="680" fill="url(#grid)" opacity="0.5"/>
+  <g opacity="0.45" stroke="#3a2f24" stroke-width="6" fill="none"><path d="M1160 600 c0 -30 24 -40 40 -40 c16 0 40 10 40 40 c-20 -10 -60 -10 -80 0z"/><circle cx="1200" cy="560" r="4" fill="#3a2f24"/></g>
+  <g><rect x="864" y="48" width="448" height="46" rx="8" fill="none" stroke="#9a8a76" stroke-width="1.5"/>
+  <text x="888" y="77" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" letter-spacing="2" fill="#e8a33d">&#9670; ROCKY 10 · FOR UBUNTU PEOPLE</text></g>
+  <g><rect x="72" y="120" width="700" height="462" rx="11" fill="#0e0b09" stroke="#9a8a76" stroke-width="1.5"/>
+  <line x1="72" y1="178" x2="772" y2="178" stroke="#251e18" stroke-width="1.5"/>
+  <circle cx="104" cy="149" r="7" fill="#9a8a76"/><circle cx="128" cy="149" r="7" fill="#9a8a76"/><circle cx="152" cy="149" r="7" fill="#9a8a76"/>
+  <text x="200" y="156" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#9a8a76">ubuntu habits, rocky prompt</text>
+  <text x="104" y="216" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#e8a33d"><tspan fill="#f5c56b">$</tspan> apt install htop</text>
+  <text x="104" y="242" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#f2837a">apt: command not found</text>
+  <text x="104" y="268" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#e8a33d"><tspan fill="#f5c56b">$</tspan> dnf install htop</text>
+  <text x="104" y="294" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#f2837a">No matching Packages to list</text>
+  <text x="104" y="320" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#e8a33d"><tspan fill="#f5c56b">$</tspan> usermod -aG sudo keith</text>
+  <text x="104" y="346" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#f2837a">group 'sudo' does not exist</text>
+  <text x="104" y="372" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#e8a33d"><tspan fill="#f5c56b">$</tspan> setenforce 1 &amp;&amp; systemctl restart sshd</text>
+  <text x="104" y="398" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#f2837a">Bind to port 2222 failed: Permission denied</text>
+  <text x="104" y="424" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#e8a33d"><tspan fill="#f5c56b">$</tspan> curl 127.0.0.1:8080</text>
+  <text x="104" y="450" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#f2837a">502  (13: Permission denied) upstream</text>
+  <text x="104" y="476" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#9a8a76"></text>
+  <text x="104" y="502" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="15" fill="#4fbf87">journalctl, systemd, chrony: identical.</text>
+  <text x="104" y="548" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="16" fill="#9a8a76">same journal, different everything else.<tspan fill="#e8a33d">&#9608;</tspan></text></g>
+  <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace"><text x="852" y="200" font-size="20" letter-spacing="2" fill="#9a8a76">SAME PROVIDER, SAME DAY</text>
+  <text x="1000" y="232" font-size="13" fill="#9a8a76">rocky 10</text><text x="1180" y="232" font-size="13" fill="#9a8a76">ubuntu 26.04</text>
+  <line x1="852" y1="274" x2="1300" y2="274" stroke="#251e18"/><text x="852" y="262" font-size="14" fill="#9a8a76">kernel</text><text x="1000" y="262" font-size="14" fill="#4fbf87">6.12</text><text x="1180" y="262" font-size="14" fill="#e8a33d">7.0</text>
+  <line x1="852" y1="318" x2="1300" y2="318" stroke="#251e18"/><text x="852" y="306" font-size="14" fill="#9a8a76">packages</text><text x="1000" y="306" font-size="14" fill="#4fbf87">dnf + EPEL</text><text x="1180" y="306" font-size="14" fill="#e8a33d">apt + PPAs</text>
+  <line x1="852" y1="362" x2="1300" y2="362" stroke="#251e18"/><text x="852" y="350" font-size="14" fill="#9a8a76">admin</text><text x="1000" y="350" font-size="14" fill="#4fbf87">wheel</text><text x="1180" y="350" font-size="14" fill="#e8a33d">sudo</text>
+  <line x1="852" y1="406" x2="1300" y2="406" stroke="#251e18"/><text x="852" y="394" font-size="14" fill="#9a8a76">network</text><text x="1000" y="394" font-size="14" fill="#4fbf87">NetworkManager</text><text x="1180" y="394" font-size="14" fill="#e8a33d">netplan + networkd</text>
+  <line x1="852" y1="450" x2="1300" y2="450" stroke="#251e18"/><text x="852" y="438" font-size="14" fill="#9a8a76">firewall</text><text x="1000" y="438" font-size="14" fill="#4fbf87">firewalld (absent)</text><text x="1180" y="438" font-size="14" fill="#e8a33d">ufw</text>
+  <line x1="852" y1="494" x2="1300" y2="494" stroke="#251e18"/><text x="852" y="482" font-size="14" fill="#9a8a76">mac</text><text x="1000" y="482" font-size="14" fill="#4fbf87">SELinux, permissive</text><text x="1180" y="482" font-size="14" fill="#e8a33d">AppArmor</text>
+  <line x1="852" y1="538" x2="1300" y2="538" stroke="#251e18"/><text x="852" y="526" font-size="14" fill="#9a8a76">pip lock</text><text x="1000" y="526" font-size="14" fill="#4fbf87">none</text><text x="1180" y="526" font-size="14" fill="#e8a33d">EXTERNALLY-MANAGED</text>
+  <text x="852" y="578" font-size="13" fill="#f5c56b">and SELinux is permissive until the day you flip it.</text></g>
+</svg>

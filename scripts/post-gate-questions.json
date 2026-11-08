@@ -1,0 +1,177 @@
+{
+  "model": "jev-latest",
+  "policy": {
+    "noul_margin": 0.15,
+    "min_score_confidence": 0.5
+  },
+  "checks": [
+    {
+      "name": "opens_with_problem",
+      "type": "noul",
+      "instructions": "The plan opens with a concrete problem, failure, or personal situation, not a definition or a product history.",
+      "threshold": 0.7,
+      "blocking": false,
+      "fix": "Rewrite the opening around the concrete situation that makes the topic matter. Move any definition or history below the first thing the reader can act on."
+    },
+    {
+      "name": "corporate_language",
+      "type": "noul",
+      "instructions": "The plan contains corporate, marketing, or generic AI assistant phrasing such as 'leverage', 'seamless', 'robust solution', or 'let's dive in'.",
+      "pass_when": "at_most",
+      "threshold": 0.3,
+      "fix": "Replace corporate and marketing phrasing with plain verbs such as run, set, check, use, and remove. Read the Avoid list in BLOG_VOICE_GUIDE.md first."
+    },
+    {
+      "name": "vague_warnings",
+      "type": "noul",
+      "instructions": "The plan contains a warning or gotcha that does not say what actually goes wrong, such as 'this may cause issues'.",
+      "pass_when": "at_most",
+      "threshold": 0.3,
+      "blocking": false,
+      "fix": "For each warning or gotcha, state the exact failure: what breaks, when, and what the reader sees."
+    },
+    {
+      "name": "voice",
+      "type": "score",
+      "instructions": "How closely the plan reads like an experienced engineer documenting something they personally tested.",
+      "criteria": [
+        "Generic documentation, marketing copy, or AI assistant prose",
+        "Clear and direct but impersonal, it could be anyone's post",
+        "Practical, first person where tested, mildly opinionated, candid about tradeoffs"
+      ],
+      "threshold": 1.5,
+      "fix": "Reread BLOG_VOICE_GUIDE.md and revise toward it: first person only for tested experience, second person for instructions, direct recommendations, honest tradeoffs."
+    },
+    {
+      "name": "mental_model_early",
+      "type": "noul",
+      "instructions": "The plan states one central mental model or TL;DR before its first step, command, or code block.",
+      "threshold": 0.5,
+      "blocking": false,
+      "fix": "State the load bearing idea or a TL;DR before the first command."
+    },
+    {
+      "name": "ends_with_takeaway",
+      "type": "noul",
+      "instructions": "The post in the plan ends, or is planned to end, with a short operational takeaway, not a summary that restates the post.",
+      "threshold": 0.5,
+      "blocking": false,
+      "fix": "End on the one operational lesson, compressed to a line or two. Cut any summary that restates the post."
+    },
+    {
+      "name": "has_topic_verdict",
+      "type": "noul",
+      "instructions": "The request contains a topic check result with a line labelled Verdict, and that verdict begins with Write, Write symptom first, Fold into, or Skip.",
+      "threshold": 0.7,
+      "fix": "Stop and tell Keith the request has no topic check verdict. Run the topic-check skill, then start the gate again with a request that includes the verdict. Do not write the verdict yourself."
+    },
+    {
+      "name": "verdict_is_skip",
+      "type": "noul",
+      "instructions": "The request contains a topic check verdict, and that verdict is Skip.",
+      "pass_when": "at_most",
+      "threshold": 0.3,
+      "fix": "Stop. Tell Keith the verdict is Skip and ask whether to drop the post or write what the verdict suggests instead."
+    },
+    {
+      "name": "fold_written_as_new_post",
+      "type": "noul",
+      "instructions": "The request contains a topic check verdict that starts with Fold into, and the plan proposes a new standalone post.",
+      "pass_when": "at_most",
+      "threshold": 0.3,
+      "fix": "Stop. Tell Keith the verdict says to fold this into an existing post, and ask whether to rework the plan as additions to that post."
+    },
+    {
+      "name": "uses_verdict_strings",
+      "type": "noul",
+      "instructions": "The request's topic check verdict lists exact strings for headings, and the plan's title or headings contain them.",
+      "threshold": 0.5,
+      "blocking": false,
+      "fix": "Put the exact strings the verdict lists (error text, command names) into the title or headings."
+    },
+    {
+      "name": "uses_verdict_angle",
+      "type": "noul",
+      "instructions": "The plan takes the angle that the topic check verdict in the request recommends.",
+      "threshold": 0.5,
+      "blocking": false,
+      "fix": "Rework the plan around the angle the verdict recommends, or tell Keith why a different angle is better."
+    },
+    {
+      "name": "missing_stated_version",
+      "type": "noul",
+      "instructions": "The request says which platform version the post targets, and the plan's title does not include that version.",
+      "pass_when": "at_most",
+      "threshold": 0.3,
+      "blocking": false,
+      "fix": "Put the platform and version the request targets in the title."
+    },
+    {
+      "name": "invented_demand_numbers",
+      "type": "noul",
+      "instructions": "The plan states search volume or demand numbers that the request does not contain.",
+      "pass_when": "at_most",
+      "threshold": 0.3,
+      "blocking": false,
+      "fix": "Remove every demand or search volume figure the request does not contain."
+    },
+    {
+      "name": "short_shelf_life",
+      "type": "noul",
+      "instructions": "The request or the plan says an upcoming release or package change will make this post wrong within months.",
+      "pass_when": "at_most",
+      "threshold": 0.5,
+      "blocking": false,
+      "fix": "Say in the plan whether the post can ship before the release lands and what will need updating when it does."
+    },
+    {
+      "name": "links_existing_posts",
+      "type": "noul",
+      "instructions": "The plan names at least one existing Peculiar Engineer post it will link to.",
+      "threshold": 0.5,
+      "blocking": false,
+      "fix": "Name the existing posts this one links to and which of them should link back."
+    },
+    {
+      "name": "lab_verified",
+      "type": "noul",
+      "instructions": "The plan says its commands were run, or will be run before publishing, on a real machine of the stated platform.",
+      "threshold": 0.65,
+      "fix": "Add the lab verification step: which box, which image, and that every command in the post gets run there before publishing."
+    },
+    {
+      "name": "untested_claims_as_tested",
+      "type": "noul",
+      "instructions": "The plan claims first hand testing or personal experience for something the request does not say was actually tested.",
+      "pass_when": "at_most",
+      "threshold": 0.3,
+      "blocking": false,
+      "fix": "Remove every first person claim of testing or experience the request does not back, or mark it as something to verify in the lab run."
+    },
+    {
+      "name": "contradicts_request",
+      "type": "noul",
+      "instructions": "The plan states a fact, version number, or command output that contradicts the request.",
+      "pass_when": "at_most",
+      "threshold": 0.3,
+      "fix": "Find each place the plan disagrees with the request on a fact, version, or output, and correct the plan or flag the disagreement for Keith."
+    },
+    {
+      "name": "claims_have_sources",
+      "type": "noul",
+      "instructions": "Each claim in the plan about how a tool behaves names its source: official docs, a man page, or captured output.",
+      "threshold": 0.5,
+      "blocking": false,
+      "fix": "Note the source for each behavioural claim: the official doc, the man page, or the lab transcript that shows it."
+    },
+    {
+      "name": "absolute_claims",
+      "type": "noul",
+      "instructions": "The plan makes absolute claims such as 'always works', 'never fails', or 'the best tool' without a stated caveat.",
+      "pass_when": "at_most",
+      "threshold": 0.5,
+      "blocking": false,
+      "fix": "Add the caveat or the case where the claim does not hold."
+    }
+  ]
+}

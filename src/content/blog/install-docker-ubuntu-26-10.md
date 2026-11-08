@@ -1,6 +1,6 @@
 ---
 title: 'Install Docker on Ubuntu 26.10 (Stonking Stingray)'
-description: "Docker's apt repo has a stonking suite now, so the official install works on Ubuntu 26.10 unchanged. What is different: one Docker version in the repo, Ubuntu's docker.io moved to main and is only two minor releases behind, apt quietly removes docker-ce if you install docker.io, the convenience script leaves a second repo file behind, published ports still walk past ufw, and rootless mode needs uidmap and linger. All tested on a fresh 26.10 server."
+description: "Docker's apt repo has a stonking suite now, so the official install works on Ubuntu 26.10 unchanged. What is different: one Docker version in the repo, Ubuntu's docker.io moved to main but its Compose is three major versions behind, apt quietly removes docker-ce if you install docker.io, the convenience script leaves a second repo file behind, published ports still walk past ufw, and rootless mode needs uidmap and linger. All tested on a fresh 26.10 server."
 pubDate: 'Oct 18 2026'
 heroImage: '../../assets/docker-2610-hero.png'
 tags: ['Docker', 'Ubuntu', 'Ubuntu2610', 'Linux', 'Server', 'Containers', 'ufw', 'apt', 'DevOps', 'SysAdmin']
@@ -20,26 +20,25 @@ The `Release` file is dated `Wed, 14 Oct 2026 18:57:31`. So here's the honest he
 
 ![on the 26.10 box, the stonking Release URL returns 200, and the Release file says Date: Wed, 14 Oct 2026 18:57:31 +0000 and Suite: stonking](../../assets/docker-2610-shot-01-release.png)
 
-The screenshots come from a final clean run on a fresh 26.10 server, as user `example` with passwordless sudo (and a second user, `rootie`, for section 7). The text blocks come from the earlier test boxes, so times, IDs and hashes differ.
+The screenshots come from a final clean run on a fresh 26.10 server, as user `example` with passwordless sudo (and a second user, `rootie`, for section 6). The text blocks come from the earlier test boxes, so times, IDs and hashes differ.
 
-What changed is around the edges, and some of it bites. I tested on two fresh Ubuntu 26.10 servers, plus a third for the screenshots (kernel 7.3.0-9-generic, sudo-rs 0.2.14) on 18 October 2026, as a sudo user called `example`. The first box ran everything once. Sections 3 to 5 ran on it after purging the previous install. The second box followed sections 1 to 7 in order and then section 9, and the 20 second wait in section 5 comes from it too. Section 6 wasn't run on either, and it says so.
+What changed is around the edges, and some of it bites. I tested on two fresh Ubuntu 26.10 servers, plus a third for the screenshots (kernel 7.3.0-9-generic, sudo-rs 0.2.14) on 18 October 2026, as a sudo user called `example`. The first box ran everything once. The `docker.io` comparison and sections 3 and 4 ran on it after purging the previous install. The second box followed sections 1 to 6 in order, plus the `docker.io` install, and then section 8, and the 20 second wait in section 4 comes from it too. Section 5 wasn't run on either, and it says so.
 
 What goes on first once Docker is in? Nginx is usually the first thing I throw on there, or a Python instance for testing.
 
-> **TL;DR.** Two ways work on 26.10. Ubuntu's own `docker.io` (29.7.2, now in `main`) is the simpler pick for most boxes. Add `docker-buildx` for BuildKit. Ubuntu's Compose (`docker-compose-v2`) is 2.40.3, three major versions behind Docker's. Docker's official steps work as they are too: the `docker.sources` file resolves to `stonking` and installs Docker 29.9.1, Compose 5.6.0 and Buildx 0.38.0. Pick one: installing `docker.io` on top of `docker-ce` removes `docker-ce` without asking twice. If you ran `get.docker.com` after the manual steps, delete `/etc/apt/sources.list.d/docker.list`. Published ports still bypass `ufw`; bind to `127.0.0.1` for anything that shouldn't be public.
+> **TL;DR.** Use Docker's own repo. Its official steps work on 26.10 as they are: the `docker.sources` file resolves to `stonking` and installs Docker 29.9.1, Compose 5.6.0 and Buildx 0.38.0. Ubuntu's `docker.io` (29.7.2, now in `main`) exists, but its Compose is 2.40.3, three major versions behind. Don't mix the two: installing `docker.io` on top of `docker-ce` removes `docker-ce` without asking twice. If you ran `get.docker.com` after the manual steps, delete `/etc/apt/sources.list.d/docker.list`. Published ports still bypass `ufw`; bind to `127.0.0.1` for anything that shouldn't be public.
 
 ## Contents
 
 - [What's different on 26.10](#whats-different-on-2610)
 - [1. Install from Docker's repo](#1-install-from-dockers-repo)
 - [2. What you get](#2-what-you-get)
-- [3. Or use Ubuntu's docker.io](#3-or-use-ubuntus-dockerio)
-- [4. "REMOVING: containerd.io docker-ce docker-ce-cli"](#4-removing-containerdio-docker-ce-docker-ce-cli)
-- [5. "Target Packages ... is configured multiple times"](#5-target-packages--is-configured-multiple-times)
-- [6. If you pointed Docker at resolute during the beta](#6-if-you-pointed-docker-at-resolute-during-the-beta)
-- [7. The docker group walks straight past sudo-rs](#7-the-docker-group-walks-straight-past-sudo-rs)
-- [8. Published ports still ignore ufw](#8-published-ports-still-ignore-ufw)
-- [9. Rootless mode on 26.10](#9-rootless-mode-on-2610)
+- [3. "REMOVING: containerd.io docker-ce docker-ce-cli"](#3-removing-containerdio-docker-ce-docker-ce-cli)
+- [4. "Target Packages ... is configured multiple times"](#4-target-packages--is-configured-multiple-times)
+- [5. If you pointed Docker at resolute during the beta](#5-if-you-pointed-docker-at-resolute-during-the-beta)
+- [6. The docker group walks straight past sudo-rs](#6-the-docker-group-walks-straight-past-sudo-rs)
+- [7. Published ports still ignore ufw](#7-published-ports-still-ignore-ufw)
+- [8. Rootless mode on 26.10](#8-rootless-mode-on-2610)
 - [Gotchas I hit](#gotchas-i-hit)
 - [Quick reference](#quick-reference)
 
@@ -155,47 +154,11 @@ One small trap. `docker compose version` worked without `sudo` before I was in t
 
 ![without sudo, docker compose version prints v5.6.0 and docker buildx version prints v0.38.0, but docker ps says permission denied while trying to connect to the docker API](../../assets/docker-2610-shot-09-plugins.png)
 
-## 3. Or use Ubuntu's docker.io
-
-Ubuntu packages Docker too, and on 26.10 it's closer to upstream than it used to be. I installed it on the same box after purging Docker's packages and repo file:
-
-```bash
-sudo apt install docker.io docker-compose-v2
-```
-
-That's two packages plus seven dependencies (`containerd`, `runc`, `dnsmasq-base`, `bridge-utils`, `ubuntu-fan`, `dns-root-data`, `pigz`), 90.4 MB. It also enables an `ubuntu-fan` service. Docker's packages don't. Then (output trimmed):
-
-```text
-$ sudo docker version
-Client:
- Version:           29.7.2
-Server:
-  Version:          29.7.2
- containerd:
-  Version:          2.3.4+dfsg1
- runc:
-  Version:          1.5.1-0ubuntu2
-$ docker compose version
-Docker Compose version 2.40.3+ds2-0ubuntu2
-$ docker buildx version
-docker: unknown command: docker buildx
-```
-
-The engine is two minor releases behind Docker's own build. Compose is the real gap: 2.40.3 against 5.6.0. And there's no Buildx until you add it, so `docker build` falls back to the old builder and says so:
-
-```text
-DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
-            Install the buildx component to build images with BuildKit:
-            https://docs.docker.com/go/buildx/
-```
-
-`sudo apt install docker-buildx` fixes that with Ubuntu's Buildx 0.36.1. The `docker.io` install script creates the `docker` group if it's missing (I read that in the script; the group already existed on my test box). So section 7 works the same either way.
-
-So which one? On 26.10, `docker.io` is the simpler pick for most boxes. The engine is in `main` now, so Ubuntu's security updates cover it, and there's no extra repo to look after. Compose and Buildx are still in `universe`. Add `docker-buildx` and it builds with BuildKit too. The case for Docker's repo is newer releases: its Compose is three major versions ahead, and if you run other people's Compose files, that gap is where "works on my machine" comes from.
+Ubuntu also packages Docker as `docker.io`, 29.7.2 in `main` on 26.10. I tried it on my test boxes. Its Compose is 2.40.3 against Docker's 5.6.0, and it has no Buildx until you add `docker-buildx`.
 
 Which do I use? Docker's, always. I don't really depend on Ubuntu for Docker releases.
 
-## 4. "REMOVING: containerd.io docker-ce docker-ce-cli"
+## 3. "REMOVING: containerd.io docker-ce docker-ce-cli"
 
 The two don't mix. `docker-ce` declares `Conflicts: docker.io`, and `containerd.io` conflicts with Ubuntu's `containerd` and `runc`. With Docker's packages installed, I asked apt for Ubuntu's. I only simulated it, with `apt install -s`. The plan:
 
@@ -210,7 +173,7 @@ It's one line in the normal apt summary. With `-y` in a script, nothing stops to
 
 Switching on purpose is fine, and your data survives it. I went from `docker.io` to `docker-ce` with the removal command from section 1, then the install command. My three images and a test volume were still there under the 29.9.1 engine. Just don't do it by accident.
 
-## 5. "Target Packages ... is configured multiple times"
+## 4. "Target Packages ... is configured multiple times"
 
 Docker's convenience script works on 26.10. It reads the codename from `/etc/os-release` and has no list of allowed Ubuntu releases. So it asks for `stonking` and finds it. The dry run shows what it does. On a box that already has Docker from section 1, it first prints `Warning: the "docker" command appears to already exist on this system.`. Then it says `You may press Ctrl+C now to abort this script.` and waits 20 seconds before it carries on:
 
@@ -248,7 +211,7 @@ sudo apt update
 
 ![after removing docker.list, apt update prints 0 configured multiple times warnings](../../assets/docker-2610-shot-13-dupfix.png)
 
-## 6. If you pointed Docker at resolute during the beta
+## 5. If you pointed Docker at resolute during the beta
 
 The beta workaround was to set the suite to `resolute` and borrow the 26.04 packages. Maybe you did that. Or you upgraded from 26.04 and the upgrader disabled your `docker.sources`. Either way, move it to `stonking` now:
 
@@ -259,7 +222,7 @@ sudo apt update && sudo apt upgrade
 
 I didn't repeat this on the box for this post. I tested it on a box upgraded from 26.04, in my [26.04 to 26.10 upgrade post](/blog/upgrade-ubuntu-26-04-to-26-10/#7-turn-your-vendor-repos-back-on). apt offered the same Docker versions rebuilt for `stonking`, and a running container stayed up through it. Two limits: I only tested the deb822 `docker.sources` file, not an older one line `docker.list`, and I didn't test the beta case of a fresh 26.10 box pointed at `resolute`.
 
-## 7. The docker group walks straight past sudo-rs
+## 6. The docker group walks straight past sudo-rs
 
 Adding yourself to the `docker` group works on 26.10 exactly as on 26.04:
 
@@ -290,13 +253,13 @@ root:!*:1747
 uid=0(root) gid=0(root) ...
 ```
 
-Root, with no sudo involved. Nothing in sudo's rules or sudo's log applies. The daemon runs as root and does whatever its socket asks. Adding someone to the `docker` group has the same effect as giving them the root password. If that's too much, see section 9.
+Root, with no sudo involved. Nothing in sudo's rules or sudo's log applies. The daemon runs as root and does whatever its socket asks. Adding someone to the `docker` group has the same effect as giving them the root password. If that's too much, see section 8.
 
 ![rootie is in the docker group but sudo says I'm sorry rootie, /etc/shadow is permission denied, and one docker run mounting / prints root's shadow line and uid=0(root)](../../assets/docker-2610-shot-16-root.png)
 
 So what do I do on my own boxes? I add myself to the group, so I don't have to sudo anymore, and it's the standard way in Docker's docs.
 
-## 8. Published ports still ignore ufw
+## 7. Published ports still ignore ufw
 
 `ufw` is off on a fresh 26.10 server. When you turn it on, it doesn't cover Docker's published ports.
 
@@ -358,7 +321,7 @@ This is my own repeat of that test on the screenshot box, with a dummy interface
 
 ![after deleting the dummy interface, docker run with -p 100.101.102.103:8080:80 fails with failed to bind host port 100.101.102.103:8080/tcp: cannot assign requested address and the container stays Created](../../assets/docker-2610-shot-23-tailnet-gone.png)
 
-## 9. Rootless mode on 26.10
+## 8. Rootless mode on 26.10
 
 Rootless mode runs a separate Docker daemon as your own user. A container escape lands you as you, not root.
 
@@ -371,7 +334,7 @@ You need `uidmap`, which isn't installed on a fresh 26.10 server. For a user who
 [ERROR] install the requirements and run this tool again.
 ```
 
-If you followed sections 1 to 7, you hit a different stop first. The system daemon is running and you're in the `docker` group, so the setup tool refuses, with or without `uidmap`:
+If you followed sections 1 to 6, you hit a different stop first. The system daemon is running and you're in the `docker` group, so the setup tool refuses, with or without `uidmap`:
 
 ```text
 [ERROR] Aborting because rootful Docker (/var/run/docker.sock) is running and accessible. Set --force to ignore.
@@ -379,7 +342,7 @@ If you followed sections 1 to 7, you hit a different stop first. The system daem
 
 ![dockerd-rootless-setuptool.sh install aborts because rootful Docker is running and accessible, and still aborts the same way after uidmap is installed](../../assets/docker-2610-shot-24-rootless-stops.png)
 
-You have two ways out. Docker's [rootless docs](https://docs.docker.com/engine/security/rootless/) recommend turning the system daemon off first, and that's the path I tested end to end. The other is to run rootless as a separate user who isn't in the `docker` group. That user can't reach the root socket, so the check passes. My first box did it that way, with the `rootie` user from section 7, before I added it to the `docker` group. (`--force` keeps both daemons running. I didn't test it.)
+You have two ways out. Docker's [rootless docs](https://docs.docker.com/engine/security/rootless/) recommend turning the system daemon off first, and that's the path I tested end to end. The other is to run rootless as a separate user who isn't in the `docker` group. That user can't reach the root socket, so the check passes. My first box did it that way, with the `rootie` user from section 6, before I added it to the `docker` group. (`--force` keeps both daemons running. I didn't test it.)
 
 To switch your own user to rootless, as that user:
 
@@ -426,12 +389,11 @@ Captured before the reboot shown above; this `web` container, started with `--re
 - `docker.io` on top of `docker-ce` removes `docker-ce`, `docker-ce-cli` and `containerd.io`, listed in one line of apt's summary.
 - `get.docker.com` after the manual steps leaves `docker.list` and `docker.sources` side by side, and `apt update` warns about it forever.
 - Only one `docker-ce` version is in the `stonking` suite so far, so there's nothing older to pin to.
-- Ubuntu's `docker.io` has no Buildx, so `docker build` uses the deprecated legacy builder until you install `docker-buildx`.
 - Being in the `docker` group is root, and sudo-rs never gets a say.
 - `ufw deny` on a published port does nothing. Bind to `127.0.0.1` instead.
 - Docker's experimental nftables backend with `ufw` on cuts off container outbound traffic too.
 - Rootless needs `uidmap` and `loginctl enable-linger`, and can't publish ports below 1024 by default.
-- The rootless setup aborts while the system daemon runs and you're in the `docker` group. Disable `docker.service` and `docker.socket` and remove `/var/run/docker.sock` first (section 9).
+- The rootless setup aborts while the system daemon runs and you're in the `docker` group. Disable `docker.service` and `docker.socket` and remove `/var/run/docker.sock` first (section 8).
 - Docker 29.9.1 rejected a one letter container name: `invalid container name (w): name must be at least 2 characters`. I found that by accident.
 - 26.10 support ends in July 2027. Docker's repo will need moving again for 27.04.
 
@@ -442,7 +404,6 @@ Captured before the reboot shown above; this `web` container, started with `--re
 | Is Docker's 26.10 suite there? | `curl -s -o /dev/null -w '%{http_code}\n' https://download.docker.com/linux/ubuntu/dists/stonking/Release` |
 | Remove distro packages | `sudo apt remove $(dpkg --get-selections docker.io docker-compose docker-compose-v2 docker-doc docker-buildx podman-docker containerd runc \| cut -f1)` |
 | Install from Docker's repo | key plus `docker.sources` as in section 1, then `sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin` |
-| Install Ubuntu's instead | `sudo apt install docker.io docker-compose-v2 docker-buildx` |
 | See what apt would remove | `sudo apt install -s <packages>` |
 | Duplicate repo warning | `sudo rm /etc/apt/sources.list.d/docker.list` |
 | Beta or upgraded repo to stonking | `sudo sed -i -e 's/^Suites: resolute$/Suites: stonking/' -e '/^Enabled: no$/d' /etc/apt/sources.list.d/docker.sources` |

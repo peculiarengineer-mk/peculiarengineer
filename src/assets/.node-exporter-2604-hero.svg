@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="680" viewBox="0 0 1360 680">
+  <defs><radialGradient id="g" cx="30%" cy="32%" r="82%"><stop offset="0%" stop-color="#1a1210"/><stop offset="100%" stop-color="#0a0706"/></radialGradient>
+  <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse"><path d="M34 0H0V34" fill="none" stroke="#2a1c16" stroke-width="1"/></pattern>
+  <linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f28c38" stop-opacity="0.35"/><stop offset="100%" stop-color="#f28c38" stop-opacity="0"/></linearGradient></defs>
+  <rect width="1360" height="680" fill="url(#g)"/><rect width="1360" height="680" fill="url(#grid)" opacity="0.5"/>
+  <g><rect x="864" y="48" width="448" height="46" rx="8" fill="none" stroke="#a08a7e" stroke-width="1.5"/>
+  <text x="888" y="77" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="18" letter-spacing="2" fill="#f28c38">&#9670; NODE EXPORTER · UBUNTU 26.04</text></g>
+  <g><rect x="72" y="120" width="700" height="462" rx="11" fill="#0e0a08" stroke="#a08a7e" stroke-width="1.5"/>
+  <line x1="72" y1="178" x2="772" y2="178" stroke="#2a1c16" stroke-width="1.5"/>
+  <circle cx="104" cy="149" r="7" fill="#a08a7e"/><circle cx="128" cy="149" r="7" fill="#a08a7e"/><circle cx="152" cy="149" r="7" fill="#a08a7e"/>
+  <text x="200" y="156" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="20" fill="#a08a7e">host metrics, private network</text>
+  <text x="104" y="216" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14.5" fill="#f28c38"><tspan fill="#f7b27a">$</tspan> sudo apt install --no-install-recommends prometheus-node-exporter</text>
+  <text x="104" y="246" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14.5" fill="#a08a7e">1 package. with recommends: 22.</text>
+  <text x="104" y="276" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14.5" fill="#f28c38"><tspan fill="#f7b27a">$</tspan> curl -s http://10.20.1.10:9100/metrics | grep -E "^(apt_|node_reboot)"</text>
+  <text x="104" y="306" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14.5" fill="#f0c060">apt_upgrades_pending{...security...} 70</text>
+  <text x="104" y="336" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14.5" fill="#5fd08a">node_reboot_required 0</text>
+  <text x="104" y="366" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14.5" fill="#f28c38"><tspan fill="#f7b27a">$</tspan> curl -s prom:9090/api/v1/query?query=up</text>
+  <text x="104" y="396" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14.5" fill="#5fd08a">up{instance="nodex"} 1</text>
+  <text x="104" y="426" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14.5" fill="#f2837a">lastError: connect: connection refused   -&gt; exporter</text>
+  <text x="104" y="456" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="14.5" fill="#f2837a">lastError: context deadline exceeded     -&gt; firewall</text>
+  <text x="104" y="548" font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace" font-size="16" fill="#a08a7e">93 pending updates on a five minute old box.<tspan fill="#f28c38">&#9608;</tspan></text></g>
+  <g font-family="'SF Mono','Menlo','DejaVu Sans Mono','Consolas',monospace">
+  <text x="852" y="200" font-size="20" letter-spacing="2" fill="#a08a7e">SCRAPED EVERY 15S</text>
+  <path d="M852 413.2 L875 406.4 L898 409.8 L921 392.8 L944 379.2 L967 389.4 L990 369 L1013 348.6 L1036 358.8 L1059 338.4 L1082 352 L1105 324.8 L1128 331.6 L1151 314.6 L1174 321.4 L1197 301 L1220 307.8 L1243 290.8 L1266 297.6 L1289 277.20000000000005 L1289 430 L852 430 Z" fill="url(#area)"/>
+  <path d="M852 413.2 L875 406.4 L898 409.8 L921 392.8 L944 379.2 L967 389.4 L990 369 L1013 348.6 L1036 358.8 L1059 338.4 L1082 352 L1105 324.8 L1128 331.6 L1151 314.6 L1174 321.4 L1197 301 L1220 307.8 L1243 290.8 L1266 297.6 L1289 277.20000000000005" fill="none" stroke="#f28c38" stroke-width="2.5"/>
+  <circle cx="1289" cy="277.20000000000005" r="5" fill="#f28c38"/>
+  <line x1="852" y1="430" x2="1300" y2="430" stroke="#2a1c16"/>
+  <text x="852" y="452" font-size="12" fill="#a08a7e">node_filesystem_avail_bytes{mountpoint="/"}</text>
+  <text x="852" y="500" font-size="14" fill="#a08a7e">target  <tspan fill="#5fd08a">10.20.1.10:9100</tspan>  bound to the private nic</text>
+  <text x="852" y="526" font-size="14" fill="#a08a7e">ufw     <tspan fill="#5fd08a">allow from 10.20.1.20</tspan>  and nothing else</text>
+  <text x="852" y="556" font-size="13" fill="#f7b27a">three alert rules, one of them already pending.</text></g>
+</svg>

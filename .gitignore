@@ -48,3 +48,8 @@ docs/
 
 # weekly newsletter drafts and the digest log (local only)
 newsletter/
+
+# private research notes, reports and plan-gate runs (local only)
+reports/
+research_notes/
+.plan-gate/
