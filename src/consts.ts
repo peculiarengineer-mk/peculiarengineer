@@ -16,20 +16,6 @@ export const AUTHOR = {
 	jobTitle: 'Site Reliability Engineer',
 };
 
-// ── Newsletter ───────────────────────────────────────────────────────────────
-// Buttondown username. The embed form posts to
-// https://buttondown.com/api/emails/embed-subscribe/<username> and needs no JS.
-// While this is 'CHANGEME' every signup form renders a visible setup notice
-// instead of a live input, so a half-configured form can't ship silently.
-export const BUTTONDOWN_USERNAME = 'peculiarengineer';
-
-// Master switch for every signup form on the site. The forms are on; set this
-// to false to hide them all again.
-export const NEWSLETTER_ENABLED = true;
-
-export const NEWSLETTER_READY = (BUTTONDOWN_USERNAME as string) !== 'CHANGEME';
-export const NEWSLETTER_ACTION = `https://buttondown.com/api/emails/embed-subscribe/${BUTTONDOWN_USERNAME}`;
-
 export function sortByPubDate<T extends { data: { pubDate: Date } }>(a: T, b: T): number {
 	return b.data.pubDate.valueOf() - a.data.pubDate.valueOf();
 }

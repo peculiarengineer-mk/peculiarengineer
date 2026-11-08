@@ -19,7 +19,7 @@ Live site: <https://peculiarengineer.com>
 ```text
 src/
 ├── assets/            # Images and self-hosted fonts
-├── components/        # BaseHead, Header, Footer, CommandSearch, LoveGame, Newsletter
+├── components/        # BaseHead, Header, Footer, CommandSearch, LoveGame
 ├── content/blog/      # Blog posts (Markdown / MDX)
 ├── content/experiments/ # Side projects listed on /experiments
 ├── data/              # Benchmark results rendered on /benchmark
@@ -27,7 +27,7 @@ src/
 ├── pages/             # Routes: /, /blog, /blog/[slug], /series, /experiments,
 │                      #         /benchmark, /about, /rss.xml, /search.json
 ├── styles/            # global.css and listing.css (terminal theme, Bear Blog roots)
-├── consts.ts          # SITE_TITLE / SITE_DESCRIPTION, newsletter switches
+├── consts.ts          # SITE_TITLE / SITE_DESCRIPTION
 └── content.config.ts  # Blog and experiments collection schemas
 ```
 
