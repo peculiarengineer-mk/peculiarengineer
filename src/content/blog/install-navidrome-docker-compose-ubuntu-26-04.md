@@ -6,7 +6,6 @@ heroImage: '../../assets/install-navidrome-hero.png'
 tags: ['Navidrome', 'Docker', 'DockerCompose', 'Music', 'Subsonic', 'Ubuntu', 'Ubuntu2604', 'Homelab', 'SelfHosted', 'Linux']
 ---
 
-<!-- KEITH REVIEW -->
 I use Plex to share my videos with family, and I've tried Jellyfin on a plain install. Music is the piece I hadn't covered yet. I wanted to see how it runs in Docker, because why not.
 
 Navidrome is a small, self-hosted music server. It scans a folder of music files, serves a web player, and speaks the Subsonic API, so most phone music apps can stream from it. The official Compose file is about a dozen lines, and it works. The trouble is how it fails when a folder is wrong: the error says a file doesn't exist when the real problem is ownership, and one unreadable folder in your library stops new music from showing up without a single error in the web UI.
@@ -42,7 +41,6 @@ The first box was for the testing and most of the text blocks. A second fresh bo
 
 ## 1. Make the folders first
 
-<!-- KEITH REVIEW -->
 Where does it all live? I use bind mounts, so my container data sits under `/srv`. Navidrome gets the same treatment.
 
 Make the folders as your own user, before Docker gets a chance to:
@@ -403,7 +401,6 @@ If the server is on the public internet and you don't want the music server ther
 
 Then put a reverse proxy in front of it, like [Caddy](/blog/caddy-reverse-proxy-docker-compose-ubuntu-26-04/), or reach it some other private way. I tested the `127.0.0.1` binding: `ss -ltn` showed it listening on `127.0.0.1` only.
 
-<!-- KEITH REVIEW -->
 And from outside the house? I use Tailscale to reach my home server from anywhere, but it's locked down to my home network. My [Tailscale post](/blog/install-tailscale-ubuntu-26-04/) covers the setup.
 
 ## Where things live
@@ -457,5 +454,4 @@ docker exec navidrome /app/navidrome missing list -n
 docker exec navidrome /app/navidrome doctor
 ```
 
-<!-- KEITH REVIEW -->
 Make the folders before Docker does, claim the admin right away, and read the log. That's most of it.

@@ -6,7 +6,6 @@ heroImage: '../../assets/install-audiobookshelf-hero.png'
 tags: ['Audiobookshelf', 'Audiobooks', 'Podcasts', 'Docker', 'DockerCompose', 'Ubuntu', 'Ubuntu2604', 'Homelab', 'SelfHosted', 'Linux']
 ---
 
-<!-- KEITH REVIEW -->
 For audiobooks, Audiobookshelf is the name that keeps coming up. I wanted to see what the official setup gets wrong before I trust it with a library.
 
 Audiobookshelf is a self hosted server for audiobooks and podcasts. It remembers where each listener stopped, and it has phone apps. The official Compose file gets it running in a minute. Where it bites is later, and this post covers each place it bit me, with the fix.
@@ -80,7 +79,6 @@ drwxrwxr-x 2 example example 4096 Nov  8 18:13 podcasts
 
 ![sudo mkdir -p /srv/audiobookshelf, sudo chown to example, then mkdir of config, metadata, audiobooks and podcasts; ls -l shows all four owned by example example](../../assets/install-audiobookshelf-shot-02-srv.png)
 
-<!-- KEITH REVIEW -->
 Why `/srv`? I use bind mounts, so my container data sits under `/srv`, and that's what my [restic backups](/blog/backup-homelab-restic-object-storage/) pick up.
 
 ## 2. The Compose file
@@ -331,7 +329,6 @@ So keep it on localhost, and put something in front of it that you choose on pur
 
 If your proxy runs in Docker, like in those two posts, it can't reach `127.0.0.1` on the host. Put `audiobookshelf` on the proxy's network and point the proxy at `audiobookshelf:80`. The `127.0.0.1` port is then just for your SSH tunnel.
 
-<!-- KEITH REVIEW -->
 How do I reach my home server from outside? I use Tailscale to reach it from anywhere, but it's locked down to my home network. My [Tailscale post](/blog/install-tailscale-ubuntu-26-04/) covers the setup.
 
 A tailnet only helps if Docker listens on the tailnet address. Publish on the server's Tailscale IP (`tailscale ip -4`), as in `"100.x.y.z:13378:80"`. The Docker on 26.10 post has the catch: that address has to exist when the container starts.

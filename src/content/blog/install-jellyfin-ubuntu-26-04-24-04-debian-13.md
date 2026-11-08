@@ -6,7 +6,6 @@ heroImage: '../../assets/install-jellyfin-hero.png'
 tags: ['Jellyfin', 'Ubuntu', 'Ubuntu2604', 'Ubuntu2404', 'Debian', 'Debian13', 'MediaServer', 'Homelab', 'SelfHosted', 'Linux', 'SysAdmin']
 ---
 
-<!-- KEITH REVIEW -->
 I use Plex to share my videos with family. Jellyfin is the other big name, and it has nothing to sign in to. I wanted to see how it holds up on a plain install, because why not.
 
 Jellyfin is the free, open source media server. The install is the easy part. The part that bites is the first library, because Jellyfin runs as its own `jellyfin` user and can't see into your home directory. It tells you the folder doesn't exist when it does.
@@ -36,7 +35,6 @@ So I installed Jellyfin 12.4 the same way on fresh Ubuntu 26.04, Ubuntu 24.04 an
 - A normal user called `example` with `sudo`, logged in over SSH. A 20 second test film made with ffmpeg.
 - None of these servers has a real GPU, so hardware transcoding is not tested here.
 
-<!-- KEITH REVIEW -->
 Where would I run it? My Plex box lives on my home network as a Proxmox VM, nothing crazy. This post is the native install, straight from Jellyfin's repo. If you'd rather run it in Docker, my [Jellyfin 12 upgrade post](/blog/upgrade-jellyfin-12-docker-ubuntu-26-04/) uses Compose.
 
 ## 1. Add the Jellyfin repo
@@ -256,7 +254,6 @@ setfacl -R -d -m u:jellyfin:rX "$HOME/Media"
 
 The first line lets `jellyfin` pass through your home directory without listing it. The second lets it read `~/Media`. The third (`-d`, a default ACL) makes new files in `~/Media` readable too. I tested this on 26.04: the library added and scanned, and a film I added later was readable without running anything again.
 
-<!-- KEITH REVIEW -->
 Where does mine live? On an external disk I have mounted on my Ubuntu machine.
 
 If the media is on another disk, mount it somewhere like `/srv/media` with an fstab entry so it comes back after a reboot. My [disk and fstab post](/blog/add-disk-fstab-lvm-ubuntu-26-04/) covers that.
@@ -327,7 +324,6 @@ I used `ufw --force enable` here because the capture script couldn't answer the 
 
 UDP 7359 is only for apps on your network finding the server by themselves. Skip it if you type the address in. To keep 8096 to your own network, use `sudo ufw allow from 192.168.1.0/24 to any port 8096 proto tcp` with your subnet instead. The [ufw post](/blog/ufw-firewall-basics-ubuntu/) has the rest.
 
-<!-- KEITH REVIEW -->
 And from outside the house? I use Tailscale to reach my home server from anywhere, but it's locked down to my home network. My [Tailscale post](/blog/install-tailscale-ubuntu-26-04/) covers the setup.
 
 ## 6. Updates, holding a version, removing it
@@ -416,5 +412,4 @@ All four folders belong to `jellyfin:adm` with mode `750`, so `ls /etc/jellyfin`
 | Remove | `sudo apt remove jellyfin jellyfin-server jellyfin-web jellyfin-ffmpeg8` |
 | Logs | `journalctl -u jellyfin` |
 
-<!-- KEITH REVIEW -->
 Install it from the repo and keep your media out of your home directory. That skips most of the pain.

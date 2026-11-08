@@ -8,7 +8,6 @@ tags: ['CrowdSec', 'nginx', 'nftables', 'Security', 'Hardening', 'SSH', 'Ubuntu'
 
 Put nginx on a public box and the access log fills up with `/wp-login.php`, `/.env` and `/phpmyadmin/` from addresses you've never heard of. Fail2ban can catch that, one jail and one regex at a time. CrowdSec comes with the parsers and scenarios already written, and it can share what it sees with everyone else running it.
 
-<!-- KEITH REVIEW -->
 My hardening pass puts fail2ban on port 22. But Nginx is usually the first thing I throw on there, and my sshd jail never looks at its logs. CrowdSec watches both, so I put it on a plain 26.04 box to see what it gets wrong.
 
 This post installs it the sane way on Ubuntu 26.04, adds two bouncers (one for the firewall, one inside nginx), and walks through the traps I hit on the way.
@@ -168,7 +167,6 @@ sudo cscli allowlists add home 198.51.100.7 -d "home"
 
 Use your address instead of `198.51.100.7`.
 
-<!-- KEITH REVIEW -->
 I reach my boxes over [Tailscale](/blog/install-tailscale-ubuntu-26-04/), so if you do too, put the tailnet range on the list.
 
 Tailscale addresses live in `100.64.0.0/10`, which none of the built in lists cover. If you reach the box over Tailscale, add it:
@@ -548,5 +546,4 @@ sudo cscli setup unattended && sudo systemctl reload crowdsec
 sudo cscli decisions delete --ip <ip>
 ```
 
-<!-- KEITH REVIEW -->
 Install it from CrowdSec's repo, put yourself on the allowlist first, and check `cscli bouncers list` after every change. That's most of it.
