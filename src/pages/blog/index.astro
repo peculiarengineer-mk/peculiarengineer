@@ -6,9 +6,14 @@ import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
 import { SITE_TITLE, sortByPubDate } from '../../consts';
+import { TOPICS, postsForTopic } from '../../curation';
 import '../../styles/listing.css';
 
 const posts = (await getCollection('blog')).sort(sortByPubDate);
+const topics = TOPICS.map((topic) => ({
+	topic,
+	count: postsForTopic(posts, topic.slug).length,
+}));
 ---
 
 <!doctype html>
@@ -35,6 +40,26 @@ const posts = (await getCollection('blog')).sort(sortByPubDate);
 				text-decoration: underline;
 				text-underline-offset: 4px;
 			}
+			.topic-chips {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.6em;
+				margin: 0 0 2em;
+			}
+			.topic-chips a {
+				border: 1px solid var(--sys-dim);
+				padding: 0.25em 0.7em;
+				font-family: var(--font-mono);
+				font-size: 0.85em;
+				color: var(--sys-fg);
+				text-decoration: none;
+				white-space: nowrap;
+			}
+			.topic-chips a:hover {
+				border-color: var(--sys-fg);
+				text-decoration: underline;
+				text-underline-offset: 3px;
+			}
 		</style>
 	</head>
 	<body>
@@ -42,6 +67,16 @@ const posts = (await getCollection('blog')).sort(sortByPubDate);
 		<main>
 			<section class="listing">
 				<CommandSearch />
+				<nav class="topic-chips" aria-label="Browse by topic">
+					{
+						topics.map(({ topic, count }) => (
+							<>
+								{'\n'}
+								<a href={`/topics/${topic.slug}/`}>#{topic.label} ({count})</a>
+							</>
+						))
+					}
+				</nav>
 				<h1 class="listing-head">
 					~/$ ls -la /blog &nbsp;&middot;&nbsp; <span class="count"
 						>{posts.length}</span

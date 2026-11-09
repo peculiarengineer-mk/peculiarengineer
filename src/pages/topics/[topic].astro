@@ -1,0 +1,100 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import Header from '../../components/Header.astro';
+import { TOPICS, postsForTopic } from '../../curation';
+import { SITE_TITLE } from '../../consts';
+import '../../styles/listing.css';
+
+type Props = {
+	topic: (typeof TOPICS)[number];
+	posts: CollectionEntry<'blog'>[];
+};
+
+export async function getStaticPaths() {
+	const posts = await getCollection('blog');
+	return TOPICS.map((topic) => ({
+		params: { topic: topic.slug },
+		props: { topic, posts: postsForTopic(posts, topic.slug) },
+	}));
+}
+
+const { topic, posts } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead
+			title={`${topic.label} guides · ${SITE_TITLE}`}
+			description={topic.blurb}
+		/>
+		<style>
+			.listing li a {
+				position: relative;
+				display: block;
+				border: 1px solid var(--sys-dim);
+				padding: 1.25em 1.5em;
+				text-decoration: none;
+				color: var(--sys-fg);
+			}
+			.listing li a:hover {
+				border-color: var(--sys-fg);
+				background: transparent;
+			}
+			.listing li a:hover .title {
+				text-decoration: underline;
+				text-underline-offset: 4px;
+			}
+			.blurb {
+				margin: -1em 0 2em;
+				color: var(--sys-text);
+			}
+			.back {
+				margin: 2em 0 0;
+				font-family: var(--font-mono);
+			}
+			.back a {
+				color: var(--sys-dim);
+			}
+			.back a:hover {
+				color: var(--sys-fg);
+				text-decoration: underline;
+				text-underline-offset: 4px;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<section class="listing">
+				<h1 class="listing-head">
+					~/$ ls /topics/{topic.slug} &nbsp;&middot;&nbsp; <span class="count"
+						>{posts.length}</span
+					> entr{posts.length === 1 ? 'y' : 'ies'} found
+				</h1>
+				<p class="blurb">{topic.blurb}</p>
+				<ul>
+					{
+						posts.map((post) => (
+							<li>
+								<a href={`/blog/${post.id}/`}>
+									<h2 class="title">{post.data.title}</h2>
+									{post.data.description && <p class="desc">{post.data.description}</p>}
+									<p class="date">
+										<FormattedDate date={post.data.pubDate} />
+									</p>
+								</a>
+							</li>
+						))
+					}
+				</ul>
+				<p class="back"><a href="/topics/">&lt; cd /topics</a></p>
+			</section>
+		</main>
+		<Footer />
+	</body>
+</html>
