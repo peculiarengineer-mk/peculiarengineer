@@ -182,7 +182,7 @@ docker build \
 					{
 						deepDives.map((post) => (
 							<li>
-								<a href={`/blog/${post.id}/`}>{post.data.title}</a>
+								<a href={`/blog/${post.id}/`}>{post.data.title}</a>{' '}
 								<span class="dive-date">
 									<FormattedDate date={post.data.pubDate} />
 								</span>

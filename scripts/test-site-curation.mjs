@@ -43,8 +43,9 @@ for (const slug of TOPIC_SLUGS) {
 
 // 3. the archive chips on /blog/ link to every topic
 const blogHtml = read('blog/index.html');
-const chipLinks = [...blogHtml.matchAll(/href="\/topics\//g)].length;
-if (chipLinks < 7) fail(`dist/blog/index.html has ${chipLinks} /topics/ chip links, expected 7 or more`);
+for (const t of ['ubuntu', 'docker', 'ssh', 'security', 'self-hosting', 'ai', 'kubernetes']) {
+	if (!blogHtml.includes(`href="/topics/${t}/"`)) fail(`dist/blog/index.html has no chip for /topics/${t}/`);
+}
 
 // 4. a post's tag links to its topic
 const postHtml = read('blog/permission-denied-publickey-ubuntu/index.html');
