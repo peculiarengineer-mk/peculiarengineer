@@ -423,8 +423,9 @@ docker build \
 	}
 	.path ol a:hover,
 	.compact a:hover {
-		text-decoration: underline;
-		text-underline-offset: 3px;
+		background: var(--sys-fg);
+		color: var(--sys-bg);
+		text-decoration: none;
 	}
 	.compact {
 		list-style: none;
@@ -456,9 +457,9 @@ docker build \
 		white-space: nowrap;
 	}
 	.topic-chips a:hover {
-		border-color: var(--sys-fg);
-		text-decoration: underline;
-		text-underline-offset: 3px;
+		background: var(--sys-fg);
+		color: var(--sys-bg);
+		text-decoration: none;
 	}
 
 	.rule {

@@ -999,6 +999,12 @@ const pageDesc = `A small, self-run coding benchmark: ${models.length} models on
 	.disclaimer a {
 		color: var(--sys-fg);
 	}
+	.method a:hover,
+	.disclaimer a:hover {
+		background: var(--sys-fg);
+		color: var(--sys-bg);
+		text-decoration: none;
+	}
 
 	@media (max-width: 640px) {
 		.stats {
