@@ -6,6 +6,7 @@ import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 import { AUTHOR } from '../consts';
+import { topicsForTags } from '../curation';
 
 type Props = Omit<CollectionEntry<'blog'>['data'], 'pubDate'> & {
 	pubDate?: Date;
@@ -142,6 +143,14 @@ const jsonLd =
 				color: var(--sys-dim);
 				letter-spacing: 0.03em;
 			}
+			.tags a {
+				color: inherit;
+				text-decoration: none;
+			}
+			.tags a:hover {
+				text-decoration: underline;
+				text-underline-offset: 3px;
+			}
 		</style>
 	</head>
 
@@ -168,7 +177,21 @@ const jsonLd =
 							)
 						}
 						<h1>{title}</h1>
-						{tags && tags.length > 0 && <div class="tags">{tags.map((tag) => `#${tag}`).join(' ')}</div>}
+						{
+							tags && tags.length > 0 && (
+								<div class="tags">
+									{tags.map((tag, i) => {
+										const topic = topicsForTags([tag])[0];
+										return (
+											<>
+												{i > 0 ? ' ' : ''}
+												{topic ? <a href={`/topics/${topic.slug}/`}>#{tag}</a> : `#${tag}`}
+											</>
+										);
+									})}
+								</div>
+							)
+						}
 						<hr />
 					</div>
 					<slot />

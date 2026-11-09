@@ -5,9 +5,17 @@ import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE, sortByPubDate } from '../consts';
+import { DEEP_DIVES, PATHS, POPULAR, TOPICS, postsForTopic, resolveSlugs } from '../curation';
 
 const posts = (await getCollection('blog')).sort(sortByPubDate);
 const latest = posts[0];
+const paths = PATHS.map((path) => ({ ...path, entries: resolveSlugs(posts, path.posts) }));
+const popular = resolveSlugs(posts, POPULAR);
+const deepDives = resolveSlugs(posts, DEEP_DIVES);
+const topics = TOPICS.map((topic) => ({
+	topic,
+	count: postsForTopic(posts, topic.slug).length,
+}));
 ---
 
 <!doctype html>
@@ -40,11 +48,7 @@ const latest = posts[0];
 				<span class="term-label">:: Peculiar_Engineer.exe ::</span>
 				<h1>&gt; Peculiar Engineer_</h1>
 				<p>
-					Documentation of every fix, trick, and tool I've dug up — Linux and cloud
-					infrastructure, DevOps, and AI how-tos that speed up developer workflows.
-					Real commands, real errors, and the reasoning behind each step, written down
-					so I never have to Google the same problem twice. Reproducible whether you're
-					following along or it's future-me at 2 a.m.
+					Tested Linux, DevOps and AI guides, with the real commands, the real errors, and the fixes that worked.
 				</p>
 				<div class="actions">
 					<a class="btn btn-primary" href="/blog">[ RUN: Read_Blog ]</a>
@@ -108,6 +112,84 @@ docker build \
 					<a href="/experiments"><span class="hex">0x02</span><h3>Experiments</h3></a>
 					<a href="/rss.xml"><span class="hex">0x03</span><h3>RSS Feed</h3></a>
 				</div>
+			</section>
+
+			{'\n'}
+			<!-- Start here -->
+			<section class="term-panel">
+				<span class="term-label">:: start_here.sh ::</span>
+				<h2>Start here</h2>
+				<div class="path-grid">
+					{
+						paths.map((path) => (
+							<div class="path">
+								<h3>{path.title}</h3>
+								<p class="path-blurb">{path.blurb}</p>
+								<ol>
+									{path.entries.map((post) => (
+										<li>
+											<a href={`/blog/${post.id}/`}>{post.data.title}</a>
+										</li>
+									))}
+								</ol>
+							</div>
+						))
+					}
+				</div>
+			</section>
+
+			{'\n'}
+			<!-- Popular fixes -->
+			<section class="term-panel">
+				<span class="term-label">:: popular_fixes.log ::</span>
+				<h2>Popular fixes</h2>
+				<ul class="compact">
+					{
+						popular.map((post) => (
+							<li>
+								<a href={`/blog/${post.id}/`}>{post.data.title}</a>
+							</li>
+						))
+					}
+				</ul>
+			</section>
+
+			{'\n'}
+			<!-- Browse by topic -->
+			<section class="term-panel">
+				<span class="term-label">:: topics/ ::</span>
+				<h2>Browse by topic</h2>
+				<nav class="topic-chips" aria-label="Browse by topic">
+					{
+						topics.map(({ topic, count }) => (
+							<>
+								{'\n'}
+								<a href={`/topics/${topic.slug}/`}>#{topic.label} ({count})</a>
+							</>
+						))
+					}
+					{'\n'}
+					<a href="/topics/">all topics</a>
+				</nav>
+			</section>
+
+			{'\n'}
+			<!-- Deep dives -->
+			<section class="term-panel">
+				<span class="term-label">:: deep_dives/ ::</span>
+				<h2>Deep dives</h2>
+				<ul class="compact">
+					{
+						deepDives.map((post) => (
+							<li>
+								<a href={`/blog/${post.id}/`}>{post.data.title}</a>{' '}
+								<span class="dive-date">
+									<FormattedDate date={post.data.pubDate} />
+								</span>
+							</li>
+						))
+					}
+				</ul>
 			</section>
 
 			<div class="rule">
@@ -312,6 +394,73 @@ docker build \
 		font-size: 1.05em;
 	}
 
+	/* Curated sections */
+	.path-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1.5em;
+	}
+	.path h3 {
+		margin: 0 0 0.3em;
+	}
+	.path-blurb {
+		margin: 0 0 0.8em;
+		font-size: 0.9em;
+		color: var(--sys-text);
+	}
+	.path ol {
+		margin: 0;
+		padding-left: 1.4em;
+		font-size: 0.9em;
+	}
+	.path ol li {
+		margin-bottom: 0.5em;
+	}
+	.path ol a,
+	.compact a {
+		color: var(--sys-fg);
+		text-decoration: none;
+	}
+	.path ol a:hover,
+	.compact a:hover {
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+	.compact {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		font-size: 0.95em;
+	}
+	.compact li {
+		margin-bottom: 0.6em;
+	}
+	.dive-date {
+		margin-left: 0.8em;
+		font-size: 0.8em;
+		color: var(--sys-dim);
+		white-space: nowrap;
+	}
+	.topic-chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6em;
+	}
+	.topic-chips a {
+		border: 1px solid var(--sys-dim);
+		padding: 0.25em 0.7em;
+		font-family: var(--font-mono);
+		font-size: 0.85em;
+		color: var(--sys-fg);
+		text-decoration: none;
+		white-space: nowrap;
+	}
+	.topic-chips a:hover {
+		border-color: var(--sys-fg);
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
 	.rule {
 		color: var(--sys-dim);
 		overflow: hidden;
@@ -321,7 +470,8 @@ docker build \
 
 	@media (max-width: 720px) {
 		.bento,
-		.quick-links {
+		.quick-links,
+		.path-grid {
 			grid-template-columns: 1fr;
 		}
 	}
