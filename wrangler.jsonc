@@ -27,7 +27,7 @@
 	],
 	// Notifications go out through Resend; NOTIFY_FROM's domain must be verified there.
 	"vars": {
-		"NOTIFY_FROM": "apply@notify.peculiarengineer.com",
+		"NOTIFY_FROM": "apply@peculiarengineer.com",
 		"NOTIFY_TO": "minorkenkeith@gmail.com"
 	}
 	// Secrets (not in this file): TURNSTILE_SECRET and RESEND_API_KEY, set with `wrangler secret put`.
