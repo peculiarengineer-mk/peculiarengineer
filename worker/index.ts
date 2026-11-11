@@ -4,8 +4,7 @@
 // POST /api/zomboid-apply: the managed Project Zomboid server application form.
 // Order: Turnstile check, field validation, store in D1, then email a notification.
 // The row is written before the email, so a failed send never loses an application.
-
-import { EmailMessage } from 'cloudflare:email';
+// The notification goes out through Resend's HTTPS API (secret RESEND_API_KEY).
 
 // Minimal local types, so this file needs no extra type packages.
 interface D1Result {
@@ -18,16 +17,15 @@ interface D1PreparedStatement {
 interface D1Database {
 	prepare(query: string): D1PreparedStatement;
 }
-interface SendEmail {
-	send(message: EmailMessage): Promise<void>;
-}
 interface Env {
 	ASSETS: { fetch(request: Request): Promise<Response> };
 	DB: D1Database;
-	NOTIFY: SendEmail;
 	NOTIFY_FROM: string;
 	NOTIFY_TO: string;
 	TURNSTILE_SECRET: string;
+	RESEND_API_KEY: string;
+	// Optional override, for pointing local tests at a mock.
+	RESEND_API_URL?: string;
 }
 
 const FORM_PAGE = '/zomboid/';
@@ -106,7 +104,9 @@ async function handleApply(request: Request, env: Env, url: URL): Promise<Respon
 	for (const [field, [max, required]] of Object.entries(FIELDS)) {
 		const raw = form.get(field);
 		// Browsers send textarea line breaks as CRLF; count them as one character like maxlength does.
-		const value = typeof raw === 'string' ? raw.replace(/\r\n/g, '\n').trim() : '';
+		let value = typeof raw === 'string' ? raw.replace(/\r\n/g, '\n').trim() : '';
+		// Only the two textareas may hold line breaks; single-line fields are flattened.
+		if (field !== 'mods' && field !== 'pains') value = value.replace(/\s+/g, ' ');
 		if (value.length > max || (required && value === '')) return back(url, FORM_PAGE, 'invalid');
 		values[field] = value;
 	}
@@ -141,7 +141,7 @@ async function handleApply(request: Request, env: Env, url: URL): Promise<Respon
 	}
 
 	try {
-		await env.NOTIFY.send(buildNotification(env, id, values, country));
+		await sendNotification(env, id, values, country, url.hostname === 'localhost');
 		await env.DB.prepare('UPDATE applications SET emailed = 1 WHERE id = ?').bind(id).run();
 	} catch (err) {
 		// The application is saved; the email is a convenience. Log and carry on.
@@ -196,21 +196,15 @@ async function turnstileOk(token: string, ip: string, secret: string, hostname: 
 	}
 }
 
-// ── Notification email (raw MIME, as the Email Routing send_email binding expects) ──
+// ── Notification email, via Resend ──
 
-function b64utf8(text: string): string {
-	const bytes = new TextEncoder().encode(text);
-	let bin = '';
-	for (const b of bytes) bin += String.fromCharCode(b);
-	return btoa(bin);
-}
-
-// RFC 2047 encoded word, so any character in a name is safe in a header.
-function encodeHeader(text: string): string {
-	return `=?UTF-8?B?${b64utf8(text.replace(/[\r\n]+/g, ' '))}?=`;
-}
-
-function buildNotification(env: Env, id: number, v: Record<string, string>, country: string | null): EmailMessage {
+async function sendNotification(
+	env: Env,
+	id: number,
+	v: Record<string, string>,
+	country: string | null,
+	local: boolean,
+): Promise<void> {
 	const lines = [
 		`Application #${id}`,
 		'',
@@ -230,23 +224,29 @@ function buildNotification(env: Env, id: number, v: Record<string, string>, coun
 		'',
 		'Reply to this email to answer the applicant directly.',
 	];
-	const body = b64utf8(lines.join('\r\n')).replace(/.{76}/g, '$&\r\n');
-	const domain = env.NOTIFY_FROM.split('@')[1];
+	// JSON body, so user text cannot reach raw headers; line breaks in the name are flattened anyway.
+	const subject = `Zomboid server application #${id}: ${v.name.slice(0, 40)} (${v.group_size})`.replace(/[\r\n]+/g, ' ');
 
-	const raw = [
-		`From: Peculiar Engineer <${env.NOTIFY_FROM}>`,
-		`To: <${env.NOTIFY_TO}>`,
-		// The address passed EMAIL_RE above, so it holds no spaces, brackets or line breaks.
-		`Reply-To: <${v.email}>`,
-		`Subject: ${encodeHeader(`Zomboid server application #${id}: ${v.name.slice(0, 40)} (${v.group_size})`)}`,
-		`Date: ${new Date().toUTCString()}`,
-		`Message-ID: <${crypto.randomUUID()}@${domain}>`,
-		'MIME-Version: 1.0',
-		'Content-Type: text/plain; charset=UTF-8',
-		'Content-Transfer-Encoding: base64',
-		'',
-		body,
-	].join('\r\n');
-
-	return new EmailMessage(env.NOTIFY_FROM, env.NOTIFY_TO, raw);
+	// The mock override is honoured only under local `wrangler dev`, so the key never goes elsewhere.
+	const endpoint = local && env.RESEND_API_URL ? env.RESEND_API_URL : 'https://api.resend.com/emails';
+	const res = await fetch(endpoint, {
+		method: 'POST',
+		signal: AbortSignal.timeout(10_000),
+		headers: {
+			Authorization: `Bearer ${env.RESEND_API_KEY}`,
+			'Content-Type': 'application/json',
+			// A retry of the same application is not sent twice.
+			'Idempotency-Key': `zomboid-apply-${id}`,
+		},
+		body: JSON.stringify({
+			from: `Peculiar Engineer <${env.NOTIFY_FROM}>`,
+			to: [env.NOTIFY_TO],
+			reply_to: v.email,
+			subject,
+			text: lines.join('\n'),
+		}),
+	});
+	if (!res.ok) {
+		throw new Error(`resend ${res.status}: ${(await res.text()).slice(0, 300)}`);
+	}
 }

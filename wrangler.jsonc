@@ -14,6 +14,8 @@
 		// bare 404 with no body; Pages would have picked the file up on its own.
 		"not_found_handling": "404-page"
 	},
+	// Keep Worker logs, so a failed notification (row stays emailed = 0) is visible later.
+	"observability": { "enabled": true },
 	// Applications are stored first, so a failed notification email loses nothing.
 	"d1_databases": [
 		{
@@ -23,17 +25,10 @@
 			"migrations_dir": "worker/migrations"
 		}
 	],
-	// Email Routing binding: it can only send to this verified address.
-	"send_email": [
-		{
-			"name": "NOTIFY",
-			"destination_address": "minorkenkeith@gmail.com"
-		}
-	],
+	// Notifications go out through Resend; NOTIFY_FROM's domain must be verified there.
 	"vars": {
-		"NOTIFY_FROM": "apply@peculiarengineer.com",
-		// Must match send_email.destination_address above, or every send fails.
+		"NOTIFY_FROM": "apply@notify.peculiarengineer.com",
 		"NOTIFY_TO": "minorkenkeith@gmail.com"
 	}
-	// Secret (not in this file): TURNSTILE_SECRET, set with `wrangler secret put`.
+	// Secrets (not in this file): TURNSTILE_SECRET and RESEND_API_KEY, set with `wrangler secret put`.
 }
