@@ -35,14 +35,9 @@ const GROUP_SIZES = ['2-4', '5-8', '9-10', '11+'];
 
 // field name -> [max length, required]
 const FIELDS: Record<string, [number, boolean]> = {
-	name: [100, true],
 	email: [254, true],
-	discord: [100, false],
 	group_size: [10, true],
-	mods: [2000, true],
-	schedule: [300, false],
-	hosting: [300, false],
-	pains: [2000, false],
+	mods: [500, false], // Workshop collection link; blank means vanilla or unsure
 };
 
 // Plain address check: one @, a dot in the domain, no spaces or line breaks.
@@ -104,9 +99,8 @@ async function handleApply(request: Request, env: Env, url: URL): Promise<Respon
 	for (const [field, [max, required]] of Object.entries(FIELDS)) {
 		const raw = form.get(field);
 		// Browsers send textarea line breaks as CRLF; count them as one character like maxlength does.
-		let value = typeof raw === 'string' ? raw.replace(/\r\n/g, '\n').trim() : '';
-		// Only the two textareas may hold line breaks; single-line fields are flattened.
-		if (field !== 'mods' && field !== 'pains') value = value.replace(/\s+/g, ' ');
+		// All fields are single-line; collapse any whitespace, line breaks included.
+		const value = typeof raw === 'string' ? raw.trim().replace(/\s+/g, ' ') : '';
 		if (value.length > max || (required && value === '')) return back(url, FORM_PAGE, 'invalid');
 		values[field] = value;
 	}
@@ -119,20 +113,9 @@ async function handleApply(request: Request, env: Env, url: URL): Promise<Respon
 	let id: number;
 	try {
 		const result = await env.DB.prepare(
-			`INSERT INTO applications (name, email, discord, group_size, mods, schedule, hosting, pains, country)
-			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			`INSERT INTO applications (email, group_size, mods, country) VALUES (?, ?, ?, ?)`,
 		)
-			.bind(
-				values.name,
-				values.email,
-				values.discord || null,
-				values.group_size,
-				values.mods,
-				values.schedule || null,
-				values.hosting || null,
-				values.pains || null,
-				country,
-			)
+			.bind(values.email, values.group_size, values.mods || null, country)
 			.run();
 		id = result.meta.last_row_id;
 	} catch (err) {
@@ -208,24 +191,17 @@ async function sendNotification(
 	const lines = [
 		`Application #${id}`,
 		'',
-		`Name:        ${v.name}`,
 		`Email:       ${v.email}`,
-		`Discord:     ${v.discord || '-'}`,
 		`Group size:  ${v.group_size}`,
-		`Schedule:    ${v.schedule || '-'}`,
-		`Hosting now: ${v.hosting || '-'}`,
+		`Workshop:    ${v.mods || '(blank: vanilla or unsure)'}`,
 		`Country:     ${country ?? '-'}`,
 		'',
-		'Mods / Workshop collection:',
-		v.mods,
-		'',
-		'Top complaints with their current server:',
-		v.pains || '-',
+		'Ask about play times, current host and what went wrong before in your reply.',
 		'',
 		'Reply to this email to answer the applicant directly.',
 	];
-	// JSON body, so user text cannot reach raw headers; line breaks in the name are flattened anyway.
-	const subject = `Zomboid server application #${id}: ${v.name.slice(0, 40)} (${v.group_size})`.replace(/[\r\n]+/g, ' ');
+	// JSON body, so user text cannot reach raw headers; every field is already single-line.
+	const subject = `Zomboid server application #${id}: ${v.email.slice(0, 60)} (${v.group_size})`;
 
 	// The mock override is honoured only under local `wrangler dev`, so the key never goes elsewhere.
 	const endpoint = local && env.RESEND_API_URL ? env.RESEND_API_URL : 'https://api.resend.com/emails';

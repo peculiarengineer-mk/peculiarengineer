@@ -8,31 +8,35 @@ const RUNBOOK = '/blog/project-zomboid-dedicated-server-ubuntu-26-04/';
 ---
 
 <Layout
-	title="Managed Project Zomboid Server for Your Group — Peculiar Engineer"
-	description="A private Project Zomboid dedicated server for a small group, run like production: tested backups, crash restarts, updates you can roll back, and mods checked before they touch your world. First month free for early groups."
+	title="Managed Project Zomboid Server for Modded Worlds — Peculiar Engineer"
+	description="For private groups with a modded Project Zomboid world they'd hate to lose: game updates tested on a copy first, backups whose restores are actually tested, and rollback when an update or a mod goes wrong. Founding-customer price $25 a month, first month free."
 	kind="page"
 	showDate={false}
 	heroImage={HeroImage}
 >
 	<p class="lede">
-		I wrote <a href={RUNBOOK}>the runbook</a> for running a Project Zomboid server on Ubuntu, tested it on
-		three throwaway boxes, and found the parts that bite: a default heap that gets the server OOM-killed, a
-		crash that systemd records as a success, a broken mod that hangs while systemd still reports the server
-		as running, and an update you can't undo without the right snapshot. If you'd rather play than run that
-		yourself, I'll run it for you.
+		Cheaper hosts give you a server, a control panel and a backup button. This is different: a person who looks
+		after your group's world. Game updates get tested on a copy before they reach it, backups get restored
+		to prove they work, and when an update or a mod goes wrong anyway, the world goes back to the last good backup.
+	</p>
+	<p>
+		It's for a private group with an established, modded world that has been burned before: a mod update that
+		broke the save, a game update that wouldn't load, progress lost to a backup that didn't restore. If you only
+		need a server, a regular game host is cheaper, and that's the right choice.
 	</p>
 
-	<h2>What you get</h2>
+	<h2>What I do for your world</h2>
 	<div class="table-wrap"><table>
 		<thead>
-			<tr><th>Thing that goes wrong</th><th>What I run so it doesn't ruin your weekend</th></tr>
+			<tr><th>What usually goes wrong</th><th>What I do about it</th></tr>
 		</thead>
 		<tbody>
-			<tr><td>Server crashes</td><td>Restarted automatically, back up in a few minutes</td></tr>
-			<tr><td>A mod hangs the server at load</td><td>Health check on the game port restarts it and alerts me; I pull the bad mod</td></tr>
-			<tr><td>A game update breaks your world or your mods</td><td>Snapshot before every update; rollback to the old build and the old world</td></tr>
-			<tr><td>Disk dies, or someone wrecks the base</td><td>Daily off-server backups, and I test a restore every month</td></tr>
-			<tr><td>New mod list</td><td>I boot it on a throwaway server first and tell you what fails, before it touches your world</td></tr>
+			<tr><td>A game update breaks the world</td><td>Tested on a copy of your world first, and applied only if it loads clean</td></tr>
+			<tr><td>A game update goes wrong anyway</td><td>Snapshot before every update; rollback to the old build and the old world</td></tr>
+			<tr><td>A Workshop mod update breaks the world</td><td>Mods update when the server restarts, so this can still happen. I roll back to the last backup (at most a day of progress) and hold the mod back</td></tr>
+			<tr><td>A backup that won't restore</td><td>Daily off-server backups, and a test restore every month</td></tr>
+			<tr><td>A bad mod hangs the server</td><td>Health check restarts it and alerts me; I pull the mod</td></tr>
+			<tr><td>Crashes</td><td>Restarted automatically, back in a few minutes</td></tr>
 			<tr><td>Admin chores</td><td>Whitelist, passwords, settings, resets: ask, and I do it</td></tr>
 		</tbody>
 	</table></div>
@@ -40,15 +44,14 @@ const RUNBOOK = '/blog/project-zomboid-dedicated-server-ubuntu-26-04/';
 	<h2>Who it's for</h2>
 	<ul>
 		<li>Private groups of about 5 to 10 players, one world.</li>
-		<li>Build 42, vanilla or modded (a Workshop collection is ideal).</li>
+		<li>Build 42, usually modded (a Workshop collection is ideal).</li>
 		<li>Server in the US (East). Fine for North America; laggy from far away.</li>
 	</ul>
 
 	<h2>Price</h2>
 	<p>
-		The first month is free for the first couple of groups. In exchange, I ask for honest feedback on what
-		works and what doesn't. After that it's <strong>$40 a month</strong> per group, cancel any time. If you
-		leave, you get your world save.
+		<strong>$25 a month</strong> per group, a founding-customer price. The first month is free for the first
+		couple of groups, in exchange for honest feedback. Cancel any time; if you leave, you get your world save.
 	</p>
 
 	<h2>The honest small print</h2>
@@ -58,7 +61,7 @@ const RUNBOOK = '/blog/project-zomboid-dedicated-server-ubuntu-26-04/';
 			backups at 3 a.m.; a broken mod or anything else still needs me, when I'm awake.
 		</li>
 		<li>
-			The server setup is <a href={RUNBOOK}>the public runbook</a>. Nothing is hidden, and you can always take
+			The server setup starts from <a href={RUNBOOK}>the public runbook</a>. Nothing is hidden, and you can always take
 			it and run it yourself.
 		</li>
 		<li>
@@ -68,12 +71,11 @@ const RUNBOOK = '/blog/project-zomboid-dedicated-server-ubuntu-26-04/';
 	</ul>
 
 	<h2 id="apply">Apply</h2>
+	<p>Three questions. The rest can wait until we're talking.</p>
 	<p class="form-error" id="form-error" role="alert" hidden></p>
 
 	<form class="apply" method="post" action="/api/zomboid-apply">
-		<label>Your name <input name="name" required maxlength="100" autocomplete="name" /></label>
 		<label>Email <input name="email" type="email" required maxlength="254" autocomplete="email" /></label>
-		<label>Discord handle (optional) <input name="discord" maxlength="100" /></label>
 		<label>
 			Group size
 			<select name="group_size" required>
@@ -85,14 +87,8 @@ const RUNBOOK = '/blog/project-zomboid-dedicated-server-ubuntu-26-04/';
 			</select>
 		</label>
 		<label>
-			Mods: Workshop collection link, or "vanilla"
-			<textarea name="mods" required maxlength="2000" rows="3"></textarea>
-		</label>
-		<label>When you play, with time zone (optional) <input name="schedule" maxlength="300" placeholder="e.g. Fri–Sun evenings, US Central" /></label>
-		<label>Where you host now (optional) <input name="hosting" maxlength="300" placeholder="e.g. a friend's PC, a game host" /></label>
-		<label>
-			Top three complaints about your current server (optional)
-			<textarea name="pains" maxlength="2000" rows="4"></textarea>
+			Workshop collection link (optional; leave blank for vanilla or if unsure)
+			<input name="mods" type="text" maxlength="500" inputmode="url" placeholder="https://steamcommunity.com/sharedfiles/filedetails/?id=..." />
 		</label>
 		<div class="hp" aria-hidden="true">
 			<label>Leave this empty <input name="website" tabindex="-1" autocomplete="off" /></label>
@@ -107,7 +103,7 @@ const RUNBOOK = '/blog/project-zomboid-dedicated-server-ubuntu-26-04/';
 		(function () {
 			var messages = {
 				captcha: 'The spam check did not pass. Please try again.',
-				invalid: 'Something in the form was missing, too long, or not a valid email address. Please check it and send again.',
+				invalid: 'Please check the email address and the group size, then send again.',
 				server: 'Something broke on my side. Please try again in a few minutes.',
 			};
 			var code = new URLSearchParams(location.search).get('error');
