@@ -1,13 +1,39 @@
 {
-	// Static-assets deployment for the Astro build output.
-	// No Worker script, no KV, no sessions — just serve ./dist.
+	// The Astro build output is served as static assets. A small Worker script runs
+	// only for /api/* (the managed-server application form); every other path is
+	// served straight from ./dist without invoking it.
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "peculiarengineer",
+	"main": "worker/index.ts",
 	"compatibility_date": "2025-06-01",
 	"assets": {
 		"directory": "./dist",
+		"binding": "ASSETS",
+		"run_worker_first": ["/api/*"],
 		// Serve dist/404.html for unknown paths. Workers static assets default to a
 		// bare 404 with no body; Pages would have picked the file up on its own.
 		"not_found_handling": "404-page"
+	},
+	// Applications are stored first, so a failed notification email loses nothing.
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "pe-leads",
+			"database_id": "283901f9-d470-492b-85e9-629f1b171cc1",
+			"migrations_dir": "worker/migrations"
+		}
+	],
+	// Email Routing binding: it can only send to this verified address.
+	"send_email": [
+		{
+			"name": "NOTIFY",
+			"destination_address": "minorkenkeith@gmail.com"
+		}
+	],
+	"vars": {
+		"NOTIFY_FROM": "apply@peculiarengineer.com",
+		// Must match send_email.destination_address above, or every send fails.
+		"NOTIFY_TO": "minorkenkeith@gmail.com"
 	}
+	// Secret (not in this file): TURNSTILE_SECRET, set with `wrangler secret put`.
 }

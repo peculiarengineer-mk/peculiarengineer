@@ -1,0 +1,189 @@
+---
+import HeroImage from '../../assets/project-zomboid-server-hero.png';
+import Layout from '../../layouts/BlogPost.astro';
+
+// Turnstile site key (public by design; the secret lives in the Worker).
+const TURNSTILE_SITEKEY = '0x4AAAAAAF9DDEBz6_0wP2po';
+const RUNBOOK = '/blog/project-zomboid-dedicated-server-ubuntu-26-04/';
+---
+
+<Layout
+	title="Managed Project Zomboid Server for Your Group — Peculiar Engineer"
+	description="A private Project Zomboid dedicated server for a small group, run like production: tested backups, crash restarts, updates you can roll back, and mods checked before they touch your world. First month free for early groups."
+	kind="page"
+	showDate={false}
+	heroImage={HeroImage}
+>
+	<p class="lede">
+		I wrote <a href={RUNBOOK}>the runbook</a> for running a Project Zomboid server on Ubuntu, tested it on
+		three throwaway boxes, and found the parts that bite: a default heap that gets the server OOM-killed, a
+		crash that systemd records as a success, a broken mod that hangs while systemd still reports the server
+		as running, and an update you can't undo without the right snapshot. If you'd rather play than run that
+		yourself, I'll run it for you.
+	</p>
+
+	<h2>What you get</h2>
+	<div class="table-wrap"><table>
+		<thead>
+			<tr><th>Thing that goes wrong</th><th>What I run so it doesn't ruin your weekend</th></tr>
+		</thead>
+		<tbody>
+			<tr><td>Server crashes</td><td>Restarted automatically, back up in a few minutes</td></tr>
+			<tr><td>A mod hangs the server at load</td><td>Health check on the game port restarts it and alerts me; I pull the bad mod</td></tr>
+			<tr><td>A game update breaks your world or your mods</td><td>Snapshot before every update; rollback to the old build and the old world</td></tr>
+			<tr><td>Disk dies, or someone wrecks the base</td><td>Daily off-server backups, and I test a restore every month</td></tr>
+			<tr><td>New mod list</td><td>I boot it on a throwaway server first and tell you what fails, before it touches your world</td></tr>
+			<tr><td>Admin chores</td><td>Whitelist, passwords, settings, resets: ask, and I do it</td></tr>
+		</tbody>
+	</table></div>
+
+	<h2>Who it's for</h2>
+	<ul>
+		<li>Private groups of about 5 to 10 players, one world.</li>
+		<li>Build 42, vanilla or modded (a Workshop collection is ideal).</li>
+		<li>Server in the US (East). Fine for North America; laggy from far away.</li>
+	</ul>
+
+	<h2>Price</h2>
+	<p>
+		The first month is free for the first couple of groups. In exchange, I ask for honest feedback on what
+		works and what doesn't. After that it's <strong>$40 a month</strong> per group, cancel any time. If you
+		leave, you get your world save.
+	</p>
+
+	<h2>The honest small print</h2>
+	<ul>
+		<li>
+			It's one person, not a 24/7 support desk. The automation restarts crashed or hung servers and takes
+			backups at 3 a.m.; a broken mod or anything else still needs me, when I'm awake.
+		</li>
+		<li>
+			The server setup is <a href={RUNBOOK}>the public runbook</a>. Nothing is hidden, and you can always take
+			it and run it yourself.
+		</li>
+		<li>
+			Not affiliated with or endorsed by The Indie Stone. "Project Zomboid" is used only to say which game the
+			server runs.
+		</li>
+	</ul>
+
+	<h2 id="apply">Apply</h2>
+	<p class="form-error" id="form-error" role="alert" hidden></p>
+
+	<form class="apply" method="post" action="/api/zomboid-apply">
+		<label>Your name <input name="name" required maxlength="100" autocomplete="name" /></label>
+		<label>Email <input name="email" type="email" required maxlength="254" autocomplete="email" /></label>
+		<label>Discord handle (optional) <input name="discord" maxlength="100" /></label>
+		<label>
+			Group size
+			<select name="group_size" required>
+				<option value="">Choose…</option>
+				<option value="2-4">2 to 4</option>
+				<option value="5-8">5 to 8</option>
+				<option value="9-10">9 to 10</option>
+				<option value="11+">11 or more</option>
+			</select>
+		</label>
+		<label>
+			Mods: Workshop collection link, or "vanilla"
+			<textarea name="mods" required maxlength="2000" rows="3"></textarea>
+		</label>
+		<label>When you play, with time zone (optional) <input name="schedule" maxlength="300" placeholder="e.g. Fri–Sun evenings, US Central" /></label>
+		<label>Where you host now (optional) <input name="hosting" maxlength="300" placeholder="e.g. a friend's PC, a game host" /></label>
+		<label>
+			Top three complaints about your current server (optional)
+			<textarea name="pains" maxlength="2000" rows="4"></textarea>
+		</label>
+		<div class="hp" aria-hidden="true">
+			<label>Leave this empty <input name="website" tabindex="-1" autocomplete="off" /></label>
+		</div>
+		<div class="cf-turnstile" data-sitekey={TURNSTILE_SITEKEY} data-theme="dark"></div>
+		<button type="submit">Apply</button>
+		<p class="note">Your details are only used to reply to you; I don't share them. I reply by email within a couple of days.</p>
+	</form>
+
+	<script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+	<script is:inline>
+		(function () {
+			var messages = {
+				captcha: 'The spam check did not pass. Please try again.',
+				invalid: 'Something in the form was missing, too long, or not a valid email address. Please check it and send again.',
+				server: 'Something broke on my side. Please try again in a few minutes.',
+			};
+			var code = new URLSearchParams(location.search).get('error');
+			var box = document.getElementById('form-error');
+			if (code && Object.prototype.hasOwnProperty.call(messages, code) && box) {
+				box.textContent = messages[code];
+				box.hidden = false;
+			}
+		})();
+	</script>
+</Layout>
+
+<style>
+	.lede {
+		font-size: 1.1em;
+	}
+	form.apply {
+		display: grid;
+		gap: 1em;
+		margin: 1.5em 0 2em;
+	}
+	form.apply label {
+		display: grid;
+		gap: 0.35em;
+		font-family: var(--font-mono);
+		font-size: 0.9rem;
+		color: var(--sys-dim);
+	}
+	form.apply input,
+	form.apply select,
+	form.apply textarea {
+		width: 100%;
+		box-sizing: border-box;
+		padding: 0.6em 0.7em;
+		background: var(--sys-bg);
+		color: var(--sys-text);
+		border: 1px solid var(--sys-dim);
+		border-radius: 4px;
+		font: inherit;
+		font-family: var(--font-mono);
+		font-size: max(16px, 1em); /* under 16px, iOS Safari zooms on focus */
+	}
+	form.apply input:focus,
+	form.apply select:focus,
+	form.apply textarea:focus {
+		outline: 2px solid var(--sys-fg);
+		outline-offset: 1px;
+	}
+	form.apply button {
+		justify-self: start;
+		padding: 0.6em 1.6em;
+		background: var(--sys-fg);
+		color: var(--sys-bg);
+		border: 0;
+		border-radius: 4px;
+		font-family: var(--font-mono);
+		font-weight: 700;
+		cursor: pointer;
+	}
+	form.apply .note {
+		margin: 0;
+		font-size: 0.85rem;
+		color: var(--sys-dim);
+	}
+	.hp {
+		position: absolute;
+		left: -10000px;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+	}
+	.form-error {
+		padding: 0.8em 1em;
+		border: 1px solid #ff5f56;
+		color: #ff9f99;
+		font-family: var(--font-mono);
+		font-size: 0.9rem;
+	}
+</style>

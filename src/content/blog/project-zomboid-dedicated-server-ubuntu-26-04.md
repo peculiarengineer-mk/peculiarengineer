@@ -672,4 +672,6 @@ Open the same two UDP ports in your cloud provider's firewall if it has one. The
 
 Rehearse the restore and the rollback on a box you can delete, then hand the IP to your group.
 
+> **Rather play than run it?** I run this exact setup as a managed server for small groups, first month free for early groups. [See the offer](/zomboid/).
+
 `[ WORLD SAVED ]`

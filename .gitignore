@@ -49,3 +49,7 @@ newsletter/
 reports/
 research_notes/
 .plan-gate/
+
+# local Worker secrets and state
+.dev.vars
+.wrangler/
