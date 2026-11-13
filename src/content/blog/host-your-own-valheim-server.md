@@ -245,11 +245,10 @@ Put its name in the first line below (the date will be different from mine), the
 ```bash
 f=/opt/valheim-backups/world-2026-11-13.tar.gz
 systemctl stop valheim
-mv /opt/valheim-data /opt/valheim-data.old
-tar -xzf "$f" -C /opt && s=$(date '+%F %T') && systemctl start valheim
+mv -T /opt/valheim-data /opt/valheim-data.old && tar -xzf "$f" -C /opt && s=$(date '+%F %T') && systemctl start valheim
 ```
 
-The `mv` line keeps the current world as `/opt/valheim-data.old` instead of deleting it. If the file name is wrong, `tar` says `No such file or directory` and the server stays off; see the end of this step. Wait a minute, in the same window, then check which world loaded:
+The `mv` keeps the current world as `/opt/valheim-data.old` instead of deleting it. If it says `cannot overwrite`, there's still an `.old` copy from an earlier restore and nothing else ran: delete that copy (`rm -rf /opt/valheim-data.old`) if you don't need it, then paste the last line again. If the file name is wrong, `tar` says `No such file or directory` and the server stays off; see the end of this step. Wait a minute, in the same window, then check which world loaded:
 
 ```bash
 journalctl -u valheim --since "$s" | grep -E 'ZNet.LoadWorld|missing /opt'
@@ -271,9 +270,10 @@ On my server, the restored world files matched the backup exactly.
 
 ```bash
 systemctl stop valheim
-rm -rf /opt/valheim-data
-tar -xzf "$f" -C /opt && s=$(date '+%F %T') && systemctl start valheim
+[ -d /opt/valheim-data.old ] && rm -rf /opt/valheim-data && tar -xzf "$f" -C /opt && s=$(date '+%F %T') && systemctl start valheim
 ```
+
+The `[ -d ... ]` part makes sure your old world is safe in `.old` before anything is deleted. Finish the restore before you log off: the 5:00 backup would otherwise start the server on whatever is there.
 
 Change the `f=` line first if you picked the wrong file. Also check that `WORLD=` in `/etc/valheim.env` matches the world name in the backup. If you closed the window, `$f` and `$s` are gone: set `f=` again, and check the log with `--since -3min` instead of `--since "$s"`.
 
@@ -291,7 +291,7 @@ sudo -u valheim -H /usr/games/steamcmd +force_install_dir /opt/valheim +login an
 s=$(date '+%F %T'); systemctl start valheim
 ```
 
-After a minute, check the version:
+After a minute, in the same window, check the version (if you closed it, use `--since -3min` instead of `--since "$s"`):
 
 ```bash
 journalctl -u valheim --since "$s" | grep -E 'Valheim version|ZNet.LoadWorld'
