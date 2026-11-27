@@ -1,0 +1,75 @@
+---
+import Layout from '../../../layouts/BlogPost.astro';
+---
+
+<Layout
+	title="AmberTTY support — Peculiar Engineer"
+	description="Requirements, common questions, and contact details for the AmberTTY SSH and AI Terminal app."
+	kind="page"
+	showDate={false}
+>
+	<h2>What you need</h2>
+	<ul>
+		<li>iPhone or iPad running iOS / iPadOS 18 or later</li>
+		<li>An SSH server, dev machine, homelab box, or DigitalOcean / Cloudflare account</li>
+	</ul>
+
+	<h2>Common questions</h2>
+
+	<h3>Why do AI Agent sessions use <code>tmux</code>?</h3>
+	<p>
+		iOS and iPadOS suspend background network sockets shortly after you switch apps. Running
+		Claude Code, Antigravity (<code>agy</code>), Codex, Aider, or OpenCode inside
+		<code>tmux</code> keeps your agent alive on your server even if your phone sleeps or
+		switches networks. When you return, AmberTTY reattaches to the running session with one tap.
+	</p>
+
+	<h3>Should I use a Secure Enclave key or an Ed25519 key?</h3>
+	<p>
+		<strong>Secure Enclave P-256</strong> keeps the private key inside your device hardware and
+		never leaves the device. <strong>Ed25519</strong> supports optional per-key iCloud Keychain
+		sync if you want the same key across iPhone and iPad.
+	</p>
+
+	<h3>What minimal API permissions do DigitalOcean &amp; Cloudflare need?</h3>
+	<ul>
+		<li>
+			<strong>DigitalOcean token:</strong> <code>droplet:create</code>,
+			<code>droplet:read</code>, <code>droplet:delete</code>, <code>ssh_key:create</code>,
+			<code>ssh_key:read</code>.
+		</li>
+		<li>
+			<strong>Cloudflare token:</strong> <code>Zone:DNS:Edit</code> and
+			<code>Account:Cloudflare Tunnel:Read</code>.
+		</li>
+	</ul>
+	<p>API tokens are stored strictly in this device's Keychain and are never synced to iCloud.</p>
+
+	<h3>Why does AmberTTY ask for Local Network permission?</h3>
+	<p>
+		iOS requires Local Network access to connect to SSH hosts on your LAN (such as
+		<code>192.168.x.x</code> or <code>.local</code>). If you accidentally denied it, re-enable
+		it in <strong>iOS Settings → Privacy &amp; Security → Local Network → AmberTTY</strong>.
+	</p>
+
+	<h3>How do I restore AmberTTY Pro on another device?</h3>
+	<p>
+		Open <strong>Settings → AmberTTY Pro → Restore Purchases</strong> while signed into the same
+		Apple Account used for your original purchase.
+	</p>
+
+	<h2>Contact</h2>
+	<p>
+		Email <a href="mailto:apps@peculiarengineer.com">apps@peculiarengineer.com</a> or open a bug
+		report at
+		<a href="https://github.com/peculiarengineer-mk/ambertty/issues">github.com/peculiarengineer-mk/ambertty/issues</a>.
+		Never paste private keys, passphrases, passwords, or API tokens into emails or issues.
+	</p>
+
+	<hr />
+	<p>
+		<a href="/apps/ambertty/">AmberTTY</a> ·
+		<a href="/apps/ambertty/privacy/">Privacy policy</a> ·
+		<a href="/apps/ambertty/terms/">Terms of use</a>
+	</p>
+</Layout>

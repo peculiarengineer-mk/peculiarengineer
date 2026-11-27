@@ -1,0 +1,109 @@
+---
+import Layout from '../../../layouts/BlogPost.astro';
+---
+
+<Layout
+	title="AmberTTY privacy policy — Peculiar Engineer"
+	description="What AmberTTY stores on your device, what leaves it, and how optional iCloud sync works."
+	kind="page"
+	showDate={false}
+>
+	<p><strong>Effective 27 November 2026</strong></p>
+	<p>
+		This policy covers the AmberTTY app for iPhone and iPad. This website's own cookies are
+		covered by the site's consent banner.
+	</p>
+
+	<h2>Summary</h2>
+	<ul>
+		<li>Zero analytics, zero telemetry, zero ads, and zero cross-app tracking.</li>
+		<li>AmberTTY has no backend, relay server, proxy server, or vendor user account.</li>
+		<li>App Store Privacy Nutrition Label: <strong>Data Not Collected</strong>.</li>
+		<li>SSH connections, SFTP transfers, and cloud API calls go directly from your device to your servers or providers.</li>
+	</ul>
+
+	<h2>SSH connections &amp; session data</h2>
+	<ul>
+		<li>
+			<strong>Direct device-to-server traffic:</strong> SSH sessions, SFTP transfers, and local
+			port forwards (<code>-L</code>) go directly from your device to the servers you configure.
+		</li>
+		<li>
+			<strong>In-memory scrollback:</strong> Terminal output lives in memory during an active
+			session and is not written to disk by AmberTTY.
+		</li>
+		<li>
+			<strong>App Switcher protection:</strong> AmberTTY blurs terminal views in the iOS/iPadOS
+			App Switcher and supports optional Face ID or device passcode lock.
+		</li>
+	</ul>
+
+	<h2>Keys, passwords, and cloud API tokens</h2>
+	<ul>
+		<li>
+			<strong>Secure Enclave SSH keys:</strong> On supported devices, Secure Enclave P-256
+			private keys stay inside your device's hardware Secure Enclave
+			(<code>kSecAttrAccessibleWhenUnlockedThisDeviceOnly</code>) and can never be exported or
+			synced.
+		</li>
+		<li>
+			<strong>Software keys, passwords, and known hosts:</strong> Ed25519 keys, imported keys,
+			optional saved passphrases/passwords, and Trust-On-First-Use (TOFU) host key fingerprints
+			are stored in the Apple Keychain.
+		</li>
+		<li>
+			<strong>DigitalOcean &amp; Cloudflare API tokens:</strong> Stored strictly locally in your
+			device Keychain (<code>ThisDeviceOnly</code>, <code>synchronizable: false</code>) and
+			never synced to iCloud.
+		</li>
+		<li>
+			<strong>Optional iCloud Sync:</strong> Off by default. If you enable iCloud Sync in
+			Settings, saved host configurations sync through your private Apple CloudKit container
+			(<code>iCloud.com.peculiarengineer.termapp</code>), and saved host passwords and known
+			hosts sync via Apple iCloud Keychain. Per-key iCloud Keychain sync for software keys is
+			also opt-in. The developer cannot read or access your iCloud data.
+		</li>
+	</ul>
+
+	<h2>Photos &amp; permissions</h2>
+	<ul>
+		<li>
+			<strong>Photos:</strong> Photo-to-SFTP uses Apple's system <code>PhotosPicker</code>;
+			AmberTTY sees only the single photo you choose and uploads it directly over SFTP to your
+			chosen SSH server.
+		</li>
+		<li>
+			<strong>Local Network:</strong> Requested by iOS only when connecting to LAN servers
+			(such as <code>192.168.x.x</code> or <code>.local</code>).
+		</li>
+		<li>
+			<strong>Face ID &amp; Local Notifications:</strong> Handled strictly on-device via
+			Apple frameworks; no push server is used.
+		</li>
+	</ul>
+
+	<h2>In-App Purchases</h2>
+	<p>
+		AmberTTY Pro purchases and subscriptions are processed directly by Apple via StoreKit 2.
+		AmberTTY never receives your payment details or billing identity.
+	</p>
+
+	<h2>Children</h2>
+	<p>
+		AmberTTY is not directed at children under 13 and collects nothing that identifies anyone.
+	</p>
+
+	<h2>Contact</h2>
+	<p>
+		Questions about privacy or your data:
+		<a href="mailto:apps@peculiarengineer.com">apps@peculiarengineer.com</a> or open an issue at
+		<a href="https://github.com/peculiarengineer-mk/ambertty/issues">github.com/peculiarengineer-mk/ambertty/issues</a>.
+	</p>
+
+	<hr />
+	<p>
+		<a href="/apps/ambertty/">AmberTTY</a> ·
+		<a href="/apps/ambertty/support/">Support</a> ·
+		<a href="/apps/ambertty/terms/">Terms of use</a>
+	</p>
+</Layout>

@@ -1,0 +1,80 @@
+---
+import Layout from '../../../layouts/BlogPost.astro';
+---
+
+<Layout
+	title="AmberTTY — Peculiar Engineer"
+	description="AmberTTY is a native, zero-telemetry Post-Quantum SSH client and mobile AI Agent cockpit for iPhone and iPad."
+	kind="page"
+	showDate={false}
+>
+	<p>
+		<strong>AmberTTY</strong> is a native, zero-telemetry Post-Quantum SSH client and mobile AI
+		Agent cockpit built for iPhone and iPad. Drive Claude Code, Antigravity (<code>agy</code>),
+		Codex, Aider, and OpenCode inside persistent <code>tmux</code> sessions, review Git diffs,
+		preview remote dev servers, and manage DigitalOcean and Cloudflare — with no mandatory cloud
+		account and no $120/year subscription.
+	</p>
+
+	<h2>Core SSH — Free Forever</h2>
+	<ul>
+		<li>
+			<strong>Post-Quantum Key Exchange:</strong> ML-KEM-768 + X25519 with a live
+			negotiated-cipher and security inspector.
+		</li>
+		<li>
+			<strong>Hardware-Backed Keys:</strong> Secure Enclave P-256 keys, Ed25519 keys, and
+			OpenSSH <code>~/.ssh/config</code> import.
+		</li>
+		<li>
+			<strong>Pro Networking:</strong> ProxyJump / Bastion host tunneling and SSH Agent
+			Forwarding (<code>-A</code>).
+		</li>
+		<li>
+			<strong>Crafted for iPhone &amp; iPad:</strong> Command Snippets, Apple Pro Dark &amp;
+			classic themes, Face ID / Passcode Lock with App-Switcher Privacy Veil, optional iCloud
+			Sync, iPadOS Split Panes, Widgets, Dynamic Island Live Activities, and Siri / Shortcuts.
+		</li>
+	</ul>
+
+	<h2>AmberTTY Pro ($9.99/yr with 7-day free trial, or $29.99 Lifetime)</h2>
+	<ul>
+		<li>
+			<strong>AI Agent Cockpit:</strong> Auto-discover running <code>tmux</code> AI sessions,
+			1-tap <code>tmux</code> installer &amp; resume, docked AI Quick-Action Bar
+			(<code>Approve</code>, <code>Deny</code>, <code>Esc</code>, <code>Ctrl+C</code>,
+			<code>Shift+Tab</code>, <code>/compact</code>), Multi-line Prompt Composer with Voice
+			Dictation &amp; Photo-to-SFTP Attach, and Approval/Done alerts.
+		</li>
+		<li>
+			<strong>Mobile Git Diff &amp; Status Inspector:</strong> Review agent changes with
+			color-coded hunks, copy diffs, commit, or discard without interrupting your terminal.
+		</li>
+		<li>
+			<strong>1-Tap Dev Server Preview:</strong> Auto-detect remote listening ports, spin up
+			local <code>-L</code> tunnels, and preview <code>localhost</code> in-app.
+		</li>
+		<li>
+			<strong>SFTP &amp; Port Forwarding:</strong> Browse, upload, download, and preview code
+			and images over SFTP, plus local <code>-L</code> port forwards.
+		</li>
+		<li>
+			<strong>DigitalOcean &amp; Cloudflare Built In:</strong> Manage Droplets, push SSH keys,
+			edit DNS records, and inspect Zero Trust Tunnels (API tokens stay strictly in this
+			device's Keychain).
+		</li>
+	</ul>
+
+	<h2>Open Source</h2>
+	<p>
+		AmberTTY is open source under GPLv3 at
+		<a href="https://github.com/peculiarengineer-mk/ambertty">github.com/peculiarengineer-mk/ambertty</a>.
+	</p>
+
+	<hr />
+	<p>
+		<a href="/apps/ambertty/privacy/">Privacy policy</a> ·
+		<a href="/apps/ambertty/support/">Support</a> ·
+		<a href="/apps/ambertty/terms/">Terms of use</a>
+	</p>
+</Layout>
