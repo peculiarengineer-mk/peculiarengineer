@@ -8,7 +8,7 @@ import Layout from '../../../layouts/BlogPost.astro';
 	kind="page"
 	showDate={false}
 >
-	<p><strong>Effective 26 November 2026</strong></p>
+	<p><strong>Effective 27 November 2026</strong></p>
 	<p>
 		This policy covers the Garden Sun app. This website's own cookies are covered by the site's
 		consent banner.
@@ -18,14 +18,22 @@ import Layout from '../../../layouts/BlogPost.astro';
 	<ul>
 		<li>No account, analytics, ads or tracking.</li>
 		<li>The app has no server of its own.</li>
-		<li>Your spots, beds and plant choices stay on your iPhone.</li>
+		<li>Your spots, beds, plant choices and light readings stay on your iPhone.</li>
+		<li>The Sun view, shade scan and light meter never save or send camera images.</li>
 		<li>A rounded location goes to NASA POWER to estimate typical sun hours.</li>
 		<li>Plant look-up uses Apple's Visual Look Up.</li>
 	</ul>
 
 	<h2>What the app stores on your phone</h2>
 	<ul>
-		<li>Your spots, beds and plant choices. They are deleted when you delete the app.</li>
+		<li>
+			Your spots, beds and plant choices, and each bed's shade outline from a scan or from your
+			sun and shade marks. They are deleted when you delete the app.
+		</li>
+		<li>
+			Light readings you save to a bed: the time, the estimated brightness and the sun's
+			height then.
+		</li>
 		<li>Replies from NASA POWER, cached for 30 days.</li>
 	</ul>
 	<p>
@@ -63,10 +71,13 @@ import Layout from '../../../layouts/BlogPost.astro';
 			above, to estimate typical sun hours.
 		</li>
 		<li>
-			<strong>Camera:</strong> used for the live Sun view and to photograph a plant.
+			<strong>Camera:</strong> used for the live Sun view, to scan a bed for shade, to estimate
+			how much light a spot gets, and to take a photo of a plant to look it up. The shade scan
+			looks at the camera picture on the phone to find where the sky meets trees and buildings.
+			The light meter reads the camera's exposure settings. Neither keeps nor sends any image.
 		</li>
 		<li>
-			<strong>Photos:</strong> you pick a photo with the system picker. The app sees only the
+			<strong>Photos:</strong> you can also pick a photo with the system picker. The app sees only the
 			photo you choose.
 		</li>
 	</ul>
@@ -77,7 +88,8 @@ import Layout from '../../../layouts/BlogPost.astro';
 
 	<h2>Keeping and deleting your data</h2>
 	<p>
-		Spots, beds and plant choices stay on your iPhone until you delete them with the app. To
+		Spots, beds, plant choices and light readings stay on your iPhone until you delete them with
+		the app. To
 		delete everything the app keeps, delete the app. A spot file you exported stays where you put
 		it, so delete that copy there. Cached NASA POWER replies are kept on your phone for 30 days.
 	</p>
