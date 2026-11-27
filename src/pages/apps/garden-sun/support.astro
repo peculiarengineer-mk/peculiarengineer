@@ -1,0 +1,49 @@
+---
+import Layout from '../../../layouts/BlogPost.astro';
+---
+
+<Layout
+	title="Garden Sun support — Peculiar Engineer"
+	description="Requirements, common questions and contact details for the Garden Sun iPhone app."
+	kind="page"
+	showDate={false}
+>
+	<h2>What you need</h2>
+	<ul>
+		<li>An iPhone with ARKit</li>
+		<li>iOS 17 or later</li>
+		<li>Location and camera permission</li>
+	</ul>
+
+	<h2>Common questions</h2>
+
+	<h3>Why does the sun line look off?</h3>
+	<p>Move away from metal and give the compass a moment.</p>
+
+	<h3>Why do typical sun hours need the internet?</h3>
+	<p>
+		The estimate uses data from NASA POWER, which the app fetches over the internet. The reply is
+		cached on your phone for 30 days.
+	</p>
+
+	<h3>What is the spot file for?</h3>
+	<p>
+		It's a copy of a spot's location and notes, for you to keep or send. The app can't import it
+		yet, and plant choices are not in it.
+	</p>
+
+	<h3>How do I delete everything?</h3>
+	<p>Delete the app. Spot files you exported stay where you put them, so delete those there.</p>
+
+	<h2>Contact</h2>
+	<p>
+		Email <a href="mailto:apps@peculiarengineer.com">apps@peculiarengineer.com</a>. I usually
+		reply within a few days.
+	</p>
+
+	<hr />
+	<p>
+		<a href="/apps/garden-sun/">Garden Sun</a> ·
+		<a href="/apps/garden-sun/privacy/">Privacy policy</a>
+	</p>
+</Layout>
